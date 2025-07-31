@@ -28,8 +28,10 @@ jobs:
           cd .ci_workdir
           git clone --depth 1 --branch swift-6.1.1-RELEASE https://github.com/apple/swift-format.git
           cd swift-format
-          swift build --show-bin-path -c release
-          cp .build/x86_64-unknown-linux-gnu/release /usr/local/bin
+          echo "Building swift-format"
+          BIN_PATH=$(swift build --show-bin-path -c release)
+          ls "$BIN_PATH"
+          cp "$BIN_PATH"/swift-format /usr/local/bin
 
       - name: Set up Python
         uses: actions/setup-python@v5
