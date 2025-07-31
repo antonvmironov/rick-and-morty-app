@@ -29,7 +29,8 @@ jobs:
           git clone --depth 1 --branch swift-6.1.1-RELEASE https://github.com/apple/swift-format.git
           cd swift-format
           echo "Building swift-format"
-          BIN_PATH=$(swift build --show-bin-path -c release)
+          BUILD_LOG=build.log
+          BIN_PATH=$(swift build --show-bin-path -c release > "$BUILD_LOG" 2>&1) || { echo "Build failed. Verbose output:"; cat "$BUILD_LOG"; exit 1; }
           ls "$BIN_PATH"
           cp "$BIN_PATH"/swift-format /usr/local/bin
 
