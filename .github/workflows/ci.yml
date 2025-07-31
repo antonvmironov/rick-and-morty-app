@@ -9,31 +9,30 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: swift:6.1.2
-
     steps:
-      - name: Install Git LFS
-        run: |
-          apt-get update
-          apt-get install git-lfs
-          git lfs install
-
       - name: Checkout repo with LFS
         uses: actions/checkout@v4
         with:
           lfs: true
+          path: subject
+
+      - name: Install Git LFS
+        run: |
+          apt-get update
+          apt-get install git-lfs
+          cd subject
+          git lfs install
 
       - name: Cache swift-format binary
         id: cache-swift-format
         uses: actions/cache@v4
         with:
-          path: .ci_workdir/swift-format-bin
+          path: swift-format-bin
           key: swift-format-${{ runner.os }}-v1
 
       - name: Build swift-format (only if not cached)
         if: steps.cache-swift-format.outputs.cache-hit != 'true'
         run: |
-          mkdir .ci_workdir
-          cd .ci_workdir
           git clone --depth 1 --branch swift-6.1.1-RELEASE https://github.com/apple/swift-format.git
           cd swift-format
           swift build -c release
@@ -43,7 +42,7 @@ jobs:
 
       - name: Make swift-format available
         run: |
-          cp .ci_workdir/swift-format-bin/swift-format /usr/local/bin
+          cp swift-format-bin/swift-format /usr/local/bin
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -56,4 +55,5 @@ jobs:
 
       - name: Fail if unformatted changes exist
         run: |
+          cd subject
           git diff --exit-code
