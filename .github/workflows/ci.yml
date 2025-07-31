@@ -1,0 +1,61 @@
+name: Pull Request Checks
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    container:
+      image: swift:6.1.2
+    steps:
+      - name: Install Git LFS
+        run: |
+          apt-get update
+          apt-get install -y git-lfs
+          git lfs install
+
+      - name: Checkout repo with LFS
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+          path: subject
+
+      - name: Cache swift-format binary
+        id: cache-swift-format
+        uses: actions/cache@v4
+        with:
+          path: swift-format-bin
+          key: swift-format-${{ runner.os }}-v1
+
+      - name: Build swift-format (only if not cached)
+        if: steps.cache-swift-format.outputs.cache-hit != 'true'
+        run: |
+          git clone --depth 1 --branch swift-6.1.1-RELEASE https://github.com/apple/swift-format.git
+          cd swift-format
+          swift build -c release
+          mkdir -p ../swift-format-bin
+          BIN_PATH=$(swift build --show-bin-path -c release)
+          cp "$BIN_PATH"/swift-format  ../swift-format-bin/swift-format
+
+      - name: Make swift-format available
+        run: |
+          cp swift-format-bin/swift-format /usr/local/bin
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Normalize git
+        run: |
+          cd subject
+          git add --renormalize .
+          git diff --exit-code
+
+      - name: Check Formatting
+        run: |
+          cd subject
+          ./format.py
+          git diff --exit-code
