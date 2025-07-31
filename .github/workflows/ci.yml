@@ -48,12 +48,14 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Normalize git
+        run: |
+          cd subject
+          git add --renormalize .
+          git diff --exit-code
+
       - name: Check Formatting
         run: |
           cd subject
           ./format.py
-
-      - name: Fail if unformatted changes exist
-        run: |
-          cd subject
           git diff --exit-code
