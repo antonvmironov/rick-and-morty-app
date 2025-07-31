@@ -10,18 +10,17 @@ jobs:
     container:
       image: swift:6.1.2
     steps:
+      - name: Install Git LFS
+        run: |
+          apt-get update
+          apt-get install git-lfs
+          git lfs install
+
       - name: Checkout repo with LFS
         uses: actions/checkout@v4
         with:
           lfs: true
           path: subject
-
-      - name: Install Git LFS
-        run: |
-          apt-get update
-          apt-get install git-lfs
-          cd subject
-          git lfs install
 
       - name: Cache swift-format binary
         id: cache-swift-format
