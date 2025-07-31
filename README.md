@@ -14,7 +14,10 @@ A demo app. See [the assignement](./assignment.md) and [system design](./system_
 
 ## 🛠️ Development Environment Setup
 
-1. clone this repository and navigate to the cloned directory in terminal
-2. *TBD: call install script for `brew bundle`, `tuist install`*
-3. *TBD: call workspace generation script for `tuist generate`*
-4. *TBD: call linter script for linter*
+1. Clone this repository and navigate to the cloned directory in terminal.
+2. Run `./install.py` to install all required dependencies using Homebrew and Tuist.
+	- Purpose: Sets up the development environment by installing necessary tools and packages.
+3. Run `./generate.py` to generate the Xcode project using Tuist.
+	- Purpose: Creates the Xcode workspace and project files for development.
+4. Run `./format.py` to format all Swift files in the repository using swift-format.
+	- Purpose: Ensures code style consistency by formatting Swift source files automatically.
