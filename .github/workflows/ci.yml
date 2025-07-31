@@ -50,6 +50,7 @@ jobs:
 
       - name: Check Formatting
         run: |
+          cd subject
           ./format.py
 
       - name: Fail if unformatted changes exist
