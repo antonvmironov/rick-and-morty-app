@@ -1,0 +1,47 @@
+import ProjectDescription
+
+extension Project {
+
+  public static func lib(
+    name: String,
+    product: Product = .staticFramework,
+    dependencies: [TargetDependency] = [],
+    testDependencies: [TargetDependency] = [],
+    missingTests: Bool = false,
+  ) -> Project {
+    var targets = [Target]()
+    let libraryTarget = Target.target(
+      name: name,
+      destinations: destinations,
+      product: product,
+      bundleId: libraryBundleID(name: name, product: product),
+      infoPlist: .default,
+      sources: ["Sources/**"],
+      resources: ["Resources/**"],
+      dependencies: dependencies
+    )
+    targets.append(libraryTarget)
+    if !missingTests {
+      let testTarget = Target.target(
+        name: "\(name)Tests",
+        destinations: destinations,
+        product: .unitTests,
+        bundleId: testsBundleID(name: "\(name)Tests"),
+        infoPlist: .default,
+        sources: ["Tests/**"],
+        resources: ["Fixtures/**"],
+        dependencies: [.target(name: name)] + testDependencies
+      )
+      targets.append(testTarget)
+    }
+
+    return Project(
+      name: name,
+      settings: .settings(
+        base: ["SWIFT_VERSION": "6.1"],
+      ),
+      targets: targets,
+      schemes: makeSchemes(name: name),
+    )
+  }
+}
