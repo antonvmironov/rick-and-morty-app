@@ -1,0 +1,43 @@
+name: Pull Request Checks
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    container:
+      image: swift:6.1.2
+
+    steps:
+      - name: Checkout repo with LFS
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Install swift-format
+        run: |
+          mkdir .ci_workdir
+          cd .ci_workdir
+          git clone --depth 1 --branch swift-6.1.1-RELEASE https://github.com/apple/swift-format.git
+          cd swift-format
+          swift build --show-bin-path -c release
+          cp .build/release/swift-format /usr/local/bin
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Check Formatting
+        run: |
+          ./format.py
+
+      - name: Fail if unformatted changes exist
+        run: |
+          git diff --exit-code
