@@ -1,3 +1,0 @@
-# requirements.txt - List your Python package dependencies here
-# Example:
-#requests==2.31.0

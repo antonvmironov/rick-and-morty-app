@@ -50,10 +50,6 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install Python dependencies
-        run: |
-          pip install -r requirements.txt
-
       - name: Check Formatting
         run: |
           ./format.py
