@@ -1,0 +1,7 @@
+# This file designates code owners for the repository.
+# Each line is a file pattern followed by one or more GitHub usernames or teams.
+# Example:
+# * @github-username
+# /docs/ @docs-team
+
+* @antonvmironov
