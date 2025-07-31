@@ -13,7 +13,7 @@ jobs:
       - name: Install Git LFS
         run: |
           apt-get update
-          apt-get install git-lfs
+          apt-get install -y git-lfs
           git lfs install
 
       - name: Checkout repo with LFS
