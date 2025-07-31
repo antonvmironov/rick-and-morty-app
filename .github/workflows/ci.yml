@@ -22,17 +22,28 @@ jobs:
         with:
           lfs: true
 
-      - name: Install swift-format
+      - name: Cache swift-format binary
+        id: cache-swift-format
+        uses: actions/cache@v4
+        with:
+          path: .ci_workdir/swift-format-bin
+          key: swift-format-${{ runner.os }}-v1
+
+      - name: Build swift-format (only if not cached)
+        if: steps.cache-swift-format.outputs.cache-hit != 'true'
         run: |
           mkdir .ci_workdir
           cd .ci_workdir
           git clone --depth 1 --branch swift-6.1.1-RELEASE https://github.com/apple/swift-format.git
           cd swift-format
-          echo "Building swift-format"
-          BUILD_LOG=build.log
-          BIN_PATH=$(swift build --show-bin-path -c release > "$BUILD_LOG" 2>&1) || { echo "Build failed. Verbose output:"; cat "$BUILD_LOG"; exit 1; }
-          ls "$BIN_PATH"
-          cp "$BIN_PATH"/swift-format /usr/local/bin
+          swift build -c release
+          mkdir -p ../swift-format-bin
+          BIN_PATH=$(swift build --show-bin-path -c release)
+          cp "$BIN_PATH"/swift-format  ../swift-format-bin/swift-format
+
+      - name: Make swift-format available
+        run: |
+          cp .ci_workdir/swift-format-bin/swift-format /usr/local/bin
 
       - name: Set up Python
         uses: actions/setup-python@v5
