@@ -11,6 +11,11 @@ jobs:
       image: swift:6.1.2
 
     steps:
+      - name: Install Git LFS
+        run: |
+          sudo apt-get update
+          sudo apt-get install git-lfs
+          git lfs install
       - name: Checkout repo with LFS
         uses: actions/checkout@v4
         with:
