@@ -23,14 +23,14 @@ jobs:
           path: subject
 
       - name: Cache swift-format binary
-        id: cache-swift-format
+        id: get-swift-format-from-cache
         uses: actions/cache@v4
         with:
           path: swift-format-bin
           key: swift-format-${{ runner.os }}-v1
 
       - name: Build swift-format (only if not cached)
-        if: steps.cache-swift-format.outputs.cache-hit != 'true'
+        if: steps.get-swift-format-from-cache.outputs.cache-hit != 'true'
         run: |
           git clone --depth 1 --branch swift-6.1.1-RELEASE https://github.com/apple/swift-format.git
           cd swift-format
@@ -42,6 +42,14 @@ jobs:
       - name: Make swift-format available
         run: |
           cp swift-format-bin/swift-format /usr/local/bin
+
+      - name: Store swift-format to cache
+        if: steps.get-swift-format-from-cache.outputs.cache-hit != 'true'
+        id: store-swift-format-from-cache
+        uses: actions/cache/save@v4
+        with:
+            path: swift-format-bin
+            key: swift-format-${{ runner.os }}-v1
 
       - name: Set up Python
         uses: actions/setup-python@v5
