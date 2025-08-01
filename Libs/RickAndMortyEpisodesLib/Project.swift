@@ -7,5 +7,5 @@ let project = Project.lib(
   dependencies: [
     .external(name: "ComposableArchitecture")
   ],
-  missingTests: true,
+  testPlans: ["Fixtyres/RickAndMortyEpisodesLib.xctestplan"],
 )
