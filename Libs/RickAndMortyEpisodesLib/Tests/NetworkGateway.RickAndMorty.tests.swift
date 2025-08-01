@@ -53,3 +53,22 @@ func NetworkGateway_getCharacter() async throws {
   #expect(character.name == "Rick Sanchez")
   #expect(cachedSince == MockNetworkGateway.cachedSinceDate)
 }
+
+@Test("NetworkGateway test getPageOfCharacters")
+func NetworkGateway_getPageOfCharacters() async throws {
+  let pageURL = URL(string: "https://rickandmortyapi.com/api/character?page=1")!
+  var networkGateway = MockNetworkGateway.empty()
+  try networkGateway.expect(
+    requestURL: pageURL,
+    jsonFixtureNamed: "characters_first_page"
+  )
+  let (page, cachedSince) = try await networkGateway.getPageOfCharacters(
+    pageURL: pageURL,
+    cachePolicy: .useProtocolCachePolicy
+  )
+  #expect(page.results.count > 0)
+  #expect(page.info.pages >= 1)
+  #expect(page.results.first?.id == 1)
+  #expect(page.results.first?.name == "Rick Sanchez")
+  #expect(cachedSince == MockNetworkGateway.cachedSinceDate)
+}

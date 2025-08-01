@@ -31,4 +31,18 @@ extension NetworkGateway {
     )
     return output
   }
+
+  func getPageOfCharacters(
+    pageURL: URL,
+    cachePolicy: URLRequest.CachePolicy = .useProtocolCachePolicy
+  ) async throws(NetworkError) -> (
+    output: ResponsePage<CharacterDomainModel>, cachedSince: Date?
+  ) {
+    let request = URLRequest(url: pageURL, cachePolicy: cachePolicy)
+    let output = try await get(
+      request: request,
+      output: ResponsePage<CharacterDomainModel>.self,
+    )
+    return output
+  }
 }

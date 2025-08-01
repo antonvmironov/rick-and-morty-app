@@ -25,5 +25,27 @@ struct CharacterDomainModel: Sendable,
 // Helper struct for origin and location fields
 struct Location: Codable, Equatable, Sendable {
   let name: String
-  let url: URL
+  let url: URL?
+
+  init(name: String, url: URL) {
+    self.name = name
+    self.url = url
+  }
+
+  private enum CodingKeys: String, CodingKey {
+    case name
+    case url
+  }
+
+  init(from decoder: any Decoder) throws {
+    let container = try decoder.container(keyedBy: CodingKeys.self)
+    self.name = try container.decode(String.self, forKey: .name)
+    self.url = try? container.decodeIfPresent(URL.self, forKey: .url)
+  }
+
+  func encode(to encoder: any Encoder) throws {
+    var container = encoder.container(keyedBy: CodingKeys.self)
+    try container.encode(name, forKey: .name)
+    try container.encodeIfPresent(url, forKey: .url)
+  }
 }
