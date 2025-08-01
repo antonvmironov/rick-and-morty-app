@@ -26,20 +26,12 @@ def brew_bundle_step():
 def tuist_install_step():
     _run_install_step(name='Install Tuist', emoji='🚀', cmd=['tuist', 'install'])
 
-def pip_install_step():
-    _run_install_step(
-        name='Install Python dependencies',
-        emoji='🐍',
-        cmd=['pip', 'install', '-r', 'requirements.txt']
-    )
-
 def main():
     import time
     print("🔧\tStarting installation process...")
     start = time.time()
     brew_bundle_step()
     tuist_install_step()
-    pip_install_step()
     elapsed = time.time() - start
     print(f"🎉\tAll steps completed successfully! (total time: {elapsed:.2f} seconds)")
 
