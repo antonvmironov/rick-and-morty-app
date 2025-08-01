@@ -1,0 +1,26 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Format Swift (Rick and Morty app)",
+      "type": "shell",
+      "command": "./format.py",
+      "group": "build",
+      "presentation": { "reveal": "always" }
+    },
+    {
+      "label": "Generate Xcode Project (Rick and Morty app)",
+      "type": "shell",
+      "command": "./generate.py",
+      "group": "build",
+      "presentation": { "reveal": "always" }
+    },
+    {
+      "label": "Install Dependencies (Rick and Morty app)",
+      "type": "shell",
+      "command": "./install.py",
+      "group": "build",
+      "presentation": { "reveal": "always" }
+    }
+  ]
+}
