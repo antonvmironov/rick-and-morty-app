@@ -6,16 +6,21 @@ import SwiftUI
 public enum RootFeature {
   // constants and shared functions go here
 
+  static let exampleAPIURL = URL(string: "https://example.com/api/")!
+
   @MainActor
-  public static func rootView() -> some View {
+  public static func rootView(apiURL: URL) -> some View {
+    let store = EpisodeListStore.initial(apiURL: apiURL) { deps in
+      deps.networkGateway = ProdNetworkGateway.build()
+    }
     return RootView(
-      episodeListStore: EpisodeListStore.initial()
+      episodeListStore: store
     )
   }
 }
 
 public struct RootView: View {
-  @Bindable var episodeListStore: EpisodeListStore
+  var episodeListStore: EpisodeListStore
 
   init(episodeListStore: EpisodeListStore) {
     self.episodeListStore = episodeListStore
@@ -27,5 +32,5 @@ public struct RootView: View {
 }
 
 #Preview {
-  RootFeature.rootView()
+  RootFeature.rootView(apiURL: RootFeature.exampleAPIURL)
 }

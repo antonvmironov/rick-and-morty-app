@@ -1,3 +1,4 @@
+import ComposableArchitecture
 import Foundation
 
 /// Network gateway is an entry point into network.
@@ -14,4 +15,15 @@ enum NetworkError: Error {
   case networkFailure(Error)
   case unprocessedStatusCode(statusCode: Int, data: Data)
   case responseDecodingFailed(Error)
+}
+
+enum NetworkGatewayKey: DependencyKey {
+  static var liveValue: NetworkGateway { fatalError("unavailable") }
+}
+
+extension DependencyValues {
+  var networkGateway: NetworkGateway {
+    get { self[NetworkGatewayKey.self] }
+    set { self[NetworkGatewayKey.self] = newValue }
+  }
 }

@@ -6,11 +6,12 @@ import Testing
 @Test("NetworkGateway test episodeList")
 func NetworkGateway_episodeList() async throws {
   let apiURL = URL(string: "https://rickandmortyapi.com/api")!
-  let mock = try MockNetworkGateway.empty().expecting(
+  var networkGateway = MockNetworkGateway.empty()
+  try networkGateway.expect(
     requestURL: apiURL,
     jsonFixtureNamed: "endpoints"
   )
-  let (endpoints, cachedSince) = try await mock.getEndpoints(
+  let (endpoints, cachedSince) = try await networkGateway.getEndpoints(
     apiURL: apiURL,
     cachePolicy: .useProtocolCachePolicy
   )
@@ -24,4 +25,19 @@ func NetworkGateway_episodeList() async throws {
     endpoints.episodes == apiURL.appendingPathComponent("episode")
   )
   #expect(cachedSince == MockNetworkGateway.cachedSinceDate)
+}
+
+extension MockNetworkGateway {
+  mutating func expect(
+    requestURL: URL,
+    statusCode: Int = 200,
+    jsonFixtureNamed fixtureName: String
+  ) throws {
+    let url = Bundle.module.url(
+      forResource: fixtureName,
+      withExtension: "json"
+    )!
+    let data = try Data(contentsOf: url)
+    expect(requestURL: requestURL, statusCode: statusCode, data: data)
+  }
 }
