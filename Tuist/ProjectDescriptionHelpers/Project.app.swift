@@ -9,7 +9,7 @@ extension Project {
   ) -> Project {
     var targets = [Target]()
 
-    do { // app target declaration
+    do {  // app target declaration
       let infoPlist: [String: Plist.Value] = [
         "CFBundleShortVersionString": "2025.07.31",
         "CFBundleVersion": "1",
