@@ -3,9 +3,9 @@ import Testing
 
 @testable import RickAndMortyEpisodesLib
 
-@Test("RickAndMortyCharacterDomainModel Codable conformance")
-func RickAndMortyCharacterDomainModel_Codable_conformance() throws {
-  let character = RickAndMortyCharacterDomainModel(
+@Test("CharacterDomainModel Codable conformance")
+func CharacterDomainModel_Codable_conformance() throws {
+  let character = CharacterDomainModel(
     id: rickID,
     name: rickName,
     status: .alive,
@@ -22,18 +22,18 @@ func RickAndMortyCharacterDomainModel_Codable_conformance() throws {
   try TestUtils.expectEqualityAfterCodableRoundTrip(character)
 }
 
-@Test("RickAndMortyLocation Codable conformance")
-func RickAndMortyLocation_Codable_conformance() throws {
-  let location = RickAndMortyLocation(
+@Test("Location Codable conformance")
+func Location_Codable_conformance() throws {
+  let location = Location(
     name: earthName,
     url: earthLocation1URL
   )
   try TestUtils.expectEqualityAfterCodableRoundTrip(location)
 }
 
-@Test("RickAndMortyCharacterDomainModel Equatable conformance")
-func RickAndMortyCharacterDomainModel_Equatable_conformance() {
-  let character1 = RickAndMortyCharacterDomainModel(
+@Test("CharacterDomainModel Equatable conformance")
+func CharacterDomainModel_Equatable_conformance() {
+  let character1 = CharacterDomainModel(
     id: rickID,
     name: rickName,
     status: .alive,
@@ -47,7 +47,7 @@ func RickAndMortyCharacterDomainModel_Equatable_conformance() {
     url: rickURL,
     created: rickCreatedDate
   )
-  let character2 = RickAndMortyCharacterDomainModel(
+  let character2 = CharacterDomainModel(
     id: rickID,
     name: rickName,
     status: .alive,
@@ -61,7 +61,7 @@ func RickAndMortyCharacterDomainModel_Equatable_conformance() {
     url: rickURL,
     created: rickCreatedDate
   )
-  let character3 = RickAndMortyCharacterDomainModel(
+  let character3 = CharacterDomainModel(
     id: mortyID,
     name: mortyName,
     status: .alive,
@@ -79,11 +79,11 @@ func RickAndMortyCharacterDomainModel_Equatable_conformance() {
   #expect(character1 != character3)
 }
 
-@Test("RickAndMortyLocation Equatable conformance")
-func RickAndMortyLocation_Equatable_conformance() {
-  let location1 = RickAndMortyLocation(name: earthName, url: earthLocation1URL)
-  let location2 = RickAndMortyLocation(name: earthName, url: earthLocation1URL)
-  let location3 = RickAndMortyLocation(name: marsName, url: marsLocation2URL)
+@Test("Location Equatable conformance")
+func Location_Equatable_conformance() {
+  let location1 = Location(name: earthName, url: earthLocation1URL)
+  let location2 = Location(name: earthName, url: earthLocation1URL)
+  let location3 = Location(name: marsName, url: marsLocation2URL)
   #expect(location1 == location2)
   #expect(location1 != location3)
 }
@@ -91,9 +91,9 @@ func RickAndMortyLocation_Equatable_conformance() {
 // MARK: - Test Constants
 
 @Test(
-  "RickAndMortyCharacterDomainModel decodes character_rick.json fixture correctly"
+  "CharacterDomainModel decodes character_rick.json fixture correctly"
 )
-func RickAndMortyCharacterDomainModel_decodes_fixture_correctly() throws {
+func CharacterDomainModel_decodes_fixture_correctly() throws {
   let url = Bundle.module.url(
     forResource: "character_rick",
     withExtension: "json"
@@ -101,7 +101,7 @@ func RickAndMortyCharacterDomainModel_decodes_fixture_correctly() throws {
   let data = try Data(contentsOf: url)
   let decoder = Transformers.jsonDecoder()
   let character = try decoder.decode(
-    RickAndMortyCharacterDomainModel.self,
+    CharacterDomainModel.self,
     from: data
   )
 
@@ -141,11 +141,11 @@ private let rickName = "Rick Sanchez"
 private let mortyName = "Morty Smith"
 private let earthName = "Earth"
 private let marsName = "Mars"
-private let rickOrigin = RickAndMortyLocation(
+private let rickOrigin = Location(
   name: earthName,
   url: earthLocation1URL
 )
-private let rickLocation = RickAndMortyLocation(
+private let rickLocation = Location(
   name: earthName,
   url: earthLocation20URL
 )

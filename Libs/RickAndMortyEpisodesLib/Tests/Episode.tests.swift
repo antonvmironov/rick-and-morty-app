@@ -3,9 +3,9 @@ import Testing
 
 @testable import RickAndMortyEpisodesLib
 
-@Test("RickAndMortyEpisodeDomainModel Codable conformance")
-func RickAndMortyEpisodeDomainModel_Codable_conformance() throws {
-  let episode = RickAndMortyEpisodeDomainModel(
+@Test("EpisodeDomainModel Codable conformance")
+func EpisodeDomainModel_Codable_conformance() throws {
+  let episode = EpisodeDomainModel(
     id: pilotEpisodeID,
     name: pilotEpisodeName,
     airDate: pilotEpisodeAirDate,
@@ -17,9 +17,9 @@ func RickAndMortyEpisodeDomainModel_Codable_conformance() throws {
   try TestUtils.expectEqualityAfterCodableRoundTrip(episode)
 }
 
-@Test("RickAndMortyEpisodeDomainModel Equatable conformance")
-func RickAndMortyEpisodeDomainModel_Equatable_conformance() {
-  let episode1 = RickAndMortyEpisodeDomainModel(
+@Test("EpisodeDomainModel Equatable conformance")
+func EpisodeDomainModel_Equatable_conformance() {
+  let episode1 = EpisodeDomainModel(
     id: pilotEpisodeID,
     name: pilotEpisodeName,
     airDate: pilotEpisodeAirDate,
@@ -28,7 +28,7 @@ func RickAndMortyEpisodeDomainModel_Equatable_conformance() {
     url: pilotEpisodeURL,
     created: pilotEpisodeCreatedDate
   )
-  let episode2 = RickAndMortyEpisodeDomainModel(
+  let episode2 = EpisodeDomainModel(
     id: pilotEpisodeID,
     name: pilotEpisodeName,
     airDate: pilotEpisodeAirDate,
@@ -37,7 +37,7 @@ func RickAndMortyEpisodeDomainModel_Equatable_conformance() {
     url: pilotEpisodeURL,
     created: pilotEpisodeCreatedDate
   )
-  let episode3 = RickAndMortyEpisodeDomainModel(
+  let episode3 = EpisodeDomainModel(
     id: 2,
     name: "Lawnmower Dog",
     airDate: "December 9, 2013",
@@ -51,9 +51,9 @@ func RickAndMortyEpisodeDomainModel_Equatable_conformance() {
 }
 
 @Test(
-  "RickAndMortyEpisodeDomainModel decodes episode_pilot.json fixture correctly"
+  "EpisodeDomainModel decodes episode_pilot.json fixture correctly"
 )
-func RickAndMortyEpisodeDomainModel_decodes_fixture_correctly() throws {
+func EpisodeDomainModel_decodes_fixture_correctly() throws {
   let url = Bundle.module.url(
     forResource: "episode_pilot",
     withExtension: "json"
@@ -61,7 +61,7 @@ func RickAndMortyEpisodeDomainModel_decodes_fixture_correctly() throws {
   let data = try Data(contentsOf: url)
   let decoder = Transformers.jsonDecoder()
   let episode = try decoder.decode(
-    RickAndMortyEpisodeDomainModel.self,
+    EpisodeDomainModel.self,
     from: data
   )
 

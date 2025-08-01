@@ -3,9 +3,9 @@ import Testing
 
 @testable import RickAndMortyEpisodesLib
 
-@Test("RickAndMortyLocationDomainModel Codable conformance")
-func RickAndMortyLocationDomainModel_Codable_conformance() throws {
-  let location = RickAndMortyLocationDomainModel(
+@Test("LocationDomainModel Codable conformance")
+func LocationDomainModel_Codable_conformance() throws {
+  let location = LocationDomainModel(
     id: earthLocationID,
     name: earthLocationName,
     type: earthLocationType,
@@ -17,9 +17,9 @@ func RickAndMortyLocationDomainModel_Codable_conformance() throws {
   try TestUtils.expectEqualityAfterCodableRoundTrip(location)
 }
 
-@Test("RickAndMortyLocationDomainModel Equatable conformance")
-func RickAndMortyLocationDomainModel_Equatable_conformance() {
-  let location1 = RickAndMortyLocationDomainModel(
+@Test("LocationDomainModel Equatable conformance")
+func LocationDomainModel_Equatable_conformance() {
+  let location1 = LocationDomainModel(
     id: earthLocationID,
     name: earthLocationName,
     type: earthLocationType,
@@ -28,7 +28,7 @@ func RickAndMortyLocationDomainModel_Equatable_conformance() {
     url: earthLocationURL,
     created: earthLocationCreatedDate
   )
-  let location2 = RickAndMortyLocationDomainModel(
+  let location2 = LocationDomainModel(
     id: earthLocationID,
     name: earthLocationName,
     type: earthLocationType,
@@ -37,7 +37,7 @@ func RickAndMortyLocationDomainModel_Equatable_conformance() {
     url: earthLocationURL,
     created: earthLocationCreatedDate
   )
-  let location3 = RickAndMortyLocationDomainModel(
+  let location3 = LocationDomainModel(
     id: 2,
     name: "Mars",
     type: "Planet",
@@ -51,9 +51,9 @@ func RickAndMortyLocationDomainModel_Equatable_conformance() {
 }
 
 @Test(
-  "RickAndMortyLocationDomainModel decodes location_earth1.json fixture correctly"
+  "LocationDomainModel decodes location_earth1.json fixture correctly"
 )
-func RickAndMortyLocationDomainModel_decodes_fixture_correctly() throws {
+func LocationDomainModel_decodes_fixture_correctly() throws {
   let url = Bundle.module.url(
     forResource: "location_earth1",
     withExtension: "json"
@@ -61,7 +61,7 @@ func RickAndMortyLocationDomainModel_decodes_fixture_correctly() throws {
   let data = try Data(contentsOf: url)
   let decoder = Transformers.jsonDecoder()
   let location = try decoder.decode(
-    RickAndMortyLocationDomainModel.self,
+    LocationDomainModel.self,
     from: data
   )
 

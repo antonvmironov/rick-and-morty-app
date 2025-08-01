@@ -3,9 +3,9 @@ import Testing
 
 @testable import RickAndMortyEpisodesLib
 
-@Test("RickAndMortyEndpointsDomainModel initializes with correct URLs")
-func RickAndMortyEndpointsDomainModel_initializes_with_correct_URLs() {
-  let model = RickAndMortyEndpointsDomainModel(
+@Test("EndpointsDomainModel initializes with correct URLs")
+func EndpointsDomainModel_initializes_with_correct_URLs() {
+  let model = EndpointsDomainModel(
     characters: charactersEndpointURL,
     locations: locationsEndpointURL,
     episodes: episodesEndpointURL
@@ -16,9 +16,9 @@ func RickAndMortyEndpointsDomainModel_initializes_with_correct_URLs() {
   #expect(model == model)
 }
 
-@Test("RickAndMortyEndpointsDomainModel Codable conformance")
-func RickAndMortyEndpointsDomainModel_Codable_conformance() throws {
-  let model = RickAndMortyEndpointsDomainModel(
+@Test("EndpointsDomainModel Codable conformance")
+func EndpointsDomainModel_Codable_conformance() throws {
+  let model = EndpointsDomainModel(
     characters: charactersEndpointURL,
     locations: locationsEndpointURL,
     episodes: episodesEndpointURL

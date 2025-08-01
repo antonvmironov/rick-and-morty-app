@@ -1,12 +1,12 @@
 import Foundation
 
-typealias RickAndMortyLocationID = Int
+typealias LocationID = Int
 
 /// A domain model of "location" entity in "RickAndMorty" domain.
-struct RickAndMortyLocationDomainModel: Sendable, Codable, Equatable,
+struct LocationDomainModel: Sendable, Codable, Equatable,
   Identifiable
 {
-  let id: RickAndMortyLocationID
+  let id: LocationID
   let name: String
   let type: String
   let dimension: String
