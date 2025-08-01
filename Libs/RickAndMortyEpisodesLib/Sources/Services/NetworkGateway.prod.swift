@@ -1,5 +1,6 @@
 import Foundation
 
+/// Production implementaiton of ``NetworkGateway``.
 actor ProdNetworkGateway: NetworkGateway {
   let urlCache: URLCache
   let urlSession: URLSession

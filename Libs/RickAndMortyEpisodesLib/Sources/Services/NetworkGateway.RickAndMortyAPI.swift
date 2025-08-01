@@ -1,5 +1,6 @@
 import Foundation
 
+/// This extension contains rick and morty API access.
 extension NetworkGateway {
   func getEndpoints(apiURL: URL, ignoreCache: Bool) async throws(NetworkError)
     -> EndpointsDomainModel

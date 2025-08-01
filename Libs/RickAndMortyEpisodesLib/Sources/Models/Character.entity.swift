@@ -10,7 +10,7 @@ struct ChracterDomainModel: Sendable,
 {
   let id: ChracterID
   let name: String
-  let status: ChracterStatus
+  let status: CharacterStatus
   let species: ChracterSpecies
   let type: String
   let gender: String

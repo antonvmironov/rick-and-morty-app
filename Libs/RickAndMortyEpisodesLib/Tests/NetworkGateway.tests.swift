@@ -6,7 +6,7 @@ import Testing
 @Test("NetworkGateway test episodeList")
 func NetworkGateway_episodeList() async throws {
   let apiURL = URL(string: "https://rickandmortyapi.com/api")!
-  let mock = try MockNetworkGateway.empty().expecing(
+  let mock = try MockNetworkGateway.empty().expecting(
     requestURL: apiURL,
     jsonFixtureNamed: "endpoints"
   )

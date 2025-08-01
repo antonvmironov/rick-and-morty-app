@@ -1,5 +1,6 @@
 import Foundation
 
+/// Network gateway is an entry point into network.
 protocol NetworkGateway: Sendable {
   func get<Output: Decodable>(
     request: URLRequest,
@@ -7,6 +8,7 @@ protocol NetworkGateway: Sendable {
   ) async throws(NetworkError) -> Output
 }
 
+/// Errors that ``NetworkGateway`` throws.
 enum NetworkError: Error {
   case nonHTTPResponse
   case networkFailure(Error)

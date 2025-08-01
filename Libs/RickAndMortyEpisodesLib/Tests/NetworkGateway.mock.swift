@@ -38,7 +38,7 @@ struct MockNetworkGateway: NetworkGateway {
     handlers.append(handleResponse)
   }
 
-  func expecing(
+  func expecting(
     requestURL: URL,
     statusCode: Int = 200,
     jsonFixtureNamed fixtureName: String
