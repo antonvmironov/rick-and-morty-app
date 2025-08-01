@@ -8,7 +8,7 @@ struct EndpointsDomainModel: Sendable, Codable, Equatable {
 
   static let mock = EndpointsDomainModel(
     characters: URL(string: "https://example.com/api/character")!,
-    locations: URL(string: "https://example.om/api/location")!,
+    locations: URL(string: "https://example.com/api/location")!,
     episodes: URL(string: "https://example.com/api/episode")!
   )
 }
