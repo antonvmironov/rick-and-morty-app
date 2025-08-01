@@ -75,4 +75,34 @@ extension NetworkGateway {
     )
     return output
   }
+
+  func getEpisode(
+    endpoints: EndpointsDomainModel,
+    id: EpisodeID,
+    cachePolicy: URLRequest.CachePolicy = .useProtocolCachePolicy
+  ) async throws(NetworkError) -> (
+    output: EpisodeDomainModel, cachedSince: Date?
+  ) {
+    let url = endpoints.episodes.appendingPathComponent("\(id)")
+    let request = URLRequest(url: url, cachePolicy: cachePolicy)
+    let output = try await get(
+      request: request,
+      output: EpisodeDomainModel.self,
+    )
+    return output
+  }
+
+  func getPageOfEpisodes(
+    pageURL: URL,
+    cachePolicy: URLRequest.CachePolicy = .useProtocolCachePolicy
+  ) async throws(NetworkError) -> (
+    output: ResponsePage<EpisodeDomainModel>, cachedSince: Date?
+  ) {
+    let request = URLRequest(url: pageURL, cachePolicy: cachePolicy)
+    let output = try await get(
+      request: request,
+      output: ResponsePage<EpisodeDomainModel>.self,
+    )
+    return output
+  }
 }

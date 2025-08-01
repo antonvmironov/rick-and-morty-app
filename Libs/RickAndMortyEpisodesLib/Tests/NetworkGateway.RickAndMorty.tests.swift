@@ -69,8 +69,9 @@ func NetworkGateway_getPageOfCharacters() async throws {
   )
   #expect(page.results.count > 0)
   #expect(page.info.pages >= 1)
-  #expect(page.results.first?.id == 1)
-  #expect(page.results.first?.name == "Rick Sanchez")
+  let result = page.results[0]
+  #expect(result.id == 1)
+  #expect(result.name == "Rick Sanchez")
   #expect(cachedSince == MockNetworkGateway.cachedSinceDate)
 }
 
@@ -117,9 +118,63 @@ func NetworkGateway_getPageOfLocations() async throws {
   )
   #expect(page.results.count == 20)
   #expect(page.info.pages == 7)
-  #expect(page.results.first?.id == 1)
-  #expect(page.results.first?.name == "Earth (C-137)")
-  #expect(page.results.last?.id == 20)
-  #expect(page.results.last?.name == "Earth (Replacement Dimension)")
+  var result = page.results[0]
+  #expect(result.id == 1)
+  #expect(result.name == "Earth (C-137)")
+  result = page.results[19]
+  #expect(result.id == 20)
+  #expect(result.name == "Earth (Replacement Dimension)")
+  #expect(cachedSince == MockNetworkGateway.cachedSinceDate)
+}
+
+// MARK: - episode
+
+@Test("NetworkGateway test getEpisode")
+func NetworkGateway_getEpisode() async throws {
+  let apiURL = URL(string: "https://rickandmortyapi.com/api")!
+  var networkGateway = MockNetworkGateway.empty()
+  try networkGateway.expect(
+    requestURL: apiURL,
+    jsonFixtureNamed: "endpoints"
+  )
+  let endpoints = EndpointsDomainModel.mock
+  let episodeID: EpisodeID = 1
+  let episodeURL = endpoints.episodes.appendingPathComponent("\(episodeID)")
+  try networkGateway.expect(
+    requestURL: episodeURL,
+    jsonFixtureNamed: "episode_pilot"
+  )
+  let (episode, cachedSince) = try await networkGateway.getEpisode(
+    endpoints: endpoints,
+    id: episodeID,
+    cachePolicy: .useProtocolCachePolicy
+  )
+  #expect(episode.id == episodeID)
+  #expect(episode.name == "Pilot")
+  #expect(episode.episode == "S01E01")
+  #expect(episode.characters.count == 19)
+  #expect(cachedSince == MockNetworkGateway.cachedSinceDate)
+}
+
+@Test("NetworkGateway test getPageOfEpisodes")
+func NetworkGateway_getPageOfEpisodes() async throws {
+  let pageURL = URL(string: "https://rickandmortyapi.com/api/episode?page=1")!
+  var networkGateway = MockNetworkGateway.empty()
+  try networkGateway.expect(
+    requestURL: pageURL,
+    jsonFixtureNamed: "episodes_first_page"
+  )
+  let (page, cachedSince) = try await networkGateway.getPageOfEpisodes(
+    pageURL: pageURL,
+    cachePolicy: .useProtocolCachePolicy
+  )
+  #expect(page.results.count == 20)
+  #expect(page.info.pages == 3)
+  var result = page.results[0]
+  #expect(result.id == 1)
+  #expect(result.name == "Pilot")
+  result = page.results[19]
+  #expect(result.id == 20)
+  #expect(result.name == "Look Who's Purging Now")
   #expect(cachedSince == MockNetworkGateway.cachedSinceDate)
 }
