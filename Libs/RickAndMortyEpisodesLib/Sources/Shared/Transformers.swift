@@ -29,4 +29,30 @@ enum Transformers {
     }
     return decoder
   }
+
+  #if DEBUG
+    static func loadFixture(
+      fixtureName: String,
+    ) throws -> Data {
+      let thisFileURL = URL(fileURLWithPath: #file)
+      let fixturesURL =
+        thisFileURL
+        .deletingLastPathComponent()
+        .deletingLastPathComponent()
+        .deletingLastPathComponent()
+        .appendingPathComponent("Fixtures", isDirectory: true)
+        .appendingPathComponent("\(fixtureName).json", isDirectory: false)
+        .standardized
+
+      return try Data(contentsOf: fixturesURL)
+    }
+
+    static func loadFixture<Output: Decodable>(
+      output: Output.Type = Output.self,
+      fixtureName: String,
+    ) throws -> Output {
+      let fixtureData = try loadFixture(fixtureName: fixtureName)
+      return try jsonDecoder().decode(Output.self, from: fixtureData)
+    }
+  #endif
 }

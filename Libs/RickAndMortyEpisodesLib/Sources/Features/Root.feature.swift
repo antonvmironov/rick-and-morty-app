@@ -6,8 +6,6 @@ import SwiftUI
 public enum RootFeature {
   // constants and shared functions go here
 
-  static let exampleAPIURL = URL(string: "https://example.com/api/")!
-
   @MainActor
   public static func rootView(apiURL: URL) -> some View {
     let store = EpisodeListStore.initial(apiURL: apiURL) { deps in
@@ -32,5 +30,5 @@ public struct RootView: View {
 }
 
 #Preview {
-  RootFeature.rootView(apiURL: RootFeature.exampleAPIURL)
+  RootFeature.rootView(apiURL: MockNetworkGateway.exampleAPIURL)
 }
