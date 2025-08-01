@@ -3,18 +3,18 @@ import Foundation
 import SwiftUI
 
 /// Namespace for the EpisodeList feature. Serves as an anchor for project navigation.
-public enum EpisodeListFeature {
+enum EpisodeListFeature {
   // constants and shared functions go here
 }
 
-public struct EpisodeListView: View {
+struct EpisodeListView: View {
   @Bindable var store: EpisodeListStore
 
-  public init(store: EpisodeListStore) {
+  init(store: EpisodeListStore) {
     self.store = store
   }
 
-  public var body: some View {
+  var body: some View {
     Button(
       action: {
         store.send(.increment)
@@ -31,15 +31,15 @@ public struct EpisodeListView: View {
   EpisodeListView(store: EpisodeListStore.preview())
 }
 
-public typealias EpisodeListStore = StoreOf<EpisodeListReducer>
-public typealias EpisodeListTestStore = TestStoreOf<EpisodeListReducer>
+typealias EpisodeListStore = StoreOf<EpisodeListReducer>
+typealias EpisodeListTestStore = TestStoreOf<EpisodeListReducer>
 
 extension EpisodeListStore {
   static func preview() -> EpisodeListStore {
     return initial()
   }
 
-  public static func initial() -> EpisodeListStore {
+  static func initial() -> EpisodeListStore {
     let state = EpisodeListState()
     return EpisodeListStore(initialState: state) {
       EpisodeListReducer()
@@ -48,10 +48,10 @@ extension EpisodeListStore {
 }
 
 @Reducer
-public struct EpisodeListReducer {
-  public typealias State = EpisodeListState
-  public typealias Action = EpisodeListAction
-  public var body: some ReducerOf<Self> {
+struct EpisodeListReducer {
+  typealias State = EpisodeListState
+  typealias Action = EpisodeListAction
+  var body: some ReducerOf<Self> {
     incrementingReducer
   }
 
@@ -67,11 +67,11 @@ public struct EpisodeListReducer {
 }
 
 @ObservableState
-public struct EpisodeListState: Equatable {
-  public var counter = 0
+struct EpisodeListState: Equatable {
+  var counter = 0
 }
 
 @CasePathable
-public enum EpisodeListAction: Equatable {
+enum EpisodeListAction: Equatable {
   case increment
 }

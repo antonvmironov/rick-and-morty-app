@@ -3,22 +3,9 @@ import RickAndMortyEpisodesLib
 import SwiftUI
 
 @main struct RickAndMortyApp: App {
-  typealias RootView = EpisodeListView
-  typealias RootStore = EpisodeListStore
-
-  let store = RootStore.app()
-  init() {
-  }
-
   var body: some Scene {
     WindowGroup {
-      RootView(store: store)
+      RickAndMortyEpisodesLib.RootFeature.rootView()
     }
-  }
-}
-
-extension RickAndMortyApp.RootStore {
-  static func app() -> RickAndMortyApp.RootStore {
-    .initial()
   }
 }

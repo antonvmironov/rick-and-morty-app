@@ -2,7 +2,7 @@ import ComposableArchitecture
 import Foundation
 
 /// A namespace for functionality shared for serialization
-enum RickAndMortyCodable {
+enum Transformers {
   static func dateFormatter() -> ISO8601DateFormatter {
     let formatter = ISO8601DateFormatter()
     formatter.formatOptions = [
