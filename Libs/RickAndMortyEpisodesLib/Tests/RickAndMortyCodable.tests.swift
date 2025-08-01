@@ -3,19 +3,19 @@ import Testing
 
 @testable import RickAndMortyEpisodesLib
 
-@Test("RickAndMortyCodable test date formatter")
-func RickAndMortyCodable_test_date_formatter() {
-  let formatter = RickAndMortyCodable.dateFormatter()
+@Test("Transformers test date formatter")
+func Transformers_test_date_formatter() {
+  let formatter = Transformers.dateFormatter()
   let actualDate = formatter.date(from: exampleDateString)
   #expect(actualDate == expectedDate)
 }
 
-@Test("RickAndMortyCodable test json decoder")
-func RickAndMortyCodable_test_json_decoder() throws {
+@Test("Transformers test json decoder")
+func Transformers_test_json_decoder() throws {
   struct DateContainer: Codable {
     var subject: Date
   }
-  let decoder = RickAndMortyCodable.jsonDecoder()
+  let decoder = Transformers.jsonDecoder()
   let jsonData = """
     {
       "subject": "\(exampleDateString)"

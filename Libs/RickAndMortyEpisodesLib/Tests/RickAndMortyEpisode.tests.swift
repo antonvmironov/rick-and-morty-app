@@ -59,7 +59,7 @@ func RickAndMortyEpisodeDomainModel_decodes_fixture_correctly() throws {
     withExtension: "json"
   )!
   let data = try Data(contentsOf: url)
-  let decoder = RickAndMortyCodable.jsonDecoder()
+  let decoder = Transformers.jsonDecoder()
   let episode = try decoder.decode(
     RickAndMortyEpisodeDomainModel.self,
     from: data

@@ -14,19 +14,28 @@
 - [Swift Composable Architecture](https://github.com/pointfreeco/swift-composable-architecture) as the backbone of main actor logic management
 - [SwiftUI](https://developer.apple.com/swiftui/) as the backbone of the user experience
 
+
 ## Module Organization
 
-- `RickAndMortyApp` for the app deliverable, declared as an app target in Tuist
-- `RickAndMortyEpisodesModule` as **a feature module**, declared as a library target in Tuist. This module contains all the features from [the assignment](./assignment.md), including the episodes list (`EpisodeList.feature.swift`), episode details (`EpisodeDetails.feature.swift`), character details (`CharacterDetails.feature.swift`), etc., with a `RickAndMortyService` coordinating:
-    - network communication through `RickAndMortyNetworkGateway` connected to the [API](https://rickandmortyapi.com/documentation/#rest)
-    - persistence through SwiftData
-    - validation, error handling, etc.
-- (placeholder) `SharedModule` as a utility module containing reusable primitives, extensions, etc.
+- `RickAndMortyApp`: The main app deliverable, declared as an app target in Tuist.
+- `RickAndMortyEpisodesLib`: A **feature module**, declared as a library target in Tuist. This module contains all the features from [the assignment](./assignment.md), including:
+        - Episodes list (`EpisodeList.feature.swift`)
+        - Episode details (`EpisodeDetails.feature.swift`)
+        - Character details (`CharacterDetails.feature.swift`)
+        - And more, as required by the assignment
 
-Each module consists of source files intended to be compiled for release, assets, tests, etc.
-Like any module, feature modules declare protocols, types, and functions. Unlike other modules, feature modules have a special organizational structure.
-Each **feature module consists of one or more software components**, which are cohesive collections of features.
-Additionally, feature modules include several types of **service layers** responsible for non-main actor activities: asynchronous computation, persistence, networking, etc.
+    The module is coordinated by a `RickAndMortyService`, which is responsible for:
+        - Network communication via `NetworkGateway` (connected to the [API](https://rickandmortyapi.com/documentation/#rest))
+        - Persistence using SwiftData
+        - Validation, error handling, and other cross-cutting concerns
+
+- (Planned) `SharedModule`: A utility module for reusable primitives, extensions, and shared code.
+
+Each module consists of source files, assets, and tests. Feature modules declare protocols, types, and functions, but have a special organizational structure:
+
+- **Feature modules** are composed of one or more cohesive software components (features).
+- They include **service layers** for non-main actor activities such as asynchronous computation, persistence, and networking.
+- To promote encapsulation, most declarations should remain `internal`. Selective public access to features is provided through entry points like `RootView.feature.swift`.
 
 ### Special File Types
 

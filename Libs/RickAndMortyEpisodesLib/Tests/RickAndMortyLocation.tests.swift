@@ -59,7 +59,7 @@ func RickAndMortyLocationDomainModel_decodes_fixture_correctly() throws {
     withExtension: "json"
   )!
   let data = try Data(contentsOf: url)
-  let decoder = RickAndMortyCodable.jsonDecoder()
+  let decoder = Transformers.jsonDecoder()
   let location = try decoder.decode(
     RickAndMortyLocationDomainModel.self,
     from: data
