@@ -1,7 +1,7 @@
 import Foundation
 
 /// A species of a "character" entity in "Rick and Morty app" domain.
-struct ChracterSpecies: StringRepresentable {
+struct CharacterSpecies: StringRepresentable {
   var rawValue: String
 
   init(rawValue: String) {
@@ -10,8 +10,8 @@ struct ChracterSpecies: StringRepresentable {
 }
 
 // MARK: - constants
-extension ChracterSpecies {
-  static let human: ChracterSpecies = "Human"
-  static let humanoid: ChracterSpecies = "Humanoid"
-  static let unknown: ChracterSpecies = "unknown"
+extension CharacterSpecies {
+  static let human: CharacterSpecies = "Human"
+  static let humanoid: CharacterSpecies = "Humanoid"
+  static let unknown: CharacterSpecies = "unknown"
 }

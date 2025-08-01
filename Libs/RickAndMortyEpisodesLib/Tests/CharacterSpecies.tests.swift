@@ -3,31 +3,31 @@ import Testing
 
 @testable import RickAndMortyEpisodesLib
 
-@Test("ChracterSpecies ExpressibleByStringLiteral")
-func ChracterSpecies_ExpressibleByStringLiteral() {
-  let species: ChracterSpecies = "Alien"
+@Test("CharacterSpecies ExpressibleByStringLiteral")
+func CharacterSpecies_ExpressibleByStringLiteral() {
+  let species: CharacterSpecies = "Alien"
   #expect(species.rawValue == "Alien")
   #expect(species.description == "Alien")
 }
 
-@Test("ChracterSpecies static values")
-func ChracterSpecies_static_values() {
-  #expect(ChracterSpecies.human.rawValue == "Human")
-  #expect(ChracterSpecies.humanoid.rawValue == "Humanoid")
-  #expect(ChracterSpecies.unknown.rawValue == "unknown")
+@Test("CharacterSpecies static values")
+func CharacterSpecies_static_values() {
+  #expect(CharacterSpecies.human.rawValue == "Human")
+  #expect(CharacterSpecies.humanoid.rawValue == "Humanoid")
+  #expect(CharacterSpecies.unknown.rawValue == "unknown")
 }
 
-@Test("ChracterSpecies Codable conformance")
-func ChracterSpecies_Codable_conformance() throws {
-  let species = ChracterSpecies(rawValue: "Human")
+@Test("CharacterSpecies Codable conformance")
+func CharacterSpecies_Codable_conformance() throws {
+  let species = CharacterSpecies(rawValue: "Human")
   try TestUtils.expectEqualityAfterCodableRoundTrip(species)
 }
 
-@Test("ChracterSpecies Equatable conformance")
-func ChracterSpecies_Equatable_conformance() {
-  let species1 = ChracterSpecies(rawValue: "Human")
-  let species2 = ChracterSpecies(rawValue: "Human")
-  let species3 = ChracterSpecies(rawValue: "Humanoid")
+@Test("CharacterSpecies Equatable conformance")
+func CharacterSpecies_Equatable_conformance() {
+  let species1 = CharacterSpecies(rawValue: "Human")
+  let species2 = CharacterSpecies(rawValue: "Human")
+  let species3 = CharacterSpecies(rawValue: "Humanoid")
   #expect(species1 == species2)
   #expect(species1 != species3)
 }

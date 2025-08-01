@@ -1,17 +1,17 @@
 import Foundation
 
-typealias ChracterID = Int
+typealias CharacterID = Int
 
 /// A domain model of "character" entity in "RickAndMorty" domain.
-struct ChracterDomainModel: Sendable,
+struct CharacterDomainModel: Sendable,
   Codable,
   Equatable,
   Identifiable
 {
-  let id: ChracterID
+  let id: CharacterID
   let name: String
   let status: CharacterStatus
-  let species: ChracterSpecies
+  let species: CharacterSpecies
   let type: String
   let gender: String
   let origin: Location

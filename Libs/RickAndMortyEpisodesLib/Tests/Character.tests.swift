@@ -3,9 +3,9 @@ import Testing
 
 @testable import RickAndMortyEpisodesLib
 
-@Test("ChracterDomainModel Codable conformance")
-func ChracterDomainModel_Codable_conformance() throws {
-  let character = ChracterDomainModel(
+@Test("CharacterDomainModel Codable conformance")
+func CharacterDomainModel_Codable_conformance() throws {
+  let character = CharacterDomainModel(
     id: rickID,
     name: rickName,
     status: .alive,
@@ -31,9 +31,9 @@ func Location_Codable_conformance() throws {
   try TestUtils.expectEqualityAfterCodableRoundTrip(location)
 }
 
-@Test("ChracterDomainModel Equatable conformance")
-func ChracterDomainModel_Equatable_conformance() {
-  let character1 = ChracterDomainModel(
+@Test("CharacterDomainModel Equatable conformance")
+func CharacterDomainModel_Equatable_conformance() {
+  let character1 = CharacterDomainModel(
     id: rickID,
     name: rickName,
     status: .alive,
@@ -47,7 +47,7 @@ func ChracterDomainModel_Equatable_conformance() {
     url: rickURL,
     created: rickCreatedDate
   )
-  let character2 = ChracterDomainModel(
+  let character2 = CharacterDomainModel(
     id: rickID,
     name: rickName,
     status: .alive,
@@ -61,7 +61,7 @@ func ChracterDomainModel_Equatable_conformance() {
     url: rickURL,
     created: rickCreatedDate
   )
-  let character3 = ChracterDomainModel(
+  let character3 = CharacterDomainModel(
     id: mortyID,
     name: mortyName,
     status: .alive,
@@ -91,9 +91,9 @@ func Location_Equatable_conformance() {
 // MARK: - Test Constants
 
 @Test(
-  "ChracterDomainModel decodes character_rick.json fixture correctly"
+  "CharacterDomainModel decodes character_rick.json fixture correctly"
 )
-func ChracterDomainModel_decodes_fixture_correctly() throws {
+func CharacterDomainModel_decodes_fixture_correctly() throws {
   let url = Bundle.module.url(
     forResource: "character_rick",
     withExtension: "json"
@@ -101,7 +101,7 @@ func ChracterDomainModel_decodes_fixture_correctly() throws {
   let data = try Data(contentsOf: url)
   let decoder = Transformers.jsonDecoder()
   let character = try decoder.decode(
-    ChracterDomainModel.self,
+    CharacterDomainModel.self,
     from: data
   )
 
