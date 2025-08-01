@@ -31,7 +31,13 @@ jobs:
 
       - name: Build swift-format (only if not cached)
         if: steps.get-swift-format-from-cache.outputs.cache-hit != 'true'
-        run: subject/ci/build_swift_format.sh
+        run: |
+          git clone --depth 1 --branch swift-6.1.1-RELEASE https://github.com/apple/swift-format.git
+          cd swift-format
+          swift build -c release
+          mkdir -p ../swift-format-bin
+          BIN_PATH=$(swift build --show-bin-path -c release)
+          cp "$BIN_PATH"/swift-format  ../swift-format-bin/swift-format
 
       - name: Save swift-format to cache (only if not cached)
         if: steps.get-swift-format-from-cache.outputs.cache-hit != 'true'
@@ -50,7 +56,14 @@ jobs:
           python-version: '3.11'
 
       - name: Check if git is normalized
-        run: subject/ci/check_git_normal.sh
+        run: |
+          cd subject
+          git add --renormalize .
+          git diff --exit-code
 
       - name: Check Code Formatting (Swift)
-        run: subject/ci/check_swift_format.sh
+        run: |
+          cd subject
+          ./format.py
+          git diff --exit-code
+
