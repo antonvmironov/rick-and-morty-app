@@ -1,10 +1,11 @@
 import ProjectDescription
 
-func makeSchemes(name: String) -> [Scheme] {
+func makeSchemes(
+  name: String,
+  testPlans: [Path],
+) -> [Scheme] {
   let targetRef = TargetReference(stringLiteral: name)
-  let testAction = TestAction.testPlans([
-    // TODO: add plans like: "Fixtures/Default.xctestplan"
-  ])
+  let testAction = TestAction.testPlans(testPlans)
   let buildAction = BuildAction.buildAction(targets: [targetRef])
   let runAction = RunAction.runAction(
     diagnosticsOptions: .options(mainThreadCheckerEnabled: true)

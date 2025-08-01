@@ -24,7 +24,7 @@ jobs:
 
       - name: Cache swift-format binary
         id: get-swift-format-from-cache
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
           path: swift-format-bin
           key: swift-format-${{ runner.os }}-v1
@@ -39,31 +39,31 @@ jobs:
           BIN_PATH=$(swift build --show-bin-path -c release)
           cp "$BIN_PATH"/swift-format  ../swift-format-bin/swift-format
 
+      - name: Save swift-format to cache (only if not cached)
+        if: steps.get-swift-format-from-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: swift-format-bin
+          key: swift-format-${{ runner.os }}-v1
+
       - name: Make swift-format available
         run: |
           cp swift-format-bin/swift-format /usr/local/bin
-
-      - name: Store swift-format to cache
-        if: steps.get-swift-format-from-cache.outputs.cache-hit != 'true'
-        id: store-swift-format-from-cache
-        uses: actions/cache/save@v4
-        with:
-            path: swift-format-bin
-            key: swift-format-${{ runner.os }}-v1
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Normalize git
+      - name: Check if git is normalized
         run: |
           cd subject
           git add --renormalize .
           git diff --exit-code
 
-      - name: Check Formatting
+      - name: Check Code Formatting (Swift)
         run: |
           cd subject
           ./format.py
           git diff --exit-code
+

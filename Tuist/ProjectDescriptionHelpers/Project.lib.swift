@@ -7,7 +7,7 @@ extension Project {
     product: Product = .staticFramework,
     dependencies: [TargetDependency] = [],
     testDependencies: [TargetDependency] = [],
-    missingTests: Bool = false,
+    testPlans: [Path] = [],
   ) -> Project {
     var targets = [Target]()
     let libraryTarget = Target.target(
@@ -21,7 +21,7 @@ extension Project {
       dependencies: dependencies
     )
     targets.append(libraryTarget)
-    if !missingTests {
+    if !testPlans.isEmpty {
       let testTarget = Target.target(
         name: "\(name)Tests",
         destinations: destinations,
@@ -41,7 +41,7 @@ extension Project {
         base: ["SWIFT_VERSION": "6.1"],
       ),
       targets: targets,
-      schemes: makeSchemes(name: name),
+      schemes: makeSchemes(name: name, testPlans: testPlans),
     )
   }
 }

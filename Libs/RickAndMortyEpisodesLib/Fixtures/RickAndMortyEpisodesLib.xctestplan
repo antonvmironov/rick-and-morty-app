@@ -1,0 +1,24 @@
+{
+  "configurations" : [
+    {
+      "id" : "199714A2-60EB-4D0E-8068-E6F57B79C076",
+      "name" : "Configuration 1",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:RickAndMortyEpisodesLib.xcodeproj",
+        "identifier" : "FC051AE82ED6D6E8D7C42375",
+        "name" : "RickAndMortyEpisodesLibTests"
+      }
+    }
+  ],
+  "version" : 1
+}
