@@ -5,6 +5,8 @@ import SwiftUI
 /// Namespace for the EpisodeList feature. Serves as an anchor for project navigation.
 enum EpisodeListFeature {
   // constants and shared functions go here
+
+  static var exampleAPIURL: URL { RootFeature.exampleAPIURL }
 }
 
 struct EpisodeListView: View {
@@ -36,14 +38,26 @@ typealias EpisodeListTestStore = TestStoreOf<EpisodeListReducer>
 
 extension EpisodeListStore {
   static func preview() -> EpisodeListStore {
-    return initial()
+    return initial(
+      apiURL: EpisodeListFeature.exampleAPIURL
+    ) { deps in
+      deps.networkGateway = MockNetworkGateway.empty()
+    }
   }
 
-  static func initial() -> EpisodeListStore {
+  static func initial(
+    apiURL: URL,
+    withDependencies setupDependencies: @escaping (inout DependencyValues) ->
+      Void
+  ) -> EpisodeListStore {
     let state = EpisodeListState()
-    return EpisodeListStore(initialState: state) {
-      EpisodeListReducer()
-    }
+    return EpisodeListStore(
+      initialState: state,
+      reducer: {
+        EpisodeListReducer()
+      },
+      withDependencies: setupDependencies
+    )
   }
 }
 

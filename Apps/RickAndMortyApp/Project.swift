@@ -9,5 +9,8 @@ let project = Project.app(
       target: "RickAndMortyEpisodesLib",
       path: "//Libs/RickAndMortyEpisodesLib"
     ),
-  ]
+  ],
+  testPlans: [
+    "Fixtures/RickAndMortyApp.xctestplan"
+  ],
 )

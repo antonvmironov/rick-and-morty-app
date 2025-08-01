@@ -1,0 +1,31 @@
+{
+  "configurations" : [
+    {
+      "id" : "46680AB3-FCFB-4A91-88AD-F7DF6EC20219",
+      "name" : "Configuration 1",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "testTimeoutsEnabled" : true
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:..\/..\/Libs\/RickAndMortyEpisodesLib\/RickAndMortyEpisodesLib.xcodeproj",
+        "identifier" : "FC051AE82ED6D6E8D7C42375",
+        "name" : "RickAndMortyEpisodesLibTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:RickAndMortyApp.xcodeproj",
+        "identifier" : "B91F180BC2F4EF54620F29E8",
+        "name" : "RickAndMortyAppTests"
+      }
+    }
+  ],
+  "version" : 1
+}

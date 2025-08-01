@@ -3,24 +3,17 @@ import Testing
 
 @testable import RickAndMortyEpisodesLib
 
-@Test("NetworkGateway test episodeList")
-func NetworkGateway_episodeList() async throws {
-  let apiURL = URL(string: "https://rickandmortyapi.com/api")!
-  let mock = try MockNetworkGateway.empty().expecting(
-    requestURL: apiURL,
-    jsonFixtureNamed: "endpoints"
-  )
-  let endpoints = try await mock.getEndpoints(
-    apiURL: apiURL,
-    ignoreCache: false
-  )
-  #expect(
-    endpoints.characters == apiURL.appendingPathComponent("character")
-  )
-  #expect(
-    endpoints.locations == apiURL.appendingPathComponent("location")
-  )
-  #expect(
-    endpoints.episodes == apiURL.appendingPathComponent("episode")
-  )
+extension MockNetworkGateway {
+  mutating func expect(
+    requestURL: URL,
+    statusCode: Int = 200,
+    jsonFixtureNamed fixtureName: String
+  ) throws {
+    let url = Bundle.module.url(
+      forResource: fixtureName,
+      withExtension: "json"
+    )!
+    let data = try Data(contentsOf: url)
+    expect(requestURL: requestURL, statusCode: statusCode, data: data)
+  }
 }

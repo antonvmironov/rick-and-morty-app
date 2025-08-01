@@ -1,8 +1,8 @@
 import Foundation
 
-@testable import RickAndMortyEpisodesLib
-
 struct MockNetworkGateway: NetworkGateway {
+  static let cachedSinceDate = Date(timeIntervalSinceReferenceDate: 0)
+
   typealias HandleResponse = @Sendable (URLRequest) throws -> (
     Data,
     URLResponse
@@ -13,17 +13,12 @@ struct MockNetworkGateway: NetworkGateway {
   mutating func expect(
     requestURL: URL,
     statusCode: Int = 200,
-    jsonFixtureNamed fixtureName: String
-  ) throws {
-    let url = Bundle.module.url(
-      forResource: fixtureName,
-      withExtension: "json"
-    )!
-    let data = try Data(contentsOf: url)
+    data: Data
+  ) {
     let response = HTTPURLResponse(
-      url: url,
+      url: requestURL,
       statusCode: statusCode,
-      httpVersion: "3.0",
+      httpVersion: "1.1",
       headerFields: [:],
     )!
 
@@ -38,20 +33,6 @@ struct MockNetworkGateway: NetworkGateway {
     handlers.append(handleResponse)
   }
 
-  func expecting(
-    requestURL: URL,
-    statusCode: Int = 200,
-    jsonFixtureNamed fixtureName: String
-  ) throws -> Self {
-    var new = self
-    try new.expect(
-      requestURL: requestURL,
-      statusCode: statusCode,
-      jsonFixtureNamed: fixtureName
-    )
-    return new
-  }
-
   static func empty() -> MockNetworkGateway {
     let jsonDecoder = Transformers.jsonDecoder()
     return MockNetworkGateway(
@@ -61,10 +42,10 @@ struct MockNetworkGateway: NetworkGateway {
   }
 
   @Sendable
-  func get<Output: Decodable>(
+  func get<Output: Decodable & Sendable>(
     request: URLRequest,
     output: Output.Type,
-  ) async throws(NetworkError) -> Output {
+  ) async throws(NetworkError) -> (output: Output, cachedSince: Date?) {
     // receive response
     let data: Data
     let response: URLResponse
@@ -98,9 +79,10 @@ struct MockNetworkGateway: NetworkGateway {
       )
     }
 
-    //
+    // output
     do {
-      return try jsonDecoder.decode(Output.self, from: data)
+      let output = try jsonDecoder.decode(Output.self, from: data)
+      return (output, Self.cachedSinceDate)
     } catch {
       throw NetworkError.responseDecodingFailed(error)
     }
