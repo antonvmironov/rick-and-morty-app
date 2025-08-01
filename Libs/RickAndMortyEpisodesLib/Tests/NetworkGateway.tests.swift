@@ -10,9 +10,9 @@ func NetworkGateway_episodeList() async throws {
     requestURL: apiURL,
     jsonFixtureNamed: "endpoints"
   )
-  let endpoints = try await mock.getEndpoints(
+  let (endpoints, cachedSince) = try await mock.getEndpoints(
     apiURL: apiURL,
-    ignoreCache: false
+    cachePolicy: .useProtocolCachePolicy
   )
   #expect(
     endpoints.characters == apiURL.appendingPathComponent("character")
@@ -23,4 +23,5 @@ func NetworkGateway_episodeList() async throws {
   #expect(
     endpoints.episodes == apiURL.appendingPathComponent("episode")
   )
+  #expect(cachedSince == MockNetworkGateway.cachedSinceDate)
 }

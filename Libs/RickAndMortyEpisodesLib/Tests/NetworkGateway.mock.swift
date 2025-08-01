@@ -3,6 +3,8 @@ import Foundation
 @testable import RickAndMortyEpisodesLib
 
 struct MockNetworkGateway: NetworkGateway {
+  static let cachedSinceDate = Date(timeIntervalSinceReferenceDate: 0)
+
   typealias HandleResponse = @Sendable (URLRequest) throws -> (
     Data,
     URLResponse
@@ -61,10 +63,10 @@ struct MockNetworkGateway: NetworkGateway {
   }
 
   @Sendable
-  func get<Output: Decodable>(
+  func get<Output: Decodable & Sendable>(
     request: URLRequest,
     output: Output.Type,
-  ) async throws(NetworkError) -> Output {
+  ) async throws(NetworkError) -> (output: Output, cachedSince: Date?) {
     // receive response
     let data: Data
     let response: URLResponse
@@ -98,9 +100,10 @@ struct MockNetworkGateway: NetworkGateway {
       )
     }
 
-    //
+    // output
     do {
-      return try jsonDecoder.decode(Output.self, from: data)
+      let output = try jsonDecoder.decode(Output.self, from: data)
+      return (output, Self.cachedSinceDate)
     } catch {
       throw NetworkError.responseDecodingFailed(error)
     }
