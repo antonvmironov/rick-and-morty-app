@@ -31,7 +31,7 @@ jobs:
 
       - name: Build swift-format (only if not cached)
         if: steps.get-swift-format-from-cache.outputs.cache-hit != 'true'
-        run: /ci/build_swift_format.sh
+        run: ci/build_swift_format.sh
 
       - name: Save swift-format to cache (only if not cached)
         if: steps.get-swift-format-from-cache.outputs.cache-hit != 'true'
@@ -50,7 +50,7 @@ jobs:
           python-version: '3.11'
 
       - name: Check if git is normalized
-        run: /ci/check_git_normal.sh
+        run: ci/check_git_normal.sh
 
       - name: Check Code Formatting (Swift)
-        run: /ci/check_swift_format.sh
+        run: ci/check_swift_format.sh
