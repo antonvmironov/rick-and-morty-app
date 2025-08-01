@@ -24,7 +24,7 @@ func CharacterDomainModel_Codable_conformance() throws {
 
 @Test("Location Codable conformance")
 func Location_Codable_conformance() throws {
-  let location = Location(
+  let location = CharacterLocation(
     name: earthName,
     url: earthLocation1URL
   )
@@ -81,9 +81,9 @@ func CharacterDomainModel_Equatable_conformance() {
 
 @Test("Location Equatable conformance")
 func Location_Equatable_conformance() {
-  let location1 = Location(name: earthName, url: earthLocation1URL)
-  let location2 = Location(name: earthName, url: earthLocation1URL)
-  let location3 = Location(name: marsName, url: marsLocation2URL)
+  let location1 = CharacterLocation(name: earthName, url: earthLocation1URL)
+  let location2 = CharacterLocation(name: earthName, url: earthLocation1URL)
+  let location3 = CharacterLocation(name: marsName, url: marsLocation2URL)
   #expect(location1 == location2)
   #expect(location1 != location3)
 }
@@ -141,11 +141,11 @@ private let rickName = "Rick Sanchez"
 private let mortyName = "Morty Smith"
 private let earthName = "Earth"
 private let marsName = "Mars"
-private let rickOrigin = Location(
+private let rickOrigin = CharacterLocation(
   name: earthName,
   url: earthLocation1URL
 )
-private let rickLocation = Location(
+private let rickLocation = CharacterLocation(
   name: earthName,
   url: earthLocation20URL
 )
