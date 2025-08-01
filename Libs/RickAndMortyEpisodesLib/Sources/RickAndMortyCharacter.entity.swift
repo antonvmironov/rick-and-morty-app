@@ -2,7 +2,7 @@ import Foundation
 
 typealias RickAndMortyCharacterID = Int
 
-// A domain model of "character" entity in "RickAndMorty" domain.
+/// A domain model of "character" entity in "RickAndMorty" domain.
 struct RickAndMortyCharacterDomainModel: Sendable,
   Codable,
   Equatable,

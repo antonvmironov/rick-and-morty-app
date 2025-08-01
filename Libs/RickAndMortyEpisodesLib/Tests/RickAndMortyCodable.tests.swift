@@ -6,8 +6,8 @@ import Testing
 @Test("RickAndMortyCodable test date formatter")
 func RickAndMortyCodable_test_date_formatter() {
   let formatter = RickAndMortyCodable.dateFormatter()
-  let acturalDate = formatter.date(from: exampleDateString)
-  #expect(acturalDate == expectedDate)
+  let actualDate = formatter.date(from: exampleDateString)
+  #expect(actualDate == expectedDate)
 }
 
 @Test("RickAndMortyCodable test json decoder")
