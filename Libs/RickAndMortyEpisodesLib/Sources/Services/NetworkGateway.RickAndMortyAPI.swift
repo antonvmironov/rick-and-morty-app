@@ -45,4 +45,34 @@ extension NetworkGateway {
     )
     return output
   }
+
+  func getLocation(
+    endpoints: EndpointsDomainModel,
+    id: LocationID,
+    cachePolicy: URLRequest.CachePolicy = .useProtocolCachePolicy
+  ) async throws(NetworkError) -> (
+    output: LocationDomainModel, cachedSince: Date?
+  ) {
+    let url = endpoints.locations.appendingPathComponent("\(id)")
+    let request = URLRequest(url: url, cachePolicy: cachePolicy)
+    let output = try await get(
+      request: request,
+      output: LocationDomainModel.self,
+    )
+    return output
+  }
+
+  func getPageOfLocations(
+    pageURL: URL,
+    cachePolicy: URLRequest.CachePolicy = .useProtocolCachePolicy
+  ) async throws(NetworkError) -> (
+    output: ResponsePage<LocationDomainModel>, cachedSince: Date?
+  ) {
+    let request = URLRequest(url: pageURL, cachePolicy: cachePolicy)
+    let output = try await get(
+      request: request,
+      output: ResponsePage<LocationDomainModel>.self,
+    )
+    return output
+  }
 }
