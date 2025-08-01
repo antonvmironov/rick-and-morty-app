@@ -1,7 +1,7 @@
 import Foundation
 
 /// A status of a "character" entity in "Rick and Morty app" domain.
-struct RickAndMortyCharacterStatus: StringRepresentable {
+struct ChracterStatus: StringRepresentable {
   var rawValue: String
 
   init(rawValue: String) {
@@ -10,8 +10,8 @@ struct RickAndMortyCharacterStatus: StringRepresentable {
 }
 
 // MARK: - constants
-extension RickAndMortyCharacterStatus {
-  static let alive: RickAndMortyCharacterStatus = "Alive"
-  static let dead: RickAndMortyCharacterStatus = "Dead"
-  static let unknown: RickAndMortyCharacterStatus = "unknown"
+extension ChracterStatus {
+  static let alive: ChracterStatus = "Alive"
+  static let dead: ChracterStatus = "Dead"
+  static let unknown: ChracterStatus = "unknown"
 }

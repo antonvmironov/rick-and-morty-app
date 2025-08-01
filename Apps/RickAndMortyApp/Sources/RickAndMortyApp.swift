@@ -5,7 +5,7 @@ import SwiftUI
 @main struct RickAndMortyApp: App {
   var body: some Scene {
     WindowGroup {
-      RickAndMortyEpisodesLib.RootFeature.rootView()
+      EpisodesLib.RootFeature.rootView()
     }
   }
 }

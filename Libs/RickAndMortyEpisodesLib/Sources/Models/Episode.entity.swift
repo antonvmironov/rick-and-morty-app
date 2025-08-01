@@ -1,12 +1,12 @@
 import Foundation
 
-typealias RickAndMortyEpisodeID = Int
+typealias EpisodeID = Int
 
 /// A domain model of "episode" entity in "RickAndMorty" domain.
-struct RickAndMortyEpisodeDomainModel: Sendable, Codable, Equatable,
+struct EpisodeDomainModel: Sendable, Codable, Equatable,
   Identifiable
 {
-  let id: RickAndMortyEpisodeID
+  let id: EpisodeID
   let name: String
   let airDate: String
   let episode: String
