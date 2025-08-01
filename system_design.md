@@ -26,6 +26,27 @@ Like any module, feature modules declare protocols, types, and functions. Unlike
 Each **feature module consists of one or more software components**, which are cohesive collections of features.
 Additionally, feature modules include several types of **service layers** responsible for non-main actor activities: asynchronous computation, persistence, networking, etc.
 
+### Special File Types
+
+To improve code organization and clarity, the project uses special file naming conventions:
+
+- `*.feature.swift`: These files contain the main implementation for a specific feature, such as UI, state, actions, and reducers. For example, `EpisodeList.feature.swift` defines the episode list feature’s view, state, actions, and reducer in a single, cohesive file.
+- `*.tests.swift`: These files contain unit tests for the corresponding feature or module. For example, `RickAndMortyEndpoints.tests.swift` contains tests for the endpoints and networking logic.
+- `*.model.swift`: These files declare model variants that represent a given entity. See [Model Variants](#model-variants)
+
+### Type Naming Patterns
+
+#### Features
+- `MySubjectFeature`: A namespace for shared functionality across types in this feature, and a central point for navigation.
+- `MySubjectView`: The `SwiftUI` view representing this feature.
+- `MySubjectStore`: A typealias for a swift-composable-architecture store specialized with `MySubjectReducer`.
+- `MySubjectReducer`: The implementation of a swift-composable-architecture reducer, specialized with `MySubjectState` and `MySubjectAction`.
+- `MySubjectState`: The main actor-isolated state for this feature, including UI, navigation, and business logic. Business state should focus on validation and UX process control, while complex tasks such as computation, I/O, and persistence should be delegated to a service layer.
+- `MySubjectAction`: (To be defined) Actions associated with this feature.
+
+#### Model Variants
+- `MySubjectDomainModel`: A model representing the canonical form of a subject as used within the application's core logic. It is a pure value type, conforming to Codable, Equatable, and Sendable, and is decoupled from storage, and UI-specific concerns.
+
 ## Main Actor Organization
 
 The `SwiftUI` app (`struct RickAndMortyApp: App`) is the entry point to the application. It coordinates high-level responsibilities including:
