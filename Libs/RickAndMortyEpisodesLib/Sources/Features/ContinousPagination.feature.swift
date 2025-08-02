@@ -7,40 +7,48 @@ enum ContinousPaginationFeature<
   Input: Equatable & Sendable,
   Item: Equatable & Sendable & Codable
 > {
-  typealias Output = ResponsePageContainer<Item>
-  typealias PageLoadingFeature = ProcessHostFeature<Input, Output>
+  typealias Page = ResponsePageContainer<Item>
+  typealias PageLoadingFeature = ProcessHostFeature<Input, Page>
   typealias FeatureStore = StoreOf<FeatureReducer>
   typealias TestStore = TestStoreOf<FeatureReducer>
-  typealias GetPage = @Sendable (Input) async throws -> Output
+  typealias GetPage = @Sendable (Input) async throws -> Page
+  typealias GetNextInput = @Sendable (Page) -> Input?
+  typealias IsPageFirst = @Sendable (Page) -> Bool
 
   @MainActor
   static func previewStore(
     initialInput: Input,
-    getPage: @escaping @Sendable (
-      Input
-    ) async throws -> Output,
+    getPage: @escaping GetPage,
+    getNextInput: @escaping GetNextInput,
+    isPageFirst: @escaping IsPageFirst,
     dependencies: Dependencies
   ) -> FeatureStore {
     initialStore(
       firstInput: initialInput,
       getPage: getPage,
-      withDependencies: dependencies.updateDeps
+      getNextInput: getNextInput,
+      isPageFirst: isPageFirst,
+      withDependencies: dependencies.updateDeps,
     )
   }
 
   @MainActor
   static func initialStore(
     firstInput: Input,
-    getPage: @escaping @Sendable (
-      Input
-    ) async throws -> ContinousPaginationFeature<Input, Item>.Output,
+    getPage: @escaping GetPage,
+    getNextInput: @escaping GetNextInput,
+    isPageFirst: @escaping IsPageFirst,
     withDependencies setupDependencies: @escaping (inout DependencyValues) ->
       Void
   ) -> FeatureStore {
     return FeatureStore(
       initialState: .initial(firstInput: firstInput),
       reducer: {
-        FeatureReducer(getPage: getPage)
+        FeatureReducer(
+          getPage: getPage,
+          getNextInput: getNextInput,
+          isPageFirst: isPageFirst
+        )
       },
       withDependencies: setupDependencies
     )
@@ -51,6 +59,8 @@ enum ContinousPaginationFeature<
     typealias State = FeatureState
     typealias Action = FeatureAction
     let getPage: GetPage
+    let getNextInput: GetNextInput
+    let isPageFirst: IsPageFirst
 
     var body: some ReducerOf<Self> {
       paginatonReducer
@@ -74,8 +84,14 @@ enum ContinousPaginationFeature<
             return .none
           }
           return .send(.pageLoading(.process(nextInput)))
-        case (.processing, .pageLoading(.finishProcessing(let output))):
-          state.appendPage(output)
+        case (.processing, .pageLoading(.finishProcessing(let page))):
+          if isPageFirst(page) {
+            state.reset()
+          }
+
+          state.pages.append(page)
+          state.items.append(contentsOf: page.payload.results)
+          state.nextInput = getNextInput(page)
           return .none
         default:
           return .none
@@ -101,6 +117,7 @@ enum ContinousPaginationFeature<
 
     var firstInput: Input?
     var items = [Item]()
+    var pages = [Page]()
     var nextInput: Input?
     var pageLoading: PageLoadingFeature.FeatureState = .initial()
     var needsToLoadFirstPage: Bool {
@@ -110,13 +127,9 @@ enum ContinousPaginationFeature<
       nextInput != nil
     }
 
-    mutating func appendPage(_ output: Output) {
-      // Custom logic to update items and nextInput based on output
-      // This should be implemented by the consumer
-    }
-
     mutating func reset() {
       items.removeAll()
+      pages.removeAll()
       nextInput = firstInput
     }
   }

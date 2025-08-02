@@ -135,13 +135,17 @@ enum EpisodeListFeature {
 
     var paginationReducer: some ReducerOf<Self> {
       Scope(state: \.pagination, action: \.pagination) {
-        PaginationFeature.FeatureReducer { pageURL in
-          try await networkGateway
-            .getPageOfEpisodes(
-              pageURL: pageURL,
-              cachePolicy: .returnCacheDataElseLoad
-            )
-        }
+        PaginationFeature.FeatureReducer(
+          getPage: { pageURL in
+            try await networkGateway
+              .getPageOfEpisodes(
+                pageURL: pageURL,
+                cachePolicy: .returnCacheDataElseLoad
+              )
+          },
+          getNextInput: \.payload.info.next,
+          isPageFirst: { $0.payload.info.prev == nil },
+        )
       }
     }
   }
