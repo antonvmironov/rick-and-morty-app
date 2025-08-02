@@ -1,4 +1,5 @@
 import Foundation
+import SharedLib
 
 typealias EpisodeID = Int
 
@@ -25,4 +26,9 @@ struct EpisodeDomainModel: Sendable,
     case url
     case created
   }
+
+  static let dummy: Self = Transformers.fromAssetCatalog(
+    assetName: "episode_dummy",
+    bundle: .module
+  )
 }

@@ -21,6 +21,11 @@ struct CharacterDomainModel: Sendable,
   let episode: [URL]
   let url: URL
   let created: Date
+
+  static let dummy: Self = Transformers.fromAssetCatalog(
+    assetName: "character_dummy",
+    bundle: .module
+  )
 }
 
 // Helper struct for origin and location fields

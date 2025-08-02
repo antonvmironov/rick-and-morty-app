@@ -43,8 +43,7 @@ enum EpisodeDetailsFeature {
                   .font(.caption)
                   .fontDesign(.monospaced)
               }
-              .padding(UIConstants.space)
-              .border(Color.secondary, width: UIConstants.borderRadius)
+              .tagDecoration()
               HStack {
                 Group {
                   Text(
@@ -53,8 +52,7 @@ enum EpisodeDetailsFeature {
                   .font(.caption)
                   .fontDesign(.monospaced)
                 }
-                .padding(UIConstants.space)
-                .border(Color.secondary, width: UIConstants.borderRadius)
+                .tagDecoration()
                 Spacer().frame(width: UIConstants.space)
                 Spacer()
               }
@@ -73,7 +71,7 @@ enum EpisodeDetailsFeature {
         },
         label: {
           HStack {
-            Text("characterURL: \(characterURL.absoluteString)")
+            Text("character id: \(characterURL.absoluteString)")
             Spacer()
             Image(systemName: "chevron.right")
           }

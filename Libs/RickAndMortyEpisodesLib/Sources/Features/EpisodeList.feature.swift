@@ -41,6 +41,45 @@ enum EpisodeListFeature {
         .navigationTitle("Episode List")
     }
 
+    func episodeRow(
+      episode: EpisodeDomainModel,
+      isPlaceholder: Bool
+    ) -> some View {
+      HStack {
+        ListItemFeature.FeatureView(
+          state: .init(episode: episode, isPlaceholder: isPlaceholder)
+        )
+        Spacer()
+        Image(systemName: "chevron.right")
+      }
+    }
+
+    func episodeListItems() -> some View {
+      ForEach(store.pagination.items) { episode in
+        Button(
+          action: {
+            store.send(.presetEpisode(episode))
+          },
+          label: {
+            episodeRow(episode: episode, isPlaceholder: false)
+          }
+        )
+        .listRowSeparator(.hidden)
+        .tag(episode.id)
+      }
+    }
+
+    func skeletonListItems() -> some View {
+      ForEach(
+        Array(repeatElement(EpisodeDomainModel.dummy, count: 20).enumerated()),
+        id: \.offset
+      ) { element in
+        episodeRow(episode: element.element, isPlaceholder: true)
+          .listRowSeparator(.hidden)
+          .tag(element.offset)
+      }
+    }
+
     func episodeList() -> some View {
       List {
         if let previousFailure = store.pagination.pageLoading.status
@@ -48,23 +87,12 @@ enum EpisodeListFeature {
         {
           Text("Failure \(previousFailure)")
         }
-
-        ForEach(store.pagination.items) { episode in
-          Button(
-            action: {
-              store.send(.presetEpisode(episode))
-            },
-            label: {
-              HStack {
-                ListItemFeature.FeatureView(episode: episode)
-                Spacer()
-                Image(systemName: "chevron.right")
-              }
-            }
-          )
-          .listRowSeparator(.hidden)
-          .tag(episode.id)
+        if store.pagination.items.isEmpty {
+          skeletonListItems()
+        } else {
+          episodeListItems()
         }
+
         if store.pagination.nextInput != nil {
           HStack {
             if store.pagination.pageLoading.status.isProcessing {
@@ -170,6 +198,7 @@ enum EpisodeListFeature {
 }
 
 #Preview {
+  @Previewable @State var isPlaceholder = false
   @Previewable @State var store = EpisodeListFeature.previewStore(
     dependencies: Dependencies.preview()
   )

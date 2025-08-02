@@ -1,5 +1,6 @@
 import ComposableArchitecture
 import Foundation
+import SwiftUI
 
 /// A namespace for functionality shared for serialization
 public enum Transformers {
@@ -28,6 +29,31 @@ public enum Transformers {
       }
     }
     return decoder
+  }
+
+  public static func fromAssetCatalog<Output: Decodable>(
+    output: Output.Type = Output.self,
+    assetName: String,
+    bundle: Bundle,
+  ) -> Output {
+    let jsonDecoder = jsonDecoder()
+    guard let dataAsset = NSDataAsset(name: assetName, bundle: bundle)
+    else {
+      fatalError(
+        "Asset '\(assetName)' not found in bundle \(bundle.bundleIdentifier ?? "unknown")"
+      )
+    }
+    let outputData = dataAsset.data
+    do {
+      let output = try jsonDecoder.decode(
+        Output.self,
+        from: outputData
+      )
+
+      return output
+    } catch {
+      fatalError("failed to decode \(output) from asset \(assetName)")
+    }
   }
 
   #if DEBUG
