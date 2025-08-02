@@ -85,7 +85,7 @@ struct MockNetworkGateway: NetworkGateway {
       let output = try jsonDecoder.decode(Output.self, from: data)
       return (output, Self.cachedSinceDate)
     } catch {
-      throw NetworkError.responseDecodingFailed(error)
+      throw NetworkError.responseDecodingFailed(error: error, data: data)
     }
   }
 }

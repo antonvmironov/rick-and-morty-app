@@ -10,11 +10,30 @@ protocol NetworkGateway: Sendable {
 }
 
 /// Errors that ``NetworkGateway`` throws.
-enum NetworkError: Error {
+enum NetworkError: Error, CustomDebugStringConvertible {
   case nonHTTPResponse
   case networkFailure(Error)
   case unprocessedStatusCode(statusCode: Int, data: Data)
-  case responseDecodingFailed(Error)
+  case responseDecodingFailed(error: Error, data: Data?)
+
+  var debugDescription: String {
+    switch self {
+    case .nonHTTPResponse:
+      return "NetworkError.nonHTTPResponse"
+    case .networkFailure(let error):
+      return "NetworkError.networkFailure: \(error)"
+    case .unprocessedStatusCode(let statusCode, let data):
+      let dataDesc = String(data: data, encoding: .utf8) ?? "<binary data>"
+      return
+        "NetworkError.unprocessedStatusCode(statusCode: \(statusCode), data: \(dataDesc))"
+    case .responseDecodingFailed(let error, let data):
+      let dataDesc =
+        data.map { String(data: $0, encoding: .utf8) ?? "<binary data>" }
+        ?? "nil"
+      return
+        "NetworkError.responseDecodingFailed(error: \(error), data: \(dataDesc))"
+    }
+  }
 }
 
 enum NetworkGatewayKey: DependencyKey {
