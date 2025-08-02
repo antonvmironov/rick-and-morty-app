@@ -63,11 +63,11 @@ enum ContinuousPaginationFeature<
     let isPageFirst: IsPageFirst
 
     var body: some ReducerOf<Self> {
-      paginatonReducer
+      paginationReducer
       pageLoadingReducer
     }
 
-    private var paginatonReducer: some ReducerOf<Self> {
+    private var paginationReducer: some ReducerOf<Self> {
       Reduce { state, action in
         switch (state.pageLoading.status, action) {
         case (_, .setFirstInput(let input)):
