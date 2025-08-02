@@ -13,8 +13,8 @@ public final class Dependencies: Sendable {
     return .init(networkGateway: ProdNetworkGateway.build())
   }
 
-  public static func preview() throws -> Dependencies {
-    return .init(networkGateway: try MockNetworkGateway.preview())
+  public static func preview() -> Dependencies {
+    return .init(networkGateway: try! MockNetworkGateway.preview())
   }
 
   func updateDeps(_ deps: inout DependencyValues) {

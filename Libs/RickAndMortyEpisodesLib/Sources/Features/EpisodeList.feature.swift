@@ -131,7 +131,7 @@ enum EpisodeListFeature {
 
 #Preview {
   @Previewable @State var store = EpisodeListFeature.previewStore(
-    dependencies: try! Dependencies.preview()
+    dependencies: Dependencies.preview()
   )
 
   VStack {
