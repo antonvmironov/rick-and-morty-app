@@ -1,4 +1,5 @@
 import Foundation
+import SharedLib
 
 /// A status of a "character" entity in "Rick and Morty app" domain.
 struct CharacterStatus: StringRepresentable {

@@ -2,8 +2,8 @@ import ComposableArchitecture
 import Foundation
 
 /// A namespace for functionality shared for serialization
-enum Transformers {
-  static func dateFormatter() -> ISO8601DateFormatter {
+public enum Transformers {
+  public static func dateFormatter() -> ISO8601DateFormatter {
     let formatter = ISO8601DateFormatter()
     formatter.formatOptions = [
       .withInternetDateTime,
@@ -13,7 +13,7 @@ enum Transformers {
     return formatter
   }
 
-  static func jsonDecoder() -> JSONDecoder {
+  public static func jsonDecoder() -> JSONDecoder {
     let lockedDateFormatter = LockIsolated(dateFormatter())
     let decoder = JSONDecoder()
     decoder.dateDecodingStrategy = .custom { decoder in
@@ -31,7 +31,7 @@ enum Transformers {
   }
 
   #if DEBUG
-    static func loadFixture(
+  public static func loadFixture(
       fixtureName: String,
     ) throws -> Data {
       let thisFileURL = URL(fileURLWithPath: #filePath)
@@ -47,7 +47,7 @@ enum Transformers {
       return try Data(contentsOf: fixturesURL)
     }
 
-    static func loadFixture<Output: Decodable>(
+  public static func loadFixture<Output: Decodable>(
       output: Output.Type = Output.self,
       fixtureName: String,
     ) throws -> Output {

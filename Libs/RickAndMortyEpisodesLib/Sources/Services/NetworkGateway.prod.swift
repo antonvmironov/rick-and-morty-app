@@ -1,4 +1,5 @@
 import Foundation
+import SharedLib
 
 /// Production implementaiton of ``NetworkGateway``.
 actor ProdNetworkGateway: NetworkGateway {

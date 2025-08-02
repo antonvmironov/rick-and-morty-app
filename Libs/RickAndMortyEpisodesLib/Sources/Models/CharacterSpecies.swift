@@ -1,4 +1,5 @@
 import Foundation
+import SharedLib
 
 /// A species of a "character" entity in "Rick and Morty app" domain.
 struct CharacterSpecies: StringRepresentable {

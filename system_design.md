@@ -29,7 +29,7 @@
         - Persistence using SwiftData
         - Validation, error handling, and other cross-cutting concerns
 
-- (Planned) `SharedModule`: A utility module for reusable primitives, extensions, and shared code.
+- `SharedLib`: A utility module for reusable primitives, extensions, and shared code. Also serves as an aggregator of underlying static libraries including composable architecture
 
 Each module consists of source files, assets, and tests. Feature modules declare protocols, types, and functions, but have a special organizational structure:
 

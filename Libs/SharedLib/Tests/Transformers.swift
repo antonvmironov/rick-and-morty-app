@@ -1,7 +1,7 @@
 import Foundation
 import Testing
 
-@testable import RickAndMortyEpisodesLib
+@testable import SharedLib
 
 @Test("Transformers test date formatter")
 func Transformers_test_date_formatter() {
@@ -23,22 +23,6 @@ func Transformers_test_json_decoder() throws {
     """.data(using: .utf8)!
   let container = try decoder.decode(DateContainer.self, from: jsonData)
   #expect(container.subject == expectedDate)
-}
-
-func dateFromString(_ string: String) -> Date {
-  let formatter = ISO8601DateFormatter()
-  formatter.formatOptions = [
-    .withInternetDateTime,
-    .withTimeZone,
-    .withFractionalSeconds,
-  ]
-  if let date = formatter.date(from: string) {
-    return date
-  } else {
-    fatalError(
-      "Should never happen in tests. Failed to decode from \(string)"
-    )
-  }
 }
 
 private let expectedDate = Date(timeIntervalSince1970: 1509821326.250)

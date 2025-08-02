@@ -25,6 +25,13 @@
         "identifier" : "B91F180BC2F4EF54620F29E8",
         "name" : "RickAndMortyAppTests"
       }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:..\/..\/Libs\/SharedLib\/SharedLib.xcodeproj",
+        "identifier" : "0736F0686968DBDE33FDD353",
+        "name" : "SharedLibTests"
+      }
     }
   ],
   "version" : 1

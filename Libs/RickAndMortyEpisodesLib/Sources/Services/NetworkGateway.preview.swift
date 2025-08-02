@@ -1,4 +1,5 @@
 import Foundation
+import SharedLib
 
 extension MockNetworkGateway {
   static let exampleAPIURL = URL(string: "https://rickandmortyapi.com/api/")!

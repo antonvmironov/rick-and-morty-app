@@ -5,7 +5,10 @@ let project = Project.lib(
   name: "RickAndMortyEpisodesLib",
   product: .framework,
   dependencies: [
-    .external(name: "ComposableArchitecture")
+    .project(
+      target: "SharedLib",
+      path: "//Libs/SharedLib"
+    ),
   ],
   testPlans: ["Fixtures/RickAndMortyEpisodesLib.xctestplan"],
 )

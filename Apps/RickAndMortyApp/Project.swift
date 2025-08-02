@@ -4,7 +4,6 @@ import ProjectDescriptionHelpers
 let project = Project.app(
   name: "RickAndMortyApp",
   dependencies: [
-    .external(name: "ComposableArchitecture"),
     .project(
       target: "RickAndMortyEpisodesLib",
       path: "//Libs/RickAndMortyEpisodesLib"
