@@ -30,26 +30,32 @@ struct EpisodeListView: View {
 
   var body: some View {
     VStack {
-      switch store.state.route {
+      switch store.state.loadingStatus {
       case .idle:
-        Text("Idle")
-      case .loadingEpisodeList:
-        Text("Loading...")
-      case .loadedEpisodeList(let page, let cachedSince):
-        List {
-          ForEach(page.results) { episode in
-            episodeRow(episode: episode)
-              .listRowSeparator(.hidden)
-              .tag(episode.id)
-          }
+        if store.latestController.items.isEmpty {
+          Text("TBD: display skeleton on this page while idle")
+        } else {
+          episodeList()
         }
-        .listStyle(.plain)
-      case .loadingEpisodeListFailed(let message):
+      case .loadingEpisodeList:
+        Text("TBD: display skeleton on this page while Loading")
+      case .failedToLoad(let message):
         Text("Failed \(message)")
       }
     }.onAppear {
       store.send(.episodeListDidAppear)
     }
+  }
+
+  func episodeList() -> some View {
+    List {
+      ForEach(store.latestController.items) { episode in
+        episodeRow(episode: episode)
+          .listRowSeparator(.hidden)
+          .tag(episode.id)
+      }
+    }
+    .listStyle(.plain)
   }
 
   func episodeRow(episode: EpisodeDomainModel) -> some View {
@@ -121,73 +127,82 @@ struct EpisodeListReducer {
 
   private var loadingReducer: some ReducerOf<Self> {
     Reduce { state, action in
-      switch (state.route, action) {
+      switch (state.loadingStatus, action) {
       case (.idle, .episodeListDidAppear):
         return .send(.startLoadingEpisodes)
       case (.idle, .startLoadingEpisodes):
-        state.route = .loadingEpisodeList
-        let networkGateway = self.networkGateway
-        let apiURL = self.apiURL
+        state.loadingStatus = .loadingEpisodeList
         return .run { send in
-          do {
-            let endpoints = try await networkGateway.getEndpoints(
-              apiURL: apiURL
-            ).output
-            let pageOfEpisodes = try await networkGateway.getPageOfEpisodes(
-              pageURL: endpoints.episodes,
-              cachePolicy: .returnCacheDataElseLoad
-            )
-            await send(
-              .finishLoadingEpisodes(
-                page: pageOfEpisodes.output,
-                cachedSince: pageOfEpisodes.cachedSince,
-              )
-            )
-          } catch {
-            await send(.failLoadingEpisodes(message: "\(error)"))
-          }
+          await loadPageOfEpisodesEffect(send: send)
         }.cancellable(id: "fetch-episodes")
-      case (
-        .loadingEpisodeList, .finishLoadingEpisodes(let page, let cachedSince)
-      ):
-        state.route = .loadedEpisodeList(page: page, cachedSince: cachedSince)
+      case (.loadingEpisodeList, .finishLoadingEpisodes(let page)):
+        state.loadingStatus = .idle
+        state.latestController.didLoad(page)
         return .none
       case (.loadingEpisodeList, .failLoadingEpisodes(let message)):
-        state.route = .loadingEpisodeListFailed(message: message)
+        state.loadingStatus = .failedToLoad(message: message)
         return .none
       default:
         return .none
       }
     }
   }
+
+  func loadPageOfEpisodesEffect(send: Send<Action>) async {
+    do {
+      let endpoints = try await networkGateway.getEndpoints(
+        apiURL: apiURL
+      ).output
+      let pageOfEpisodes = try await networkGateway.getPageOfEpisodes(
+        pageURL: endpoints.episodes,
+        cachePolicy: .returnCacheDataElseLoad
+      )
+      await send(.finishLoadingEpisodes(pageOfEpisodes))
+    } catch {
+      await send(.failLoadingEpisodes(message: "\(error)"))
+    }
+  }
 }
 
 @ObservableState
 struct EpisodeListState: Equatable {
-  var route = EpisodeListRoute.idle
+  var latestController = EpisodeListController()
+  var loadingStatus: EpisodeListLoadingStatus = .idle
 }
 
 @CasePathable
 enum EpisodeListAction: Equatable {
   case episodeListDidAppear
   case startLoadingEpisodes
-  case finishLoadingEpisodes(
-    page: ResponsePage<EpisodeDomainModel>,
-    cachedSince: Date?
-  )
-  case failLoadingEpisodes(
-    message: String
-  )
+  case finishLoadingEpisodes(ResponsePageContainer<EpisodeDomainModel>)
+  case failLoadingEpisodes(message: String)
 }
 
-enum EpisodeListRoute: Equatable {
+enum EpisodeListLoadingStatus: Equatable {
   case idle
   case loadingEpisodeList
-  case loadedEpisodeList(
-    page: ResponsePage<EpisodeDomainModel>,
-    cachedSince: Date?
-  )
-  case loadingEpisodeListFailed(
-    message: String
-  )
+  case failedToLoad(message: String)
+}
+
+struct EpisodeListController: Sendable, Equatable {
+  typealias Page = ResponsePageContainer<EpisodeDomainModel>
+  var pages = [Page]()
+  var items = IdentifiedArray<EpisodeID, EpisodeDomainModel>()
+
+  init() {}
+
+  mutating func didLoad(
+    _ page: ResponsePageContainer<EpisodeDomainModel>
+  ) {
+    let nextExpectedPage = pages.last?.payload.info.next
+
+    if page.payload.info.prev == nil || nextExpectedPage != page.pageURL {
+      // got a new first page. Must rebuild all items
+      items.removeAll()
+      pages.removeAll()
+    }
+
+    pages.append(page)
+    items.append(contentsOf: page.payload.results)
+  }
 }
