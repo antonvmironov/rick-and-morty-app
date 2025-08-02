@@ -1,4 +1,5 @@
 import Foundation
+import SharedLib
 
 typealias CharacterID = Int
 

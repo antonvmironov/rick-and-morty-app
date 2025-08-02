@@ -3,9 +3,12 @@ import ProjectDescriptionHelpers
 
 let project = Project.lib(
   name: "RickAndMortyEpisodesLib",
-  product: .staticLibrary,
+  product: .framework,
   dependencies: [
-    .external(name: "ComposableArchitecture")
+    .project(
+      target: "SharedLib",
+      path: "//Libs/SharedLib"
+    )
   ],
   testPlans: ["Fixtures/RickAndMortyEpisodesLib.xctestplan"],
 )

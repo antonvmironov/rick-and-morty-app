@@ -16,20 +16,4 @@ enum TestUtils {
       sourceLocation: sourceLocation
     )
   }
-
-  static func dateFromString(_ string: String) -> Date {
-    let formatter = ISO8601DateFormatter()
-    formatter.formatOptions = [
-      .withInternetDateTime,
-      .withTimeZone,
-      .withFractionalSeconds,
-    ]
-    if let date = formatter.date(from: string) {
-      return date
-    } else {
-      fatalError(
-        "Should never happen in tests. Failed to decode from \(string)"
-      )
-    }
-  }
 }

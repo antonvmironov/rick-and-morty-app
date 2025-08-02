@@ -1,4 +1,5 @@
 import Foundation
+import SharedLib
 
 struct MockNetworkGateway: NetworkGateway {
   static let cachedSinceDate = Date(timeIntervalSinceReferenceDate: 0)

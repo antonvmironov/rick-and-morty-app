@@ -1,0 +1,24 @@
+{
+  "configurations" : [
+    {
+      "id" : "8CF59CBB-3C70-403A-B18F-F4107F1980E4",
+      "name" : "Configuration 1",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:SharedLib.xcodeproj",
+        "identifier" : "0736F0686968DBDE33FDD353",
+        "name" : "SharedLibTests"
+      }
+    }
+  ],
+  "version" : 1
+}

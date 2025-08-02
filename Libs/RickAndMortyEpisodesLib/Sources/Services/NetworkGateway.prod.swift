@@ -1,4 +1,5 @@
 import Foundation
+import SharedLib
 
 /// Production implementaiton of ``NetworkGateway``.
 actor ProdNetworkGateway: NetworkGateway {
@@ -50,15 +51,17 @@ actor ProdNetworkGateway: NetworkGateway {
     let data: Data
     let response: URLResponse
     var cachedSince: Date?
+    var storeCachedResponse = false
 
     if let cachedResponse = urlCache.cachedResponse(for: request) {
-      let userInfo: [String: Any] = cachedResponse.userInfo as! [String: Any]
-      cachedSince = userInfo["received_date"] as? Date
+      let userInfo = cachedResponse.userInfo as? [String: Any]
+      cachedSince = userInfo?["received_date"] as? Date
       data = cachedResponse.data
       response = cachedResponse.response
     } else {
       do {
         (data, response) = try await urlSession.data(for: request)
+        storeCachedResponse = true
       } catch {
         throw NetworkError.networkFailure(error)
       }
@@ -80,6 +83,18 @@ actor ProdNetworkGateway: NetworkGateway {
     //
     do {
       let output = try jsonDecoder.decode(Output.self, from: data)
+      if storeCachedResponse {
+        var userInfo: [String: Any] = [:]
+        userInfo["received_date"] = Date()
+        let cachedResponse = CachedURLResponse(
+          response: httpURLResponse,
+          data: data,
+          userInfo: userInfo,
+          storagePolicy: .allowed
+        )
+        urlCache.storeCachedResponse(cachedResponse, for: request)
+      }
+
       return (output, cachedSince)
     } catch {
       throw NetworkError.responseDecodingFailed(error)

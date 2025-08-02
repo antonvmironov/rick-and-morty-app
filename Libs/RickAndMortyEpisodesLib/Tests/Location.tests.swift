@@ -1,4 +1,5 @@
 import Foundation
+import SharedLib
 import Testing
 
 @testable import RickAndMortyEpisodesLib
@@ -103,6 +104,6 @@ private let earthLocationResidents: [URL] = [
 private let earthLocationURL = URL(
   string: "https://rickandmortyapi.com/api/location/1"
 )!
-private let earthLocationCreatedDate = dateFromString(
+private let earthLocationCreatedDate = TestUtils.dateFromString(
   "2017-11-10T12:42:04.162Z"
 )
