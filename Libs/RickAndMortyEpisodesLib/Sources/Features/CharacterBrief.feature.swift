@@ -3,25 +3,26 @@ import Flow
 import Foundation
 import Kingfisher
 import SharedLib
+import Shimmer
 import SwiftUI
 
 /// Namespace for the CharacterBrief feature. Serves as an anchor for project navigation.
 enum CharacterBriefFeature {
   struct FeatureView: View {
-    var character: CharacterDomainModel
+    var state: FeatureState
 
-    init(character: CharacterDomainModel) {
-      self.character = character
+    init(state: FeatureState) {
+      self.state = state
     }
 
     var body: some View {
       VStack(alignment: .leading) {
-        Text(character.name).font(.headline)
+        Text(state.character.name).font(.headline)
         HFlow {
           Group {
-            Text(character.species.description)
-            if !character.type.isEmpty {
-              Text(character.type)
+            Text(state.character.species.description)
+            if !state.character.type.isEmpty {
+              Text(state.character.type)
             }
           }
           .font(.body)
@@ -30,11 +31,26 @@ enum CharacterBriefFeature {
       }
     }
   }
+
+  @ObservableState
+  struct FeatureState: Equatable {
+    var character: CharacterDomainModel
+    var hasShimmer: Bool
+
+    static func preview(hasShimmer: Bool) -> Self {
+      .init(character: .dummy, hasShimmer: hasShimmer)
+    }
+  }
 }
 
 #Preview {
-  CharacterBriefFeature.FeatureView(
-    character: BaseCharacterFeature.previewCharacter()
-  )
+  VStack {
+    CharacterBriefFeature.FeatureView(
+      state: .preview(hasShimmer: true)
+    )
+    CharacterBriefFeature.FeatureView(
+      state: .preview(hasShimmer: false)
+    )
+  }
   .frame(maxWidth: .infinity)
 }

@@ -54,6 +54,7 @@ public enum RootFeature {
         store: store.scope(state: \.episodeList, action: \.episodeList)
       )
       .onAppear {
+        _ = CharacterDomainModel.dummy
         store.send(.endpointsLoading(.process(apiURL)))
       }
     }
