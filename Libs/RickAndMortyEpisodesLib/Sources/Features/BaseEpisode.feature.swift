@@ -19,11 +19,6 @@ enum BaseEpisodeFeature {
   }
 
   static func previewEpisode() -> EpisodeDomainModel {
-    // keep this force unwrap. its only for SwiftUI preview
-    let episode = try! Transformers.loadFixture(
-      output: EpisodeDomainModel.self,
-      fixtureName: "episode_pilot"
-    )
-    return episode
+    return .dummy
   }
 }
