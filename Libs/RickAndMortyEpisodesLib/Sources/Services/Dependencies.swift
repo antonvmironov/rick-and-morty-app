@@ -14,6 +14,7 @@ public final class Dependencies: Sendable {
   }
 
   public static func preview() -> Dependencies {
+    // keep this force unwrap. its only for SwiftUI preview
     return .init(networkGateway: try! MockNetworkGateway.preview())
   }
 

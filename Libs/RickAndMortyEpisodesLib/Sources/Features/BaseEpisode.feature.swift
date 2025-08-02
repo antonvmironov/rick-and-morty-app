@@ -3,7 +3,7 @@ import Foundation
 import SharedLib
 import SwiftUI
 
-/// Namespace for the EpisodeBrief feature. Serves as an anchor for project navigation.
+/// Namespace for the BaseEpisode feature. Serves as an anchor for project navigation.
 enum BaseEpisodeFeature {
   static func formatAirDate(episode: EpisodeDomainModel) -> String {
     let inputDateFormatter = DateFormatter()
@@ -19,6 +19,7 @@ enum BaseEpisodeFeature {
   }
 
   static func previewEpisode() -> EpisodeDomainModel {
+    // keep this force unwrap. its only for SwiftUI preview
     let episode = try! Transformers.loadFixture(
       output: EpisodeDomainModel.self,
       fixtureName: "episode_pilot"
