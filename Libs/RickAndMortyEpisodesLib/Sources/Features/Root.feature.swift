@@ -4,7 +4,6 @@ import SwiftUI
 
 /// Namespace for the EpisodeList feature. Serves as an anchor for project navigation.
 public enum RootFeature {
-  // constants and shared functions go here
   typealias FeatureStore = StoreOf<FeatureReducer>
   typealias EndpointsLoadingFeature = ProcessHostFeature<
     URL, EndpointsDomainModel
@@ -113,7 +112,7 @@ public enum RootFeature {
 }
 
 #Preview {
-  @Previewable let dependencies = Dependencies.preview()
+  @Previewable let dependencies = try! Dependencies.preview()
   NavigationStack {
     RootFeature
       .rootView(

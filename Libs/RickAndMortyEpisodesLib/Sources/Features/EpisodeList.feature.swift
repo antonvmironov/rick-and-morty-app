@@ -4,7 +4,7 @@ import SwiftUI
 
 /// Namespace for the EpisodeList feature. Serves as an anchor for project navigation.
 enum EpisodeListFeature {
-  typealias PaginationFeature = ContinousPaginationFeature<
+  typealias PaginationFeature = ContinuousPaginationFeature<
     URL, EpisodeDomainModel
   >
   typealias FeatureStore = StoreOf<FeatureReducer>
@@ -167,7 +167,7 @@ enum EpisodeListFeature {
 
 #Preview {
   @Previewable @State var store = EpisodeListFeature.previewStore(
-    dependencies: Dependencies.preview()
+    dependencies: try! Dependencies.preview()
   )
 
   VStack {

@@ -2,8 +2,8 @@ import ComposableArchitecture
 import Foundation
 import SwiftUI
 
-/// Namespace for the ContinousPagination feature. Serves as an anchor for project navigation.
-enum ContinousPaginationFeature<
+/// Namespace for the ContinuousPagination feature. Serves as an anchor for project navigation.
+enum ContinuousPaginationFeature<
   Input: Equatable & Sendable,
   Item: Equatable & Sendable & Codable
 > {

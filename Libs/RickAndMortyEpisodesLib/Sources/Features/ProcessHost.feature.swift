@@ -114,7 +114,7 @@ enum ProcessHostFeature<Input: Equatable & Sendable, Output: Equatable> {
       }
     }
 
-    var failiureMessage: String? {
+    var failureMessage: String? {
       switch self {
       case .idle(_, let previousFailure):
         return previousFailure
