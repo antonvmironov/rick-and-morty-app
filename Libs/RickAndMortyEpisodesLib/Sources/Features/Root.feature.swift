@@ -7,19 +7,23 @@ public enum RootFeature {
   // constants and shared functions go here
 
   @MainActor
-  public static func rootView(apiURL: URL, dependencies: Dependencies) -> some View {
-    let store = RootStore.initial(apiURL: apiURL) { deps in
+  public static func rootView(apiURL: URL, dependencies: Dependencies)
+    -> some View
+  {
+    let store = RootStore.initial { deps in
       dependencies.updateDeps(&deps)
     }
-    return RootView(store: store)
+    return RootView(store: store, apiURL: apiURL)
   }
 }
 
 public struct RootView: View {
-  var store: RootStore
+  let store: RootStore
+  let apiURL: URL
 
-  init(store: RootStore) {
+  init(store: RootStore, apiURL: URL) {
     self.store = store
+    self.apiURL = apiURL
   }
 
   public var body: some View {
@@ -27,7 +31,7 @@ public struct RootView: View {
       store: store.scope(state: \.episodeList, action: \.episodeList)
     )
     .onAppear {
-      store.send(.endpointsLoading(.preloadIfNeeded))
+      store.send(.endpointsLoading(.process(apiURL)))
     }
   }
 }
@@ -36,7 +40,10 @@ public struct RootView: View {
   @Previewable let dependencies = Dependencies.preview()
   NavigationStack {
     RootFeature
-      .rootView(apiURL: MockNetworkGateway.exampleAPIURL, dependencies: dependencies)
+      .rootView(
+        apiURL: MockNetworkGateway.exampleAPIURL,
+        dependencies: dependencies
+      )
       .navigationTitle("Test Episode List")
   }
 }
@@ -44,17 +51,16 @@ public struct RootView: View {
 typealias RootStore = StoreOf<RootReducer>
 extension RootStore {
   static func initial(
-    apiURL: URL,
     withDependencies: @escaping (inout DependencyValues) -> Void
   ) -> RootStore {
     let initialState = RootState(
-      endpointsLoading: ProcessHostState<EndpointsDomainModel>.initial(),
+      endpointsLoading: ProcessHostState<URL, EndpointsDomainModel>.initial(),
       episodeList: EpisodeListState.initial()
     )
     return RootStore(
       initialState: initialState,
       reducer: {
-        RootReducer(apiURL: apiURL)
+        RootReducer()
       },
       withDependencies: withDependencies
     )
@@ -63,8 +69,6 @@ extension RootStore {
 
 @Reducer
 struct RootReducer {
-  let apiURL: URL
-
   typealias State = RootState
   typealias Action = RootAction
 
@@ -73,8 +77,9 @@ struct RootReducer {
 
   var body: some ReducerOf<Self> {
     coordinatingReducer
-    Scope(state: \.endpointsLoading, action: \.endpointsLoading) { [networkGateway, apiURL] in
-      ProcessHostReducer {
+    Scope(state: \.endpointsLoading, action: \.endpointsLoading) {
+      [networkGateway] in
+      ProcessHostReducer { apiURL in
         let response = try await networkGateway.getEndpoints(
           apiURL: apiURL
         )
@@ -91,7 +96,7 @@ struct RootReducer {
       switch action {
       case .endpointsLoading(.finishProcessing(let endpoint)):
         let action: Action = .episodeList(
-          .setFirstPageLoadingURL(pageURL: endpoint.episodes)
+          .setFirstPageURL(pageURL: endpoint.episodes)
         )
         return .send(action)
       default:
@@ -103,12 +108,12 @@ struct RootReducer {
 
 @ObservableState
 struct RootState: Equatable {
-  var endpointsLoading: ProcessHostState<EndpointsDomainModel>
+  var endpointsLoading: ProcessHostState<URL, EndpointsDomainModel>
   var episodeList: EpisodeListState
 }
 
 @CasePathable
 enum RootAction {
-  case endpointsLoading(ProcessHostAction<EndpointsDomainModel>)
+  case endpointsLoading(ProcessHostAction<URL, EndpointsDomainModel>)
   case episodeList(EpisodeListAction)
 }

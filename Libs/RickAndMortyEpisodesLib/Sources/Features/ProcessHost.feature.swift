@@ -6,12 +6,13 @@ import SwiftUI
 enum ProcessHostFeature {
   // constants and shared functions go here
 
-  static func processEffect<Output>(
-    operation: @escaping @Sendable() async throws -> Output,
-    send: Send<ProcessHostAction<Output>>
+  static func processEffect<Input, Output>(
+    input: Input,
+    operation: @escaping @Sendable (Input) async throws -> Output,
+    send: Send<ProcessHostAction<Input, Output>>
   ) async {
     do {
-      let result = try await operation()
+      let result = try await operation(input)
       await send(.finishProcessing(result))
     } catch {
       await send(.failedProcessing(message: "\(error)"))
@@ -19,20 +20,29 @@ enum ProcessHostFeature {
   }
 }
 
-typealias ProcessHostStore<Output: Equatable> = StoreOf<ProcessHostReducer<Output>>
-typealias ProcessHostTestStore<Output: Equatable> = TestStoreOf<ProcessHostReducer<Output>>
+typealias ProcessHostStore<Input: Equatable, Output: Equatable> = StoreOf<
+  ProcessHostReducer<Input, Output>
+>
+typealias ProcessHostTestStore<Input: Equatable, Output: Equatable> =
+  TestStoreOf<ProcessHostReducer<Input, Output>>
 
 extension ProcessHostStore {
-  static func preview<Output: Equatable>(
-    operation: @escaping @Sendable () async throws -> Output
-  ) -> ProcessHostStore<Output> {
+  static func preview<
+    Input: Equatable & Sendable,
+    Output: Equatable & Sendable
+  >(
+    operation: @escaping @Sendable (Input) async throws -> Output
+  ) -> ProcessHostStore<Input, Output> {
     return initial(operation: operation)
   }
 
-  static func initial<Output: Equatable>(
-    operation: @escaping @Sendable () async throws -> Output
-  ) -> ProcessHostStore<Output> {
-    let state = ProcessHostState<Output>()
+  static func initial<
+    Input: Equatable & Sendable,
+    Output: Equatable & Sendable
+  >(
+    operation: @escaping @Sendable (Input) async throws -> Output
+  ) -> ProcessHostStore<Input, Output> {
+    let state = ProcessHostState<Input, Output>()
     return ProcessHostStore(
       initialState: state,
       reducer: {
@@ -43,11 +53,14 @@ extension ProcessHostStore {
 }
 
 @Reducer
-struct ProcessHostReducer<Output: Equatable> {
-  typealias State = ProcessHostState<Output>
-  typealias Action = ProcessHostAction<Output>
+struct ProcessHostReducer<
+  Input: Equatable & Sendable,
+  Output: Equatable & Sendable
+> {
+  typealias State = ProcessHostState<Input, Output>
+  typealias Action = ProcessHostAction<Input, Output>
 
-  let operation: @Sendable () async throws -> Output
+  let operation: @Sendable (Input) async throws -> Output
 
   var body: some ReducerOf<Self> {
     processingReducer
@@ -56,22 +69,27 @@ struct ProcessHostReducer<Output: Equatable> {
   private var processingReducer: some ReducerOf<Self> {
     Reduce { state, action in
       switch (state.status, action) {
-      case (.idle(previousSuccess: .none, _), .preloadIfNeeded):
-        return .send(.process)
-      case (.idle(let previousSuccess, _), .process):
-        state.status = .processing(previousSuccess: previousSuccess)
+      case (.idle(let previousSuccess, _), .process(let input)):
+        state.status = .processing(
+          previousSuccess: previousSuccess,
+          input: input
+        )
         let operation = self.operation
         return .run { send in
           await ProcessHostFeature.processEffect(
+            input: input,
             operation: operation,
             send: send
           )
         }.cancellable(id: "process-operation")
-      case (.processing(let previousSuccess), .finishProcessing(let result)):
+      case (.processing, .finishProcessing(let result)):
         state.status = .idle(previousSuccess: result, previousFailure: nil)
         return .none
-      case (.processing(let previousSuccess), .failedProcessing(let message)):
-        state.status = .idle(previousSuccess: previousSuccess, previousFailure: message)
+      case (.processing(let previousSuccess, _), .failedProcessing(let message)):
+        state.status = .idle(
+          previousSuccess: previousSuccess,
+          previousFailure: message
+        )
         return .none
       default:
         return .none
@@ -81,8 +99,8 @@ struct ProcessHostReducer<Output: Equatable> {
 }
 
 @ObservableState
-struct ProcessHostState<Output: Equatable>: Equatable {
-  var status: ProcessHostStatus<Output> = .idle(
+struct ProcessHostState<Input: Equatable, Output: Equatable>: Equatable {
+  var status: ProcessHostStatus<Input, Output> = .idle(
     previousSuccess: nil,
     previousFailure: nil
   )
@@ -93,22 +111,24 @@ struct ProcessHostState<Output: Equatable>: Equatable {
 }
 
 @CasePathable
-enum ProcessHostAction<Output: Equatable> {
-  case preloadIfNeeded
-  case process
+enum ProcessHostAction<
+  Input: Equatable & Sendable,
+  Output: Equatable & Sendable
+>: Sendable, Equatable {
+  case process(Input)
   case finishProcessing(Output)
   case failedProcessing(message: String)
 }
 
-enum ProcessHostStatus<Output: Equatable>: Equatable {
+enum ProcessHostStatus<Input: Equatable, Output: Equatable>: Equatable {
   case idle(previousSuccess: Output?, previousFailure: String?)
-  case processing(previousSuccess: Output?)
+  case processing(previousSuccess: Output?, input: Input)
 
   var success: Output? {
     switch self {
     case .idle(let previousSuccess, _):
       return previousSuccess
-    case .processing(let previousSuccess):
+    case .processing(let previousSuccess, _):
       return previousSuccess
     }
   }
