@@ -97,7 +97,7 @@ actor ProdNetworkGateway: NetworkGateway {
 
       return (output, cachedSince)
     } catch {
-      throw NetworkError.responseDecodingFailed(error)
+      throw NetworkError.responseDecodingFailed(error: error, data: data)
     }
   }
 }

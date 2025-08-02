@@ -7,6 +7,7 @@ enum EpisodeListFeature {
   typealias PaginationFeature = ContinuousPaginationFeature<
     URL, EpisodeDomainModel
   >
+  typealias ListItemFeature = EpisodeBriefFeature
   typealias FeatureStore = StoreOf<FeatureReducer>
 
   @MainActor
@@ -14,26 +15,17 @@ enum EpisodeListFeature {
     dependencies: Dependencies
   ) -> FeatureStore {
     let initialState = FeatureState(
-      pagination: .initial(firstInput: MockNetworkGateway.exampleAPIURL)
+      pagination: .initial(
+        firstInput: MockNetworkGateway.exampleAPIURL.appendingPathComponent(
+          "episode"
+        )
+      )
     )
     return FeatureStore(
       initialState: initialState,
       reducer: { FeatureReducer() },
       withDependencies: dependencies.updateDeps
     )
-  }
-
-  static func formatAirDate(episode: EpisodeDomainModel) -> String {
-    let inputDateFormatter = DateFormatter()
-    inputDateFormatter.dateFormat = "MMMM dd, yyyy"
-    let outputDateFormatter = DateFormatter()
-    outputDateFormatter.dateFormat = "dd/MM/yyyy"
-
-    let inputValue = episode.airDate
-    guard let inputDate = inputDateFormatter.date(from: inputValue)
-    else { return inputValue }
-    let outputString = outputDateFormatter.string(from: inputDate)
-    return outputString
   }
 
   struct FeatureView: View {
@@ -51,8 +43,14 @@ enum EpisodeListFeature {
 
     func episodeList() -> some View {
       List {
+        if let previousFailure = store.pagination.pageLoading.status
+          .failureMessage
+        {
+          Text("Failure \(previousFailure)")
+        }
+
         ForEach(store.pagination.items) { episode in
-          episodeRow(episode: episode)
+          ListItemFeature.FeatureView(episode: episode)
             .listRowSeparator(.hidden)
             .tag(episode.id)
         }
@@ -83,25 +81,6 @@ enum EpisodeListFeature {
       .listStyle(.plain)
       .onAppear {
         store.send(.pagination(.loadFirstPageIfNeeded))
-      }
-    }
-
-    func episodeRow(episode: EpisodeDomainModel) -> some View {
-      VStack {
-        HStack {
-          Text("\(episode.name)")
-            .font(.title3)
-          Spacer()
-        }
-        HStack {
-          Text("\(episode.episode)")
-            .font(.caption)
-            .fontDesign(.monospaced)
-          Text("\(EpisodeListFeature.formatAirDate(episode: episode))")
-            .font(.caption)
-            .fontDesign(.monospaced)
-          Spacer()
-        }
       }
     }
   }
