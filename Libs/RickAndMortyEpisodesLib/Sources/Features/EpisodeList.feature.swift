@@ -29,22 +29,8 @@ struct EpisodeListView: View {
   }
 
   var body: some View {
-    VStack {
-      switch store.state.loadingStatus {
-      case .idle:
-        if store.latestController.items.isEmpty {
-          Text("TBD: display skeleton on this page while idle")
-        } else {
-          episodeList()
-        }
-      case .loadingEpisodeList:
-        Text("TBD: display skeleton on this page while Loading")
-      case .failedToLoad(let message):
-        Text("Failed \(message)")
-      }
-    }.onAppear {
-      store.send(.episodeListDidAppear)
-    }
+    episodeList()
+      .navigationTitle("Episode List")
   }
 
   func episodeList() -> some View {
@@ -54,8 +40,30 @@ struct EpisodeListView: View {
           .listRowSeparator(.hidden)
           .tag(episode.id)
       }
+      if let nextPageURL = store.latestController.nextPageURL {
+        HStack {
+          if store.loadingStatus == .loadingPage {
+            ProgressView()
+          }
+          Text("Loading the next page...")
+        }
+        .frame(maxWidth: .infinity, alignment: .center)
+        .listRowSeparator(.hidden)
+        .onAppear {
+          store.send(.loadNextEpisodesPage(pageURL: nextPageURL))
+        }
+      } else {
+        HStack {
+          Text("No new episodes")
+        }
+        .frame(maxWidth: .infinity, alignment: .center)
+        .listRowSeparator(.hidden)
+      }
     }
     .listStyle(.plain)
+    .onAppear {
+      store.send(.didAppear)
+    }
   }
 
   func episodeRow(episode: EpisodeDomainModel) -> some View {
@@ -75,12 +83,14 @@ struct EpisodeListView: View {
         Spacer()
       }
     }
-    .padding(4)
   }
 }
 
 #Preview {
-  EpisodeListView(store: EpisodeListStore.preview())
+  NavigationStack {
+    EpisodeListView(store: EpisodeListStore.preview())
+      .navigationTitle("Test Episode List")
+  }
 }
 
 typealias EpisodeListStore = StoreOf<EpisodeListReducer>
@@ -96,7 +106,7 @@ extension EpisodeListStore {
   }
 
   static func initial(
-    apiURL: URL,
+    apiURL: URL,  // TODO: pass an URL to the first episode page
     withDependencies setupDependencies: @escaping (inout DependencyValues) ->
       Void
   ) -> EpisodeListStore {
@@ -128,18 +138,23 @@ struct EpisodeListReducer {
   private var loadingReducer: some ReducerOf<Self> {
     Reduce { state, action in
       switch (state.loadingStatus, action) {
-      case (.idle, .episodeListDidAppear):
-        return .send(.startLoadingEpisodes)
-      case (.idle, .startLoadingEpisodes):
-        state.loadingStatus = .loadingEpisodeList
+      case (.idle, .didAppear):
+        return .send(.loadingFirstPage)
+      case (.idle, .loadingFirstPage):
+        state.loadingStatus = .loadingPage
         return .run { send in
-          await loadPageOfEpisodesEffect(send: send)
+          await loadPageEffect(pageURL: nil, send: send)
         }.cancellable(id: "fetch-episodes")
-      case (.loadingEpisodeList, .finishLoadingEpisodes(let page)):
+      case (.idle, .loadNextEpisodesPage(let pageURL)):
+        state.loadingStatus = .loadingPage
+        return .run { send in
+          await loadPageEffect(pageURL: pageURL, send: send)
+        }.cancellable(id: "fetch-episodes")
+      case (.loadingPage, .finishLoadingEpisodes(let page)):
         state.loadingStatus = .idle
         state.latestController.didLoad(page)
         return .none
-      case (.loadingEpisodeList, .failLoadingEpisodes(let message)):
+      case (.loadingPage, .failLoadingEpisodes(let message)):
         state.loadingStatus = .failedToLoad(message: message)
         return .none
       default:
@@ -148,13 +163,22 @@ struct EpisodeListReducer {
     }
   }
 
-  func loadPageOfEpisodesEffect(send: Send<Action>) async {
+  func loadPageEffect(
+    pageURL: URL?,
+    send: Send<Action>,
+  ) async {
     do {
-      let endpoints = try await networkGateway.getEndpoints(
-        apiURL: apiURL
-      ).output
+      let effectivePageURL: URL
+      if let pageURL {
+        effectivePageURL = pageURL
+      } else {
+        let endpoints = try await networkGateway.getEndpoints(
+          apiURL: apiURL
+        ).output
+        effectivePageURL = endpoints.episodes
+      }
       let pageOfEpisodes = try await networkGateway.getPageOfEpisodes(
-        pageURL: endpoints.episodes,
+        pageURL: effectivePageURL,
         cachePolicy: .returnCacheDataElseLoad
       )
       await send(.finishLoadingEpisodes(pageOfEpisodes))
@@ -172,15 +196,16 @@ struct EpisodeListState: Equatable {
 
 @CasePathable
 enum EpisodeListAction: Equatable {
-  case episodeListDidAppear
-  case startLoadingEpisodes
+  case didAppear
+  case loadingFirstPage
+  case loadNextEpisodesPage(pageURL: URL)
   case finishLoadingEpisodes(ResponsePageContainer<EpisodeDomainModel>)
   case failLoadingEpisodes(message: String)
 }
 
 enum EpisodeListLoadingStatus: Equatable {
   case idle
-  case loadingEpisodeList
+  case loadingPage
   case failedToLoad(message: String)
 }
 
@@ -188,21 +213,28 @@ struct EpisodeListController: Sendable, Equatable {
   typealias Page = ResponsePageContainer<EpisodeDomainModel>
   var pages = [Page]()
   var items = IdentifiedArray<EpisodeID, EpisodeDomainModel>()
+  var nextPageURL: URL?
 
   init() {}
 
   mutating func didLoad(
     _ page: ResponsePageContainer<EpisodeDomainModel>
   ) {
-    let nextExpectedPage = pages.last?.payload.info.next
+    let nextExpectedPage = nextPageURL
 
     if page.payload.info.prev == nil || nextExpectedPage != page.pageURL {
-      // got a new first page. Must rebuild all items
-      items.removeAll()
-      pages.removeAll()
+      // got a new first page. Must reset
+      reset()
     }
 
     pages.append(page)
     items.append(contentsOf: page.payload.results)
+    nextPageURL = page.payload.info.next
+  }
+
+  mutating func reset() {
+    items.removeAll()
+    pages.removeAll()
+    nextPageURL = nil
   }
 }
