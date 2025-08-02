@@ -6,7 +6,7 @@ import SwiftUI
 enum EpisodeListFeature {
   // constants and shared functions go here
 
-  static func airDateFormatter(episode: EpisodeDomainModel) -> String {
+  static func formatAirDate(episode: EpisodeDomainModel) -> String {
     // implementing requirement "air date (in dd/mm/yyyy format)"
     let inputDateFormatter = DateFormatter()
     inputDateFormatter.dateFormat = "MMMM dd, yyyy"
@@ -63,7 +63,7 @@ struct EpisodeListView: View {
         Text("\(episode.episode)")
           .font(.caption)
           .fontDesign(.monospaced)
-        Text("\(EpisodeListFeature.airDateFormatter(episode: episode))")
+        Text("\(EpisodeListFeature.formatAirDate(episode: episode))")
           .font(.caption)
           .fontDesign(.monospaced)
         Spacer()
