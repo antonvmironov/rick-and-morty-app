@@ -7,8 +7,8 @@ struct EndpointsDomainModel: Sendable, Codable, Equatable {
   var episodes: URL
 
   static let mock = EndpointsDomainModel(
-    characters: URL(string: "https://example.com/api/character")!,
-    locations: URL(string: "https://example.com/api/location")!,
-    episodes: URL(string: "https://example.com/api/episode")!
+    characters: URL(string: "https://rickandmortyapi.com/api/character")!,
+    locations: URL(string: "https://rickandmortyapi.com/api/location")!,
+    episodes: URL(string: "https://rickandmortyapi.com/api/episode")!
   )
 }

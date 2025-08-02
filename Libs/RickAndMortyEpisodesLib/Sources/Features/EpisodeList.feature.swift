@@ -79,10 +79,10 @@ struct EpisodeListReducer {
   var networkGateway
 
   var body: some ReducerOf<Self> {
-    incrementingReducer
+    loadingReducer
   }
 
-  private var incrementingReducer: some ReducerOf<Self> {
+  private var loadingReducer: some ReducerOf<Self> {
     Reduce { state, action in
       switch (state.route, action) {
       case (.idle, .episodeListDidAppear):

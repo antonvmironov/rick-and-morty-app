@@ -4,7 +4,7 @@ extension Project {
 
   public static func lib(
     name: String,
-    product: Product = .staticFramework,
+    product: Product = .framework,
     dependencies: [TargetDependency] = [],
     testDependencies: [TargetDependency] = [],
     testPlans: [Path] = [],
@@ -38,7 +38,10 @@ extension Project {
     return Project(
       name: name,
       settings: .settings(
-        base: ["SWIFT_VERSION": "6.1"],
+        base: [
+          "SWIFT_VERSION": "6.1",
+          "ENABLE_USER_SCRIPT_SANDBOXING": "1",
+        ],
       ),
       targets: targets,
       schemes: makeSchemes(name: name, testPlans: testPlans),

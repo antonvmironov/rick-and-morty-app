@@ -34,7 +34,7 @@ enum Transformers {
     static func loadFixture(
       fixtureName: String,
     ) throws -> Data {
-      let thisFileURL = URL(fileURLWithPath: #file)
+      let thisFileURL = URL(fileURLWithPath: #filePath)
       let fixturesURL =
         thisFileURL
         .deletingLastPathComponent()

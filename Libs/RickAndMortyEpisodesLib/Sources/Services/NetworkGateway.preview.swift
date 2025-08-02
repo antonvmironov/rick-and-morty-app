@@ -1,7 +1,7 @@
 import Foundation
 
 extension MockNetworkGateway {
-  static let exampleAPIURL = URL(string: "https://example.com/api/")!
+  static let exampleAPIURL = URL(string: "https://rickandmortyapi.com/api/")!
 
   #if DEBUG
     mutating func expect(
@@ -15,6 +15,10 @@ extension MockNetworkGateway {
 
     static func preview() throws -> MockNetworkGateway {
       var result = MockNetworkGateway.empty()
+      try result.expect(
+        requestURL: exampleAPIURL,
+        jsonFixtureNamed: "endpoints"
+      )
       try result.expect(
         requestURL: exampleAPIURL.appendingPathComponent("episode"),
         jsonFixtureNamed: "episodes_first_page"

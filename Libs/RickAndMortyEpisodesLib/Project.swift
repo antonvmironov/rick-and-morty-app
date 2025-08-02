@@ -3,7 +3,7 @@ import ProjectDescriptionHelpers
 
 let project = Project.lib(
   name: "RickAndMortyEpisodesLib",
-  product: .staticLibrary,
+  product: .framework,
   dependencies: [
     .external(name: "ComposableArchitecture")
   ],
