@@ -5,6 +5,20 @@ import SwiftUI
 /// Namespace for the EpisodeList feature. Serves as an anchor for project navigation.
 enum EpisodeListFeature {
   // constants and shared functions go here
+
+  static func airDateFormatter(episode: EpisodeDomainModel) -> String {
+    // implementing requirement "air date (in dd/mm/yyyy format)"
+    let inputDateFormatter = DateFormatter()
+    inputDateFormatter.dateFormat = "MMMM dd, yyyy"
+    let outputDateFormatter = DateFormatter()
+    outputDateFormatter.dateFormat = "dd/MM/yyyy"
+
+    let inputValue = episode.airDate
+    guard let inputDate = inputDateFormatter.date(from: inputValue)
+    else { return inputValue }
+    let outputString = outputDateFormatter.string(from: inputDate)
+    return outputString
+  }
 }
 
 struct EpisodeListView: View {
@@ -22,17 +36,40 @@ struct EpisodeListView: View {
       case .loadingEpisodeList:
         Text("Loading...")
       case .loadedEpisodeList(let page, let cachedSince):
-        LazyVStack {
+        List {
           ForEach(page.results) { episode in
-            Text("\(episode.name)")
+            episodeRow(episode: episode)
+              .listRowSeparator(.hidden)
+              .tag(episode.id)
           }
         }
+        .listStyle(.plain)
       case .loadingEpisodeListFailed(let message):
         Text("Failed \(message)")
       }
     }.onAppear {
       store.send(.episodeListDidAppear)
     }
+  }
+
+  func episodeRow(episode: EpisodeDomainModel) -> some View {
+    VStack {
+      HStack {
+        Text("\(episode.name)")
+          .font(.title3)
+        Spacer()
+      }
+      HStack {
+        Text("\(episode.episode)")
+          .font(.caption)
+          .fontDesign(.monospaced)
+        Text("\(EpisodeListFeature.airDateFormatter(episode: episode))")
+          .font(.caption)
+          .fontDesign(.monospaced)
+        Spacer()
+      }
+    }
+    .padding(4)
   }
 }
 
