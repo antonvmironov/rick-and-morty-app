@@ -27,7 +27,7 @@ struct EpisodeDomainModel: Sendable,
     case created
   }
 
-  static let dummy: Self = try! Transformers.fromAssetCatalog(
+  static let dummy: Self = Transformers.fromAssetCatalog(
     assetName: "episode_dummy",
     bundle: .module
   )

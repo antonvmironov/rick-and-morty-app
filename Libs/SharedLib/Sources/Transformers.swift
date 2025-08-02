@@ -35,19 +35,25 @@ public enum Transformers {
     output: Output.Type = Output.self,
     assetName: String,
     bundle: Bundle,
-  ) throws -> Output {
+  ) -> Output {
     let jsonDecoder = jsonDecoder()
     guard let dataAsset = NSDataAsset(name: assetName, bundle: bundle)
     else {
-      fatalError("\(assetName) must be present in asset catalog")
+      fatalError(
+        "Asset '\(assetName)' not found in bundle \(bundle.bundleIdentifier ?? "unknown")"
+      )
     }
     let outputData = dataAsset.data
-    let output = try jsonDecoder.decode(
-      Output.self,
-      from: outputData
-    )
+    do {
+      let output = try jsonDecoder.decode(
+        Output.self,
+        from: outputData
+      )
 
-    return output
+      return output
+    } catch {
+      fatalError("failed to decode \(output) from asset \(assetName)")
+    }
   }
 
   #if DEBUG

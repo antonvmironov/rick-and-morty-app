@@ -22,7 +22,7 @@ struct CharacterDomainModel: Sendable,
   let url: URL
   let created: Date
 
-  static let dummy: Self = try! Transformers.fromAssetCatalog(
+  static let dummy: Self = Transformers.fromAssetCatalog(
     assetName: "character_dummy",
     bundle: .module
   )
