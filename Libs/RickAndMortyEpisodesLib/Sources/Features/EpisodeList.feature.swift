@@ -55,7 +55,11 @@ enum EpisodeListFeature {
               store.send(.presetEpisode(episode))
             },
             label: {
-              ListItemFeature.FeatureView(episode: episode)
+              HStack {
+                ListItemFeature.FeatureView(episode: episode)
+                Spacer()
+                Image(systemName: "chevron.right")
+              }
             }
           )
           .listRowSeparator(.hidden)

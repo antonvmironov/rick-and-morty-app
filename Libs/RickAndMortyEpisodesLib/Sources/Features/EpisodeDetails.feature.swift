@@ -31,9 +31,7 @@ enum EpisodeDetailsFeature {
         Section {
           ForEach(store.episode.characters, id: \.absoluteString) {
             characterURL in
-            Text("characterURL: \(characterURL.absoluteString)")
-              .listRowSeparator(.hidden)
-              .tag(characterURL)
+            row(characterURL: characterURL)
           }
         } header: {
           VStack {
@@ -66,6 +64,23 @@ enum EpisodeDetailsFeature {
       }
       .listStyle(.plain)
       .navigationTitle(store.episode.name)
+    }
+
+    func row(characterURL: URL) -> some View {
+      Button(
+        action: {
+          // TODO: navigate
+        },
+        label: {
+          HStack {
+            Text("characterURL: \(characterURL.absoluteString)")
+            Spacer()
+            Image(systemName: "chevron.right")
+          }
+        }
+      )
+      .listRowSeparator(.hidden)
+      .tag(characterURL.absoluteString)
     }
   }
 

@@ -112,7 +112,7 @@ public enum RootFeature {
 }
 
 #Preview {
-  @Previewable let dependencies = try! Dependencies.preview()
+  @Previewable let dependencies = Dependencies.preview()
   NavigationStack {
     RootFeature
       .rootView(
