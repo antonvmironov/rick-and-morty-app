@@ -80,6 +80,34 @@ enum EpisodeListFeature {
       }
     }
 
+    func lastItem() -> some View {
+      Group {
+        if store.pagination.nextInput != nil {
+          HStack {
+            if store.pagination.pageLoading.status.isProcessing {
+              ProgressView()
+              Text("Loading the next page...")
+            } else {
+              Text("Next page placeholder")
+            }
+          }
+          .onAppear {
+            store.send(.pagination(.loadNextPage))
+          }
+          .frame(maxWidth: .infinity, alignment: .center)
+          .listRowSeparator(.hidden)
+          .tag("last-item")
+        } else {
+          HStack {
+            Text("No new episodes")
+          }
+          .frame(maxWidth: .infinity, alignment: .center)
+          .listRowSeparator(.hidden)
+          .tag("last-item")
+        }
+      }
+    }
+
     func episodeList() -> some View {
       List {
         if let previousFailure = store.pagination.pageLoading.status
@@ -92,30 +120,7 @@ enum EpisodeListFeature {
         } else {
           episodeListItems()
         }
-
-        if store.pagination.nextInput != nil {
-          HStack {
-            if store.pagination.pageLoading.status.isProcessing {
-              ProgressView()
-              Text("Loading the next page...")
-            } else {
-              Text("Next page placeholder")
-            }
-          }
-          .frame(maxWidth: .infinity, alignment: .center)
-          .listRowSeparator(.hidden)
-          .tag("next-page")
-          .onAppear {
-            store.send(.pagination(.loadNextPage))
-          }
-        } else {
-          HStack {
-            Text("No new episodes")
-          }
-          .frame(maxWidth: .infinity, alignment: .center)
-          .listRowSeparator(.hidden)
-          .tag("next-page")
-        }
+        lastItem()
       }
       .listStyle(.plain)
       .onAppear {
