@@ -50,10 +50,16 @@ enum EpisodeListFeature {
         }
 
         ForEach(store.pagination.items) { episode in
-          ListItemFeature.FeatureView(episode: episode)
-            .onTapGesture { presentEpisode(episode) }
-            .listRowSeparator(.hidden)
-            .tag(episode.id)
+          Button(
+            action: {
+              store.send(.presetEpisode(episode))
+            },
+            label: {
+              ListItemFeature.FeatureView(episode: episode)
+            }
+          )
+          .listRowSeparator(.hidden)
+          .tag(episode.id)
         }
         if store.pagination.nextInput != nil {
           HStack {
