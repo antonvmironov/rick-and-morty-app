@@ -13,28 +13,13 @@ enum EpisodeListFeature {
   static func previewStore(
     dependencies: Dependencies
   ) -> FeatureStore {
-    initialStore(
-      firstPageURL: MockNetworkGateway.exampleAPIURL
-    ) { deps in
-      dependencies.updateDeps(&deps)
-    }
-  }
-
-  @MainActor
-  static func initialStore(
-    firstPageURL: URL,
-    withDependencies setupDependencies: @escaping (inout DependencyValues) ->
-      Void
-  ) -> FeatureStore {
     let initialState = FeatureState(
-      pagination: .initial(firstInput: firstPageURL)
+      pagination: .initial(firstInput: MockNetworkGateway.exampleAPIURL)
     )
     return FeatureStore(
       initialState: initialState,
-      reducer: {
-        FeatureReducer()
-      },
-      withDependencies: setupDependencies
+      reducer: { FeatureReducer() },
+      withDependencies: dependencies.updateDeps
     )
   }
 
