@@ -82,7 +82,7 @@ enum EpisodeDetailsFeature {
     var episode: EpisodeDomainModel
   }
 
-  enum FeatureAction {}
+  enum FeatureAction: Equatable {}
 }
 
 #Preview {

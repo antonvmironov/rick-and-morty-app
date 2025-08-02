@@ -135,7 +135,7 @@ enum ContinuousPaginationFeature<
   }
 
   @CasePathable
-  enum FeatureAction {
+  enum FeatureAction: Equatable {
     case setFirstInput(input: Input)
     case loadNextPage
     case loadFirstPageIfNeeded
