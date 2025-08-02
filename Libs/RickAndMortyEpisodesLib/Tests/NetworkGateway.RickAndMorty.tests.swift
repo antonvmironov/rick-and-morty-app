@@ -63,16 +63,16 @@ func NetworkGateway_getPageOfCharacters() async throws {
     requestURL: pageURL,
     jsonFixtureNamed: "characters_first_page"
   )
-  let (page, cachedSince) = try await networkGateway.getPageOfCharacters(
+  let page = try await networkGateway.getPageOfCharacters(
     pageURL: pageURL,
     cachePolicy: .useProtocolCachePolicy
   )
-  #expect(page.results.count > 0)
-  #expect(page.info.pages >= 1)
-  let result = page.results[0]
+  #expect(page.payload.results.count > 0)
+  #expect(page.payload.info.pages >= 1)
+  let result = page.payload.results[0]
   #expect(result.id == 1)
   #expect(result.name == "Rick Sanchez")
-  #expect(cachedSince == MockNetworkGateway.cachedSinceDate)
+  #expect(page.cachedSince == MockNetworkGateway.cachedSinceDate)
 }
 
 // MARK: - location
@@ -112,19 +112,19 @@ func NetworkGateway_getPageOfLocations() async throws {
     requestURL: pageURL,
     jsonFixtureNamed: "locations_first_page"
   )
-  let (page, cachedSince) = try await networkGateway.getPageOfLocations(
+  let page = try await networkGateway.getPageOfLocations(
     pageURL: pageURL,
     cachePolicy: .useProtocolCachePolicy
   )
-  #expect(page.results.count == 20)
-  #expect(page.info.pages == 7)
-  var result = page.results[0]
+  #expect(page.payload.results.count == 20)
+  #expect(page.payload.info.pages == 7)
+  var result = page.payload.results[0]
   #expect(result.id == 1)
   #expect(result.name == "Earth (C-137)")
-  result = page.results[19]
+  result = page.payload.results[19]
   #expect(result.id == 20)
   #expect(result.name == "Earth (Replacement Dimension)")
-  #expect(cachedSince == MockNetworkGateway.cachedSinceDate)
+  #expect(page.cachedSince == MockNetworkGateway.cachedSinceDate)
 }
 
 // MARK: - episode
@@ -164,17 +164,17 @@ func NetworkGateway_getPageOfEpisodes() async throws {
     requestURL: pageURL,
     jsonFixtureNamed: "episodes_first_page"
   )
-  let (page, cachedSince) = try await networkGateway.getPageOfEpisodes(
+  let page = try await networkGateway.getPageOfEpisodes(
     pageURL: pageURL,
     cachePolicy: .useProtocolCachePolicy
   )
-  #expect(page.results.count == 20)
-  #expect(page.info.pages == 3)
-  var result = page.results[0]
+  #expect(page.payload.results.count == 20)
+  #expect(page.payload.info.pages == 3)
+  var result = page.payload.results[0]
   #expect(result.id == 1)
   #expect(result.name == "Pilot")
-  result = page.results[19]
+  result = page.payload.results[19]
   #expect(result.id == 20)
   #expect(result.name == "Look Who's Purging Now")
-  #expect(cachedSince == MockNetworkGateway.cachedSinceDate)
+  #expect(page.cachedSince == MockNetworkGateway.cachedSinceDate)
 }

@@ -30,5 +30,8 @@ public struct RootView: View {
 }
 
 #Preview {
-  RootFeature.rootView(apiURL: MockNetworkGateway.exampleAPIURL)
+  NavigationStack {
+    RootFeature.rootView(apiURL: MockNetworkGateway.exampleAPIURL)
+      .navigationTitle("Test Episode List")
+  }
 }

@@ -35,15 +35,17 @@ extension NetworkGateway {
   func getPageOfCharacters(
     pageURL: URL,
     cachePolicy: URLRequest.CachePolicy = .useProtocolCachePolicy
-  ) async throws(NetworkError) -> (
-    output: ResponsePage<CharacterDomainModel>, cachedSince: Date?
-  ) {
+  ) async throws(NetworkError) -> ResponsePageContainer<CharacterDomainModel> {
     let request = URLRequest(url: pageURL, cachePolicy: cachePolicy)
     let output = try await get(
       request: request,
-      output: ResponsePage<CharacterDomainModel>.self,
+      output: ResponsePagePayload<CharacterDomainModel>.self,
     )
-    return output
+    return ResponsePageContainer(
+      payload: output.output,
+      cachedSince: output.cachedSince,
+      pageURL: pageURL,
+    )
   }
 
   func getLocation(
@@ -65,15 +67,17 @@ extension NetworkGateway {
   func getPageOfLocations(
     pageURL: URL,
     cachePolicy: URLRequest.CachePolicy = .useProtocolCachePolicy
-  ) async throws(NetworkError) -> (
-    output: ResponsePage<LocationDomainModel>, cachedSince: Date?
-  ) {
+  ) async throws(NetworkError) -> ResponsePageContainer<LocationDomainModel> {
     let request = URLRequest(url: pageURL, cachePolicy: cachePolicy)
     let output = try await get(
       request: request,
-      output: ResponsePage<LocationDomainModel>.self,
+      output: ResponsePagePayload<LocationDomainModel>.self,
     )
-    return output
+    return ResponsePageContainer(
+      payload: output.output,
+      cachedSince: output.cachedSince,
+      pageURL: pageURL,
+    )
   }
 
   func getEpisode(
@@ -95,14 +99,16 @@ extension NetworkGateway {
   func getPageOfEpisodes(
     pageURL: URL,
     cachePolicy: URLRequest.CachePolicy = .useProtocolCachePolicy
-  ) async throws(NetworkError) -> (
-    output: ResponsePage<EpisodeDomainModel>, cachedSince: Date?
-  ) {
+  ) async throws(NetworkError) -> ResponsePageContainer<EpisodeDomainModel> {
     let request = URLRequest(url: pageURL, cachePolicy: cachePolicy)
     let output = try await get(
       request: request,
-      output: ResponsePage<EpisodeDomainModel>.self,
+      output: ResponsePagePayload<EpisodeDomainModel>.self,
     )
-    return output
+    return ResponsePageContainer(
+      payload: output.output,
+      cachedSince: output.cachedSince,
+      pageURL: pageURL,
+    )
   }
 }
