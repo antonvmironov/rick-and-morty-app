@@ -13,8 +13,11 @@ enum SkeletonDecorationFeature {
         content
           .redacted(reason: redactionReasons)
           .shimmering()
+          .transition(.opacity.animation(.smooth))
+          .allowsHitTesting(false)
       } else {
         content
+          .transition(.opacity.animation(.smooth))
       }
     }
   }
@@ -37,6 +40,8 @@ extension View {
 // MARK: - preview
 
 #Preview {
+  @Previewable @State var isPlaceholderEnabled = false
+
   VStack {
     Text("Disabled")
       .skeletonDecoration(isEnabled: false)
@@ -48,5 +53,17 @@ extension View {
       .skeletonDecoration(isEnabled: true, redactionReasons: .privacy)
     Text("Enabled with 'invalidated' placeholder reasons")
       .skeletonDecoration(isEnabled: true, redactionReasons: .placeholder)
+
+    VStack {
+      Toggle(isOn: $isPlaceholderEnabled) {
+        Text("is placeholder enabled")
+      }
+      Text("Quick fox jumps over the lazy dog.")
+        .skeletonDecoration(
+          isEnabled: isPlaceholderEnabled,
+          redactionReasons: .placeholder
+        )
+        .tag("tagged")
+    }
   }
 }
