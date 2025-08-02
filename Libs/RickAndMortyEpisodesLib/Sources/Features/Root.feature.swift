@@ -7,9 +7,10 @@ public enum RootFeature {
   // constants and shared functions go here
 
   @MainActor
-  public static func rootView(apiURL: URL, dependencies: Dependencies)
-    -> some View
-  {
+  public static func rootView(
+    apiURL: URL,
+    dependencies: Dependencies
+  ) -> some View {
     let store = RootStore.initial { deps in
       dependencies.updateDeps(&deps)
     }
@@ -18,7 +19,9 @@ public enum RootFeature {
 }
 
 public struct RootView: View {
-  let store: RootStore
+  @State
+  var store: RootStore
+
   let apiURL: URL
 
   init(store: RootStore, apiURL: URL) {

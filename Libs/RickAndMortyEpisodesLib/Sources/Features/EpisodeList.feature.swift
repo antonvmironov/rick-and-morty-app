@@ -4,6 +4,7 @@ import SwiftUI
 
 /// Namespace for the EpisodeList feature. Serves as an anchor for project navigation.
 enum EpisodeListFeature {
+  typealias PageLoadingReducer = ProcessHostReducer<URL, ResponsePageContainer<EpisodeDomainModel>>
   // constants and shared functions go here
 
   static func formatAirDate(episode: EpisodeDomainModel) -> String {
@@ -22,7 +23,8 @@ enum EpisodeListFeature {
 }
 
 struct EpisodeListView: View {
-  @Bindable var store: EpisodeListStore
+  @State
+  var store: EpisodeListStore
 
   init(store: EpisodeListStore) {
     self.store = store
@@ -44,11 +46,14 @@ struct EpisodeListView: View {
         HStack {
           if store.pageLoading.status.isProcessing {
             ProgressView()
+            Text("Loading the next page...")
+          } else {
+            Text("Next page placeholder")
           }
-          Text("Loading the next page...")
         }
         .frame(maxWidth: .infinity, alignment: .center)
         .listRowSeparator(.hidden)
+        .tag("next-page")
         .onAppear {
           store.send(.loadNextPage)
         }
@@ -58,6 +63,7 @@ struct EpisodeListView: View {
         }
         .frame(maxWidth: .infinity, alignment: .center)
         .listRowSeparator(.hidden)
+        .tag("next-page")
       }
     }
     .listStyle(.plain)
@@ -87,9 +93,15 @@ struct EpisodeListView: View {
 }
 
 #Preview {
-  NavigationStack {
-    EpisodeListView(store: EpisodeListStore.preview())
-      .navigationTitle("Test Episode List")
+  @Previewable @State var store = EpisodeListStore.preview(
+    dependencies: Dependencies.preview()
+  )
+
+  VStack {
+    NavigationStack {
+      EpisodeListView(store: store)
+        .navigationTitle("Test Episode List")
+    }
   }
 }
 
@@ -97,20 +109,22 @@ typealias EpisodeListStore = StoreOf<EpisodeListReducer>
 typealias EpisodeListTestStore = TestStoreOf<EpisodeListReducer>
 
 extension EpisodeListStore {
-  static func preview() -> EpisodeListStore {
-    return initial(
-      firstEpisodePageURL: MockNetworkGateway.exampleAPIURL
+  static func preview(
+    dependencies: Dependencies
+  ) -> EpisodeListStore {
+    initial(
+      firstPageURL: MockNetworkGateway.exampleAPIURL
     ) { deps in
-      deps.networkGateway = try! MockNetworkGateway.preview()
+      dependencies.updateDeps(&deps)
     }
   }
 
   static func initial(
-    firstEpisodePageURL: URL,  // TODO: pass an URL to the first episode page
+    firstPageURL: URL,
     withDependencies setupDependencies: @escaping (inout DependencyValues) ->
       Void
   ) -> EpisodeListStore {
-    let state = EpisodeListState()
+    let state = EpisodeListState.initial(firstPageURL: firstPageURL)
     return EpisodeListStore(
       initialState: state,
       reducer: {
@@ -177,18 +191,19 @@ struct EpisodeListReducer {
 
 @ObservableState
 struct EpisodeListState: Equatable {
-  static func initial() -> Self {
-    .init()
+  static func initial(firstPageURL: URL? = nil) -> Self {
+    .init(
+      firstPageURL: firstPageURL,
+      nextPageURL: firstPageURL,
+    )
   }
 
   typealias Page = ResponsePageContainer<EpisodeDomainModel>
   var firstPageURL: URL?
   var pages = [Page]()
-  var items = IdentifiedArray<EpisodeID, EpisodeDomainModel>()
+  var items = [EpisodeDomainModel]()
   var nextPageURL: URL?
-  var pageLoading:
-    ProcessHostState<URL, ResponsePageContainer<EpisodeDomainModel>> =
-      .initial()
+  var pageLoading: EpisodeListFeature.PageLoadingReducer.State = .initial()
   var needsToLoadFirstPage: Bool {
     pages.isEmpty && canLoadNextPage
   }
