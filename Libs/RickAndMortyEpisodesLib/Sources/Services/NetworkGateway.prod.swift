@@ -54,7 +54,7 @@ actor ProdNetworkGateway: NetworkGateway {
     var storeCachedResponse = false
 
     if let cachedResponse = urlCache.cachedResponse(for: request) {
-      let userInfo: [String: Any]? = cachedResponse.userInfo as? [String: Any]
+      let userInfo = cachedResponse.userInfo as? [String: Any]
       cachedSince = userInfo?["received_date"] as? Date
       data = cachedResponse.data
       response = cachedResponse.response

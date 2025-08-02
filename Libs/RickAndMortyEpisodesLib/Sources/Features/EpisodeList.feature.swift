@@ -169,7 +169,6 @@ struct EpisodeListState: Equatable {
 
 @CasePathable
 enum EpisodeListAction: Equatable {
-  case increment
   case episodeListDidAppear
   case startLoadingEpisodes
   case finishLoadingEpisodes(
