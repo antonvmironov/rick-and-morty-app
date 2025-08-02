@@ -3,13 +3,13 @@ import Foundation
 import SwiftUI
 
 /// Namespace for the ProcessHost feature. Serves as an anchor for project navigation.
-enum ProcessHostFeature {
+enum ProcessHostFeature<Input: Equatable & Sendable, Output: Equatable> {
   // constants and shared functions go here
-
-  static func processEffect<Input, Output>(
+  typealias FeatureStore = StoreOf<FeatureReducer>
+  static func processEffect(
     input: Input,
     operation: @escaping @Sendable (Input) async throws -> Output,
-    send: Send<ProcessHostAction<Input, Output>>
+    send: Send<FeatureAction>
   ) async {
     do {
       let result = try await operation(input)
@@ -18,136 +18,118 @@ enum ProcessHostFeature {
       await send(.failedProcessing(message: "\(error)"))
     }
   }
-}
 
-typealias ProcessHostStore<Input: Equatable, Output: Equatable> = StoreOf<
-  ProcessHostReducer<Input, Output>
->
-typealias ProcessHostTestStore<Input: Equatable, Output: Equatable> =
-  TestStoreOf<ProcessHostReducer<Input, Output>>
-
-extension ProcessHostStore {
-  static func preview<
-    Input: Equatable & Sendable,
-    Output: Equatable & Sendable
-  >(
+  @MainActor
+  static func previewStore(
     operation: @escaping @Sendable (Input) async throws -> Output
-  ) -> ProcessHostStore<Input, Output> {
-    return initial(operation: operation)
+  ) -> FeatureStore {
+    return initialStore(operation: operation)
   }
 
-  static func initial<
-    Input: Equatable & Sendable,
-    Output: Equatable & Sendable
-  >(
+  @MainActor
+  static func initialStore(
     operation: @escaping @Sendable (Input) async throws -> Output
-  ) -> ProcessHostStore<Input, Output> {
-    let state = ProcessHostState<Input, Output>()
-    return ProcessHostStore(
-      initialState: state,
+  ) -> FeatureStore {
+    return FeatureStore(
+      initialState: FeatureState(),
       reducer: {
-        ProcessHostReducer(operation: operation)
+        FeatureReducer(operation: operation)
       }
     )
   }
-}
 
-@Reducer
-struct ProcessHostReducer<
-  Input: Equatable & Sendable,
-  Output: Equatable & Sendable
-> {
-  typealias State = ProcessHostState<Input, Output>
-  typealias Action = ProcessHostAction<Input, Output>
+  @Reducer
+  struct FeatureReducer {
+    typealias State = FeatureState
+    typealias Action = FeatureAction
 
-  let operation: @Sendable (Input) async throws -> Output
+    let operation: @Sendable (Input) async throws -> Output
 
-  var body: some ReducerOf<Self> {
-    processingReducer
-  }
+    var body: some ReducerOf<Self> {
+      processingReducer
+    }
 
-  private var processingReducer: some ReducerOf<Self> {
-    Reduce { state, action in
-      switch (state.status, action) {
-      case (.idle(let previousSuccess, _), .process(let input)):
-        state.status = .processing(
-          previousSuccess: previousSuccess,
-          input: input
-        )
-        let operation = self.operation
-        return .run { send in
-          await ProcessHostFeature.processEffect(
-            input: input,
-            operation: operation,
-            send: send
+    private var processingReducer: some ReducerOf<Self> {
+      Reduce { state, action in
+        switch (state.status, action) {
+        case (.idle(let previousSuccess, _), .process(let input)):
+          state.status = .processing(
+            previousSuccess: previousSuccess,
+            input: input
           )
-        }.cancellable(id: "process-operation")
-      case (.processing, .finishProcessing(let result)):
-        state.status = .idle(previousSuccess: result, previousFailure: nil)
-        return .none
-      case (.processing(let previousSuccess, _), .failedProcessing(let message)):
-        state.status = .idle(
-          previousSuccess: previousSuccess,
-          previousFailure: message
-        )
-        return .none
-      default:
-        return .none
+          return .run { [operation] send in
+            await ProcessHostFeature.processEffect(
+              input: input,
+              operation: operation,
+              send: send
+            )
+          }.cancellable(id: "process-operation")
+        case (.processing, .finishProcessing(let result)):
+          state.status = .idle(previousSuccess: result, previousFailure: nil)
+          return .none
+        case (
+          .processing(let previousSuccess, _), .failedProcessing(let message)
+        ):
+          state.status = .idle(
+            previousSuccess: previousSuccess,
+            previousFailure: message
+          )
+          return .none
+        default:
+          return .none
+        }
       }
     }
   }
-}
 
-@ObservableState
-struct ProcessHostState<Input: Equatable, Output: Equatable>: Equatable {
-  var status: ProcessHostStatus<Input, Output> = .idle(
-    previousSuccess: nil,
-    previousFailure: nil
-  )
+  @ObservableState
+  struct FeatureState: Equatable {
+    var status: FeatureStatus = .idle(
+      previousSuccess: nil,
+      previousFailure: nil
+    )
 
-  static func initial() -> Self {
-    return .init()
-  }
-}
-
-@CasePathable
-enum ProcessHostAction<
-  Input: Equatable & Sendable,
-  Output: Equatable & Sendable
->: Sendable, Equatable {
-  case process(Input)
-  case finishProcessing(Output)
-  case failedProcessing(message: String)
-}
-
-enum ProcessHostStatus<Input: Equatable, Output: Equatable>: Equatable {
-  case idle(previousSuccess: Output?, previousFailure: String?)
-  case processing(previousSuccess: Output?, input: Input)
-
-  var success: Output? {
-    switch self {
-    case .idle(let previousSuccess, _):
-      return previousSuccess
-    case .processing(let previousSuccess, _):
-      return previousSuccess
+    static func initial() -> Self {
+      return .init()
     }
   }
 
-  var failiureMessage: String? {
-    switch self {
-    case .idle(_, let previousFailure):
-      return previousFailure
-    case .processing:
-      return nil
-    }
+  @CasePathable
+  enum FeatureAction: Equatable {
+    case process(Input)
+    case finishProcessing(Output)
+    case failedProcessing(message: String)
   }
 
-  var isProcessing: Bool {
-    switch self {
-    case .processing:
-      return true
-    default:
-      return false
+  enum FeatureStatus: Equatable {
+    case idle(previousSuccess: Output?, previousFailure: String?)
+    case processing(previousSuccess: Output?, input: Input)
+
+    var success: Output? {
+      switch self {
+      case .idle(let previousSuccess, _):
+        return previousSuccess
+      case .processing(let previousSuccess, _):
+        return previousSuccess
+      }
+    }
+
+    var failiureMessage: String? {
+      switch self {
+      case .idle(_, let previousFailure):
+        return previousFailure
+      case .processing:
+        return nil
+      }
+    }
+
+    var isProcessing: Bool {
+      switch self {
+      case .processing:
+        return true
+      default:
+        return false
+      }
     }
   }
 }
