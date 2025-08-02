@@ -17,16 +17,23 @@ enum CharacterBriefFeature {
 
     var body: some View {
       VStack(alignment: .leading) {
-        Text(state.character.name).font(.headline)
+        Text(state.character.name)
+          .font(.headline)
+          .skeletonDecoration(isEnabled: state.isPlaceholder)
         HFlow {
           Group {
             Text(state.character.species.description)
+              .skeletonDecoration(isEnabled: state.isPlaceholder)
             if !state.character.type.isEmpty {
-              Text(state.character.type)
+              Text("species: \(state.character.type)")
+                .skeletonDecoration(isEnabled: state.isPlaceholder)
             }
+            Text("origin: \(state.character.origin.name)")
+              .skeletonDecoration(isEnabled: state.isPlaceholder)
           }
           .font(.body)
           .tagDecoration()
+          Spacer()
         }
       }
     }
@@ -35,10 +42,10 @@ enum CharacterBriefFeature {
   @ObservableState
   struct FeatureState: Equatable {
     var character: CharacterDomainModel
-    var hasShimmer: Bool
+    var isPlaceholder: Bool
 
-    static func preview(hasShimmer: Bool) -> Self {
-      .init(character: .dummy, hasShimmer: hasShimmer)
+    static func preview(isPlaceholder: Bool) -> Self {
+      .init(character: .dummy, isPlaceholder: isPlaceholder)
     }
   }
 }
@@ -46,10 +53,10 @@ enum CharacterBriefFeature {
 #Preview {
   VStack {
     CharacterBriefFeature.FeatureView(
-      state: .preview(hasShimmer: true)
+      state: .preview(isPlaceholder: true)
     )
     CharacterBriefFeature.FeatureView(
-      state: .preview(hasShimmer: false)
+      state: .preview(isPlaceholder: false)
     )
   }
   .frame(maxWidth: .infinity)
