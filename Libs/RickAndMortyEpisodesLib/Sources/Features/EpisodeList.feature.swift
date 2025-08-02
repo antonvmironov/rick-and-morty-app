@@ -50,9 +50,20 @@ enum EpisodeListFeature {
         }
 
         ForEach(store.pagination.items) { episode in
-          ListItemFeature.FeatureView(episode: episode)
-            .listRowSeparator(.hidden)
-            .tag(episode.id)
+          Button(
+            action: {
+              store.send(.presetEpisode(episode))
+            },
+            label: {
+              HStack {
+                ListItemFeature.FeatureView(episode: episode)
+                Spacer()
+                Image(systemName: "chevron.right")
+              }
+            }
+          )
+          .listRowSeparator(.hidden)
+          .tag(episode.id)
         }
         if store.pagination.nextInput != nil {
           HStack {
@@ -82,6 +93,15 @@ enum EpisodeListFeature {
       .onAppear {
         store.send(.pagination(.loadFirstPageIfNeeded))
       }
+      .navigationDestination(
+        item: $store.scope(state: \.episodeDetails, action: \.episodeDetails)
+      ) { store in
+        EpisodeDetailsFeature.FeatureView(store: store)
+      }
+    }
+
+    func presentEpisode(_ episode: EpisodeDomainModel) {
+      store.send(.presetEpisode(episode))
     }
   }
 
@@ -94,7 +114,23 @@ enum EpisodeListFeature {
     var networkGateway
 
     var body: some ReducerOf<Self> {
+      userInputReducer
+        .ifLet(\.$episodeDetails, action: \.episodeDetails) {
+          EpisodeDetailsFeature.FeatureReducer()
+        }
       paginationReducer
+    }
+
+    var userInputReducer: some ReducerOf<Self> {
+      Reduce { (state: inout State, action: Action) in
+        switch action {
+        case .presetEpisode(let episode):
+          state.episodeDetails = .init(episode: episode)
+          return .none
+        default:
+          return .none
+        }
+      }
     }
 
     var paginationReducer: some ReducerOf<Self> {
@@ -117,6 +153,8 @@ enum EpisodeListFeature {
   @ObservableState
   struct FeatureState: Equatable {
     var pagination: PaginationFeature.FeatureState
+    @Presents
+    var episodeDetails: EpisodeDetailsFeature.FeatureState?
 
     static func initial(firstPageURL: URL?) -> Self {
       FeatureState(pagination: .initial(firstInput: firstPageURL))
@@ -124,14 +162,16 @@ enum EpisodeListFeature {
   }
 
   @CasePathable
-  enum FeatureAction {
+  enum FeatureAction: Equatable {
+    case presetEpisode(EpisodeDomainModel)
     case pagination(PaginationFeature.FeatureAction)
+    case episodeDetails(PresentationAction<EpisodeDetailsFeature.FeatureAction>)
   }
 }
 
 #Preview {
   @Previewable @State var store = EpisodeListFeature.previewStore(
-    dependencies: try! Dependencies.preview()
+    dependencies: Dependencies.preview()
   )
 
   VStack {
