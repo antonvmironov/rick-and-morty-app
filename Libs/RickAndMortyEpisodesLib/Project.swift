@@ -8,7 +8,7 @@ let project = Project.lib(
     .project(
       target: "SharedLib",
       path: "//Libs/SharedLib"
-    ),
+    )
   ],
   testPlans: ["Fixtures/RickAndMortyEpisodesLib.xctestplan"],
 )

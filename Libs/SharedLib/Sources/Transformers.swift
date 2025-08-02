@@ -31,14 +31,16 @@ public enum Transformers {
   }
 
   #if DEBUG
-  public static func loadFixture(
+    public static func loadFixture(
       fixtureName: String,
+      invokedFrom: StaticString = #filePath,
     ) throws -> Data {
-      let thisFileURL = URL(fileURLWithPath: #filePath)
+      var thisFileURL = URL(fileURLWithPath: "\(invokedFrom)")
+      while thisFileURL.lastPathComponent != "Sources" {
+        thisFileURL = thisFileURL.deletingLastPathComponent()
+      }
       let fixturesURL =
         thisFileURL
-        .deletingLastPathComponent()
-        .deletingLastPathComponent()
         .deletingLastPathComponent()
         .appendingPathComponent("Fixtures", isDirectory: true)
         .appendingPathComponent("\(fixtureName).json", isDirectory: false)
@@ -47,11 +49,15 @@ public enum Transformers {
       return try Data(contentsOf: fixturesURL)
     }
 
-  public static func loadFixture<Output: Decodable>(
+    public static func loadFixture<Output: Decodable>(
       output: Output.Type = Output.self,
       fixtureName: String,
+      invokedFrom: StaticString = #filePath,
     ) throws -> Output {
-      let fixtureData = try loadFixture(fixtureName: fixtureName)
+      let fixtureData = try loadFixture(
+        fixtureName: fixtureName,
+        invokedFrom: invokedFrom
+      )
       return try jsonDecoder().decode(Output.self, from: fixtureData)
     }
   #endif

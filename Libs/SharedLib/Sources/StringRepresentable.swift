@@ -4,10 +4,11 @@ import Foundation
 ///
 /// Adopt this protocol to create distinct types backed by strings, enabling type safety, clear separation between entities, and the ability to define shared constants or utility methods.
 public protocol StringRepresentable: Sendable,
-                                     Equatable,
-                                     Codable,
-                                     CustomStringConvertible,
-                                     ExpressibleByStringLiteral {
+  Equatable,
+  Codable,
+  CustomStringConvertible,
+  ExpressibleByStringLiteral
+{
   var rawValue: String { get set }
   init(rawValue: String)
 }

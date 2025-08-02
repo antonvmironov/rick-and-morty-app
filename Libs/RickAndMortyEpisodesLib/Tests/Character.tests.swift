@@ -165,7 +165,9 @@ private let rickURL = URL(
 private let mortyURL = URL(
   string: "https://rickandmortyapi.com/api/character/2"
 )!
-private let rickCreatedDate = TestUtils.dateFromString("2017-11-04T18:48:46.250Z")
+private let rickCreatedDate = TestUtils.dateFromString(
+  "2017-11-04T18:48:46.250Z"
+)
 private let earthLocation1URL = URL(
   string: "https://rickandmortyapi.com/api/location/1"
 )!
