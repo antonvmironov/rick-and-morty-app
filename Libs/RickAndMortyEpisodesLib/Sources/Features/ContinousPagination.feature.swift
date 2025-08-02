@@ -5,7 +5,7 @@ import SwiftUI
 /// Namespace for the ContinuousPagination feature. Serves as an anchor for project navigation.
 enum ContinuousPaginationFeature<
   Input: Equatable & Sendable,
-  Item: Equatable & Sendable & Codable
+  Item: Equatable & Sendable & Codable & Identifiable
 > {
   typealias Page = ResponsePageContainer<Item>
   typealias PageLoadingFeature = ProcessHostFeature<Input, Page>
@@ -116,7 +116,7 @@ enum ContinuousPaginationFeature<
     }
 
     var firstInput: Input?
-    var items = [Item]()
+    var items = IdentifiedArray<Item.ID, Item>()
     var pages = [Page]()
     var nextInput: Input?
     var pageLoading: PageLoadingFeature.FeatureState = .initial()
