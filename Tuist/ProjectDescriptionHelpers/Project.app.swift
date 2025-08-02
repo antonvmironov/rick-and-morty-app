@@ -13,6 +13,7 @@ extension Project {
       let infoPlist: [String: Plist.Value] = [
         "CFBundleShortVersionString": "2025.07.31",
         "CFBundleVersion": "1",
+        "CFBundleDisplayName": "R&M Demo",
         "UILaunchScreen": [
           "UIColorName": "",
           "UIImageName": "",
