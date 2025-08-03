@@ -25,6 +25,7 @@ enum EpisodeDetailsFeature {
   }
 
   struct FeatureView: View {
+    @Bindable
     var store: FeatureStore
 
     init(store: FeatureStore) {
@@ -40,31 +41,7 @@ enum EpisodeDetailsFeature {
             row(characterStore: characterStore)
           }
         } header: {
-          VStack(alignment: .center) {
-            HStack(spacing: UIConstants.space) {
-              HStack {
-                Text("Episode")
-                  .font(.caption)
-                Text("\(store.episode.episode)")
-                  .font(.caption)
-                  .fontDesign(.monospaced)
-              }
-              .tagDecoration()
-              HStack {
-                Group {
-                  Text(
-                    "Aired on \(BaseEpisodeFeature.formatAirDate(episode: store.episode))"
-                  )
-                  .font(.caption)
-                  .fontDesign(.monospaced)
-                }
-                .tagDecoration()
-              }
-            }
-            Text("characters in this episode")
-              .font(.title3)
-          }
-          .frame(maxWidth: .infinity)
+          sectionHeader()
         }
       }
       .listStyle(.plain)
@@ -72,12 +49,24 @@ enum EpisodeDetailsFeature {
       .onAppear {
         store.send(.preload)
       }
+      .navigationDestination(
+        item:
+          $store
+          .scope(
+            state: \.selectedCharacterID?.value,
+            action: \.selectedCharacter
+          )
+      ) { scope in
+        CharacterDetailsFeature.FeatureView(store: scope)
+      }
     }
 
-    func row(characterStore: CharacterFeature.FeatureStore) -> some View {
+    private func row(
+      characterStore: CharacterFeature.FeatureStore
+    ) -> some View {
       Button(
         action: {
-          // TODO: navigate
+          store.send(.selectCharacter(characterStore.characterURL))
         },
         label: {
           HStack {
@@ -89,6 +78,25 @@ enum EpisodeDetailsFeature {
       .listRowSeparator(.hidden)
       .tag(characterStore.state.id)
     }
+
+    private func sectionHeader() -> some View {
+      VStack(alignment: .center) {
+        HStack(spacing: UIConstants.space) {
+          Text("Episode \(store.episode.episode)")
+            .font(.caption)
+            .tagDecoration()
+          Text(
+            "Aired on \(BaseEpisodeFeature.formatAirDate(episode: store.episode))"
+          )
+          .font(.caption)
+          .fontDesign(.monospaced)
+          .tagDecoration()
+        }
+        Text("characters in this episode")
+          .font(.title3)
+      }
+      .frame(maxWidth: .infinity)
+    }
   }
 
   @Reducer
@@ -96,6 +104,21 @@ enum EpisodeDetailsFeature {
     typealias State = FeatureState
     typealias Action = FeatureAction
     var body: some ReducerOf<Self> {
+      BindingReducer()
+      coordinatingReducer
+      EmptyReducer()
+        .forEach(\.characters, action: \.characters) {
+          CharacterFeature.FeatureReducer()
+        }
+      EmptyReducer()
+        .ifLet(\.$selectedCharacterID, action: \.selectedCharacter) {
+          Scope(state: \.value, action: \.self) {
+            CharacterDetailsFeature.FeatureReducer()
+          }
+        }
+    }
+
+    var coordinatingReducer: some ReducerOf<Self> {
       Reduce { state, action in
         switch action {
         case .preload:
@@ -105,12 +128,15 @@ enum EpisodeDetailsFeature {
               send(.characters(.element(id: id, action: .loadFirstTime)))
             }
           }
+        case .selectCharacter(let characterID):
+          state.selectedCharacterID =
+            characterID
+            .flatMap(state.characters.index(id:))
+            .map { Identified(state.characters[$0], id: \.id) }
+          return .none
         default:
           return .none
         }
-      }
-      .forEach(\.characters, action: \.characters) {
-        return CharacterFeature.FeatureReducer()
       }
     }
   }
@@ -119,6 +145,8 @@ enum EpisodeDetailsFeature {
   struct FeatureState: Equatable {
     var episode: EpisodeDomainModel
     var characters: IdentifiedArrayOf<CharacterState>
+    @Presents
+    var selectedCharacterID: Identified<CharacterState.ID, CharacterState>?
 
     static func initial(episode: EpisodeDomainModel) -> Self {
       .init(
@@ -131,9 +159,12 @@ enum EpisodeDetailsFeature {
   }
 
   @CasePathable
-  enum FeatureAction: Equatable {
+  enum FeatureAction: Equatable, BindableAction {
+    case selectedCharacter(PresentationAction<CharacterFeature.FeatureAction>)
     case characters(IdentifiedActionOf<CharacterFeature.FeatureReducer>)
     case preload
+    case selectCharacter(CharacterState.ID?)
+    case binding(BindingAction<FeatureState>)
   }
 }
 

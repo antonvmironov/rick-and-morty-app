@@ -18,6 +18,7 @@ enum CharacterBriefFeature {
   typealias FeatureAction = BaseCharacterFeature.FeatureAction
 
   struct FeatureView: View {
+    @Bindable
     var store: FeatureStore
 
     init(store: FeatureStore) {

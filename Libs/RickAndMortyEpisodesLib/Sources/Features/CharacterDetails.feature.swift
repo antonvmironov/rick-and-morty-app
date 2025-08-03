@@ -6,8 +6,8 @@ import SharedLib
 import Shimmer
 import SwiftUI
 
-/// Namespace for the CharacterBrief feature. Serves as an anchor for project navigation.
-enum CharacterBriefFeature {
+/// Namespace for the CharacterDetails feature. Serves as an anchor for project navigation.
+enum CharacterDetailsFeature {
   typealias CharacterLoadingFeature = ProcessHostFeature<
     URL, CharacterDomainModel
   >
@@ -18,6 +18,7 @@ enum CharacterBriefFeature {
   typealias FeatureAction = BaseCharacterFeature.FeatureAction
 
   struct FeatureView: View {
+    @Bindable
     var store: FeatureStore
 
     init(store: FeatureStore) {
@@ -167,15 +168,15 @@ enum CharacterBriefFeature {
   List {
     VStack(alignment: .leading) {
       Text("placeholder")
-      CharacterBriefFeature.FeatureView(store: placeholderStore)
+      CharacterDetailsFeature.FeatureView(store: placeholderStore)
     }
     VStack(alignment: .leading) {
       Text("success")
-      CharacterBriefFeature.FeatureView(store: successStore)
+      CharacterDetailsFeature.FeatureView(store: successStore)
     }
     VStack(alignment: .leading) {
       Text("failure")
-      CharacterBriefFeature.FeatureView(store: failureStore)
+      CharacterDetailsFeature.FeatureView(store: failureStore)
     }
   }
   .listStyle(.plain)
