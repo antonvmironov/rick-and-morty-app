@@ -111,61 +111,6 @@ enum CharacterDetailsFeature {
       )
     }
 
-    private func characterContentView(
-      character: CharacterDomainModel
-    ) -> some View {
-      HStack(spacing: UIConstants.space) {
-        VStack(alignment: .leading) {
-          HStack {
-            Text(store.characterIDString)
-              .font(.body)
-              .fontDesign(.monospaced)
-              .padding(UIConstants.space / 2)
-              .frame(
-                minWidth: characterIDMinWidth,
-                alignment: .center
-              )
-              .cornerRadius(UIConstants.cornerRadius)
-              .background(
-                RoundedRectangle(cornerRadius: UIConstants.cornerRadius)
-                  .fill(
-                    UIConstants.inPreview ? .gray : Color("SecondaryBackground")
-                  )
-              )
-            Text(character.name)
-              .font(.headline)
-              .modifier(loadableContentModifier)
-          }
-          HStack(alignment: .top) {
-            if store.characterLoading.status.failureMessage != nil {
-              reloadView()
-            } else {
-              tagView(label: "species", content: character.species.rawValue)
-              tagView(label: "origin", content: character.origin.name)
-            }
-          }
-          .lineLimit(1)
-        }
-        Spacer()
-        characterImage()
-      }
-    }
-
-    private func tagView(
-      label: String,
-      content: String,
-    ) -> some View {
-      VStack(alignment: .leading, spacing: UIConstants.space / 2) {
-        Text(label)
-          .minimumScaleFactor(0.5)
-          .font(.caption2)
-        Text(content)
-          .minimumScaleFactor(0.5)
-          .font(.caption)
-          .modifier(loadableContentModifier)
-      }
-    }
-
     private func characterImagePlaceholder() -> some View {
       RoundedRectangle(cornerRadius: UIConstants.cornerRadius)
         .fill(

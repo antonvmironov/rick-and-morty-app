@@ -104,16 +104,8 @@ enum EpisodeDetailsFeature {
     var body: some ReducerOf<Self> {
       BindingReducer()
       coordinatingReducer
-      EmptyReducer()
-        .forEach(\.characters, action: \.characters) {
-          CharacterFeature.FeatureReducer()
-        }
-      EmptyReducer()
-        .ifLet(\.$selectedCharacterID, action: \.selectedCharacter) {
-          Scope(state: \.value, action: \.self) {
-            CharacterDetailsFeature.FeatureReducer()
-          }
-        }
+      charactersReducer
+      selectedCharacterReducer
     }
 
     var coordinatingReducer: some ReducerOf<Self> {
@@ -136,6 +128,22 @@ enum EpisodeDetailsFeature {
           return .none
         }
       }
+    }
+
+    var charactersReducer: some ReducerOf<Self> {
+      EmptyReducer()
+        .forEach(\.characters, action: \.characters) {
+          CharacterFeature.FeatureReducer()
+        }
+    }
+
+    var selectedCharacterReducer: some ReducerOf<Self> {
+      EmptyReducer()
+        .ifLet(\.$selectedCharacterID, action: \.selectedCharacter) {
+          Scope(state: \.value, action: \.self) {
+            CharacterDetailsFeature.FeatureReducer()
+          }
+        }
     }
   }
 
