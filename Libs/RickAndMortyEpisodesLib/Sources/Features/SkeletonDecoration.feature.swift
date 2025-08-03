@@ -44,7 +44,7 @@ extension View {
 
 #Preview {
   @Previewable @State var isPlaceholderEnabled = false
-  @Previewable @State var isShimmaring = false
+  @Previewable @State var isShimmering = false
 
   VStack {
     Text("Disabled")
@@ -62,13 +62,13 @@ extension View {
       Toggle(isOn: $isPlaceholderEnabled) {
         Text("is placeholder enabled")
       }
-      Toggle(isOn: $isShimmaring) {
+      Toggle(isOn: $isShimmering) {
         Text("is shimmering enabled")
       }
       Text("Quick fox jumps over the lazy dog.")
         .skeletonDecoration(
           isEnabled: isPlaceholderEnabled,
-          isShimmering: isShimmaring,
+          isShimmering: isShimmering,
           redactionReasons: .placeholder
         )
         .tag("tagged")
