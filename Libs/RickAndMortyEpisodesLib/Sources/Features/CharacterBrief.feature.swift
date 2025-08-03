@@ -13,6 +13,7 @@ enum CharacterBriefFeature {
   >
   typealias FeatureStore = BaseCharacterFeature.FeatureStore
   typealias TestStore = BaseCharacterFeature.TestStore
+  typealias FeatureReducer = BaseCharacterFeature.FeatureReducer
   typealias FeatureState = BaseCharacterFeature.FeatureState
   typealias FeatureAction = BaseCharacterFeature.FeatureAction
 

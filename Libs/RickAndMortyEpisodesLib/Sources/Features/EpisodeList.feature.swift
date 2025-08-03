@@ -158,7 +158,7 @@ enum EpisodeListFeature {
       Reduce { (state: inout State, action: Action) in
         switch action {
         case .presetEpisode(let episode):
-          state.episodeDetails = .init(episode: episode)
+          state.episodeDetails = .initial(episode: episode)
           return .none
         default:
           return .none

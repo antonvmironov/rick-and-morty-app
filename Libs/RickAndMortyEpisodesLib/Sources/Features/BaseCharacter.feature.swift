@@ -78,7 +78,7 @@ enum BaseCharacterFeature {
             return .none
           }
         case .loadFirstTime:
-          if case .idle(.some, .none) = state.characterLoading.status {
+          if case .idle(.none, .none) = state.characterLoading.status {
             return .send(.characterLoading(.process(state.characterURL)))
           } else {
             return .none
@@ -90,18 +90,21 @@ enum BaseCharacterFeature {
       Scope(state: \.characterLoading, action: \.characterLoading) {
         [networkGateway] in
         CharacterLoadingFeature.FeatureReducer { characterURL in
-          try await networkGateway
+          let response =
+            try await networkGateway
             .getCharacter(
               url: characterURL,
               cachePolicy: .returnCacheDataElseLoad
-            ).output
+            )
+          return response.output
         }
       }
     }
   }
 
   @ObservableState
-  struct FeatureState: Equatable {
+  struct FeatureState: Equatable, Identifiable {
+    var id: URL { characterURL }
     let characterURL: URL
     let placeholderCharacter: CharacterDomainModel = .dummy
     var characterLoading: CharacterLoadingFeature.FeatureState
@@ -125,6 +128,12 @@ enum BaseCharacterFeature {
       characterLoading: CharacterLoadingFeature.FeatureState
     ) -> Self {
       .init(characterURL: characterURL, characterLoading: characterLoading)
+    }
+
+    static func initial(
+      characterURL: URL
+    ) -> Self {
+      .init(characterURL: characterURL, characterLoading: .init())
     }
   }
 

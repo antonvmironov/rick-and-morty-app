@@ -7,13 +7,18 @@ import SwiftUI
 enum EpisodeDetailsFeature {
   typealias FeatureStore = StoreOf<FeatureReducer>
   typealias TestStore = TestStoreOf<FeatureReducer>
+  typealias CharacterFeature = CharacterBriefFeature
+  typealias CharacterState = CharacterBriefFeature.FeatureState
+  typealias CharacterStatesArray = IdentifiedArrayOf<CharacterState>
 
   @MainActor
   static func previewStore(
     dependencies: Dependencies
   ) -> FeatureStore {
     return FeatureStore(
-      initialState: FeatureState(episode: BaseEpisodeFeature.previewEpisode()),
+      initialState: FeatureState.initial(
+        episode: BaseEpisodeFeature.previewEpisode()
+      ),
       reducer: { FeatureReducer() },
       withDependencies: dependencies.updateDeps
     )
@@ -29,9 +34,10 @@ enum EpisodeDetailsFeature {
     var body: some View {
       List {
         Section {
-          ForEach(store.episode.characters, id: \.absoluteString) {
-            characterURL in
-            row(characterURL: characterURL)
+          ForEach(
+            store.scope(state: \.characters, action: \.characters)
+          ) { characterStore in
+            row(characterStore: characterStore)
           }
         } header: {
           VStack {
@@ -64,21 +70,17 @@ enum EpisodeDetailsFeature {
       .navigationTitle(store.episode.name)
     }
 
-    func row(characterURL: URL) -> some View {
+    func row(characterStore: CharacterFeature.FeatureStore) -> some View {
       Button(
         action: {
           // TODO: navigate
         },
         label: {
-          HStack {
-            Text("character id: \(characterURL.absoluteString)")
-            Spacer()
-            Image(systemName: "chevron.right")
-          }
+          CharacterFeature.FeatureView(store: characterStore)
         }
       )
       .listRowSeparator(.hidden)
-      .tag(characterURL.absoluteString)
+      .tag(characterStore.state.id)
     }
   }
 
@@ -87,15 +89,37 @@ enum EpisodeDetailsFeature {
     typealias State = FeatureState
     typealias Action = FeatureAction
     var body: some ReducerOf<Self> {
+      Reduce { state, action in
+        switch action {
+        default:
+          return .none
+        }
+      }
+      .forEach(\.characters, action: \.characters) {
+        return CharacterFeature.FeatureReducer()
+      }
     }
   }
 
   @ObservableState
   struct FeatureState: Equatable {
     var episode: EpisodeDomainModel
+    var characters: IdentifiedArrayOf<CharacterState>
+
+    static func initial(episode: EpisodeDomainModel) -> Self {
+      .init(
+        episode: episode,
+        characters: CharacterStatesArray(
+          uniqueElements: episode.characters.map(CharacterState.initial)
+        ),
+      )
+    }
   }
 
-  enum FeatureAction: Equatable {}
+  @CasePathable
+  enum FeatureAction: Equatable {
+    case characters(IdentifiedActionOf<CharacterFeature.FeatureReducer>)
+  }
 }
 
 #Preview {
