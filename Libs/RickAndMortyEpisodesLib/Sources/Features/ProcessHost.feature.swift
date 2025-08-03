@@ -92,6 +92,24 @@ enum ProcessHostFeature<Input: Equatable & Sendable, Output: Equatable> {
     static func initial() -> Self {
       return .init()
     }
+
+    static func success(_ output: Output) -> Self {
+      return .init(
+        status: .idle(
+          previousSuccess: output,
+          previousFailure: nil
+        )
+      )
+    }
+
+    static func failure(_ failureMessage: String) -> Self {
+      return .init(
+        status: .idle(
+          previousSuccess: nil,
+          previousFailure: failureMessage
+        )
+      )
+    }
   }
 
   @CasePathable

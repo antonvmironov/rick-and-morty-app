@@ -6,13 +6,14 @@ import SwiftUI
 /// Namespace for the SkeletonDecoration feature. Serves as an anchor for project navigation.
 enum SkeletonDecorationFeature {
   struct FeatureViewModifier: ViewModifier {
-    var isEnabled: Bool
-    var redactionReasons: RedactionReasons
+    var isEnabled: Bool = true
+    var isShimmering: Bool = true
+    var redactionReasons: RedactionReasons = .placeholder
     func body(content: Content) -> some View {
       if isEnabled {
         content
           .redacted(reason: redactionReasons)
-          .shimmering()
+          .shimmering(active: isShimmering)
           .transition(.opacity.animation(.smooth))
           .allowsHitTesting(false)
       } else {
@@ -25,12 +26,14 @@ enum SkeletonDecorationFeature {
 
 extension View {
   func skeletonDecoration(
-    isEnabled: Bool,
+    isEnabled: Bool = true,
+    isShimmering: Bool = true,
     redactionReasons: RedactionReasons = .placeholder
   ) -> some View {
     modifier(
       SkeletonDecorationFeature.FeatureViewModifier(
         isEnabled: isEnabled,
+        isShimmering: isShimmering,
         redactionReasons: redactionReasons
       )
     )
@@ -41,6 +44,7 @@ extension View {
 
 #Preview {
   @Previewable @State var isPlaceholderEnabled = false
+  @Previewable @State var isShimmering = false
 
   VStack {
     Text("Disabled")
@@ -58,9 +62,13 @@ extension View {
       Toggle(isOn: $isPlaceholderEnabled) {
         Text("is placeholder enabled")
       }
+      Toggle(isOn: $isShimmering) {
+        Text("is shimmering enabled")
+      }
       Text("Quick fox jumps over the lazy dog.")
         .skeletonDecoration(
           isEnabled: isPlaceholderEnabled,
+          isShimmering: isShimmering,
           redactionReasons: .placeholder
         )
         .tag("tagged")

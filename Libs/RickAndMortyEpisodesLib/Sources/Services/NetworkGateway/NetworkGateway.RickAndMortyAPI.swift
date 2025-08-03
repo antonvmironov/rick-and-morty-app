@@ -24,6 +24,15 @@ extension NetworkGateway {
     output: CharacterDomainModel, cachedSince: Date?
   ) {
     let url = endpoints.characters.appendingPathComponent("\(id)")
+    return try await getCharacter(url: url, cachePolicy: cachePolicy)
+  }
+
+  func getCharacter(
+    url: URL,
+    cachePolicy: URLRequest.CachePolicy = .useProtocolCachePolicy
+  ) async throws(NetworkError) -> (
+    output: CharacterDomainModel, cachedSince: Date?
+  ) {
     let request = URLRequest(url: url, cachePolicy: cachePolicy)
     let output = try await get(
       request: request,

@@ -14,6 +14,6 @@ func EpisodeListFeature_formatAirDate_formats_correctly() {
     url: URL(string: "https://rickandmortyapi.com/api/episode/1")!,
     created: TestUtils.dateFromString("2017-11-10T12:56:33.000Z")
   )
-  let formatted = EpisodeListFeature.formatAirDate(episode: episode)
+  let formatted = BaseEpisodeFeature.formatAirDate(episode: episode)
   #expect(formatted == "02/12/2013")
 }

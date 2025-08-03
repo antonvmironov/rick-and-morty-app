@@ -8,56 +8,175 @@ import SwiftUI
 
 /// Namespace for the CharacterBrief feature. Serves as an anchor for project navigation.
 enum CharacterBriefFeature {
-  struct FeatureView: View {
-    var state: FeatureState
+  typealias CharacterLoadingFeature = ProcessHostFeature<
+    URL, CharacterDomainModel
+  >
+  typealias FeatureStore = BaseCharacterFeature.FeatureStore
+  typealias TestStore = BaseCharacterFeature.TestStore
+  typealias FeatureReducer = BaseCharacterFeature.FeatureReducer
+  typealias FeatureState = BaseCharacterFeature.FeatureState
+  typealias FeatureAction = BaseCharacterFeature.FeatureAction
 
-    init(state: FeatureState) {
-      self.state = state
+  struct FeatureView: View {
+    var store: FeatureStore
+
+    init(store: FeatureStore) {
+      self.store = store
     }
 
     var body: some View {
-      VStack(alignment: .leading) {
-        Text(state.character.name)
-          .font(.headline)
-          .skeletonDecoration(isEnabled: state.isPlaceholder)
-        HFlow {
-          Group {
-            Text(state.character.species.description)
-              .skeletonDecoration(isEnabled: state.isPlaceholder)
-            if !state.character.type.isEmpty {
-              Text("species: \(state.character.type)")
-                .skeletonDecoration(isEnabled: state.isPlaceholder)
-            }
-            Text("origin: \(state.character.origin.name)")
-              .skeletonDecoration(isEnabled: state.isPlaceholder)
-          }
-          .font(.body)
-          .tagDecoration()
-          Spacer()
+      HStack {
+        characterContentView(character: store.displayCharacter)
+        Spacer(minLength: 0)
+      }
+      .onAppear {
+        if !UIConstants.inPreview {
+          store.send(.loadFirstTime)
         }
       }
     }
-  }
 
-  @ObservableState
-  struct FeatureState: Equatable {
-    var character: CharacterDomainModel
-    var isPlaceholder: Bool
+    private let characterIDMinWidth = UIConstants.space * 6
 
-    static func preview(isPlaceholder: Bool) -> Self {
-      .init(character: .dummy, isPlaceholder: isPlaceholder)
+    private func reloadView() -> some View {
+      return Button(
+        action: {
+          store.send(.reloadOnFailure)
+        },
+        label: {
+          Label(
+            title: {
+              Text("Retry")
+            },
+            icon: {
+              Image(
+                systemName:
+                  "exclamationmark.arrow.trianglehead.2.clockwise.rotate.90"
+              )
+            }
+          )
+          .labelStyle(.titleAndIcon)
+        }
+      )
+      .buttonStyle(.bordered)
+    }
+
+    private var loadableContentModifier: some ViewModifier {
+      SkeletonDecorationFeature.FeatureViewModifier(
+        isEnabled: store.isPlaceholder,
+        isShimmering: store.isShimmering,
+      )
+    }
+
+    private func characterContentView(
+      character: CharacterDomainModel
+    ) -> some View {
+      HStack(spacing: UIConstants.space) {
+        VStack(alignment: .leading) {
+          HStack {
+            Text(store.characterIDString)
+              .font(.body)
+              .fontDesign(.monospaced)
+              .padding(UIConstants.space / 2)
+              .frame(
+                minWidth: characterIDMinWidth,
+                alignment: .center
+              )
+              .cornerRadius(UIConstants.cornerRadius)
+              .background(
+                RoundedRectangle(cornerRadius: UIConstants.cornerRadius)
+                  .fill(
+                    UIConstants.inPreview ? .gray : Color("SecondaryBackground")
+                  )
+              )
+            Text(character.name)
+              .font(.headline)
+              .modifier(loadableContentModifier)
+          }
+          HStack(alignment: .top) {
+            if store.characterLoading.status.failureMessage != nil {
+              reloadView()
+            } else {
+              tagView(label: "species", content: character.species.rawValue)
+              tagView(label: "origin", content: character.origin.name)
+            }
+          }
+          .lineLimit(1)
+        }
+        Spacer()
+        characterImage()
+      }
+    }
+
+    private func tagView(
+      label: String,
+      content: String,
+    ) -> some View {
+      VStack(alignment: .leading, spacing: UIConstants.space / 2) {
+        Text(label)
+          .minimumScaleFactor(0.5)
+          .font(.caption2)
+        Text(content)
+          .minimumScaleFactor(0.5)
+          .font(.caption)
+          .modifier(loadableContentModifier)
+      }
+    }
+
+    private func characterImagePlaceholder() -> some View {
+      RoundedRectangle(cornerRadius: UIConstants.cornerRadius)
+        .fill(
+          UIConstants.inPreview ? .gray : Color("SecondaryBackground")
+        )
+        .modifier(loadableContentModifier)
+    }
+
+    private func characterImage() -> some View {
+      Group {
+        if let imageURL = store.characterLoading.status.success?.image {
+          KFImage
+            .url(imageURL)
+            .placeholder { _ in
+              characterImagePlaceholder()
+                .skeletonDecoration(isEnabled: true, isShimmering: true)
+            }
+            .loadDiskFileSynchronously()
+            .resizable()
+        } else {
+          characterImagePlaceholder()
+            .modifier(loadableContentModifier)
+        }
+      }
+      .frame(width: 80, height: 80)
+      .cornerRadius(UIConstants.cornerRadius)
     }
   }
 }
 
 #Preview {
-  VStack {
-    CharacterBriefFeature.FeatureView(
-      state: .preview(isPlaceholder: true)
-    )
-    CharacterBriefFeature.FeatureView(
-      state: .preview(isPlaceholder: false)
-    )
+  @Previewable @State var placeholderStore =
+    BaseCharacterFeature
+    .previewPlaceholderStore(dependencies: .preview())
+  @Previewable @State var successStore =
+    BaseCharacterFeature
+    .previewSuccessStore(dependencies: .preview())
+  @Previewable @State var failureStore =
+    BaseCharacterFeature
+    .previewFailureStore(dependencies: .preview())
+
+  List {
+    VStack(alignment: .leading) {
+      Text("placeholder")
+      CharacterBriefFeature.FeatureView(store: placeholderStore)
+    }
+    VStack(alignment: .leading) {
+      Text("success")
+      CharacterBriefFeature.FeatureView(store: successStore)
+    }
+    VStack(alignment: .leading) {
+      Text("failure")
+      CharacterBriefFeature.FeatureView(store: failureStore)
+    }
   }
-  .frame(maxWidth: .infinity)
+  .listStyle(.plain)
 }
