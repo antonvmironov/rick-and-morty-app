@@ -1,5 +1,6 @@
 import ComposableArchitecture
 import Foundation
+import SharedLib
 import SwiftUI
 
 /// Namespace for the EpisodeList feature. Serves as an anchor for project navigation.
@@ -45,11 +46,10 @@ enum EpisodeListFeature {
       episode: EpisodeDomainModel,
       isPlaceholder: Bool
     ) -> some View {
-      HStack {
+      HStack(spacing: UIConstants.space) {
         ListItemFeature.FeatureView(
           state: .init(episode: episode, isPlaceholder: isPlaceholder)
         )
-        Spacer()
         Image(systemName: "chevron.right")
       }
     }

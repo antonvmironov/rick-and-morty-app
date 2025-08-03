@@ -40,7 +40,7 @@ enum EpisodeDetailsFeature {
             row(characterStore: characterStore)
           }
         } header: {
-          VStack {
+          VStack(alignment: .center) {
             HStack(spacing: UIConstants.space) {
               HStack {
                 Text("Episode")
@@ -59,11 +59,12 @@ enum EpisodeDetailsFeature {
                   .fontDesign(.monospaced)
                 }
                 .tagDecoration()
-                Spacer().frame(width: UIConstants.space)
-                Spacer()
               }
             }
+            Text("characters in this episode")
+              .font(.title3)
           }
+          .frame(maxWidth: .infinity)
         }
       }
       .listStyle(.plain)
