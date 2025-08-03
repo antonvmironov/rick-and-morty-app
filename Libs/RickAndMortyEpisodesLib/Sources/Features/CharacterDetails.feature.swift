@@ -29,28 +29,7 @@ enum CharacterDetailsFeature {
       List {
         Section {
         } header: {
-          VStack {
-            sectionHeader()
-            HStack(alignment: .top) {
-              characterImage()
-              VStack {
-                info(label: "name", value: store.displayCharacter.name)
-                info(
-                  label: "status",
-                  value: store.displayCharacter.status.rawValue
-                )
-                info(
-                  label: "species",
-                  value: store.displayCharacter.species.rawValue
-                )
-                info(label: "origin", value: store.displayCharacter.origin.name)
-                info(
-                  label: "episodes",
-                  value: "\(store.displayCharacter.episode.count)"
-                )
-              }
-            }
-          }
+          sectionHeader()
         }
         .listRowSeparator(.hidden)
       }
@@ -78,6 +57,25 @@ enum CharacterDetailsFeature {
       VStack(alignment: .center) {
         Text("character profile")
           .font(.title3)
+        HStack(alignment: .top) {
+          characterImage()
+          VStack {
+            info(label: "name", value: store.displayCharacter.name)
+            info(
+              label: "status",
+              value: store.displayCharacter.status.rawValue
+            )
+            info(
+              label: "species",
+              value: store.displayCharacter.species.rawValue
+            )
+            info(label: "origin", value: store.displayCharacter.origin.name)
+            info(
+              label: "episodes",
+              value: "\(store.displayCharacter.episode.count)"
+            )
+          }
+        }
       }
       .frame(maxWidth: .infinity)
     }
