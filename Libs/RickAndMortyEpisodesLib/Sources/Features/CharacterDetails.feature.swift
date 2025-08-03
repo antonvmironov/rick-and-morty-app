@@ -26,10 +26,36 @@ enum CharacterDetailsFeature {
     }
 
     var body: some View {
-      HStack {
-        characterContentView(character: store.displayCharacter)
-        Spacer(minLength: 0)
+      List {
+        Section {
+        } header: {
+          VStack {
+            sectionHeader()
+            HStack(alignment: .top) {
+              characterImage()
+              VStack {
+                info(label: "name", value: store.displayCharacter.name)
+                info(
+                  label: "status",
+                  value: store.displayCharacter.status.rawValue
+                )
+                info(
+                  label: "species",
+                  value: store.displayCharacter.species.rawValue
+                )
+                info(label: "origin", value: store.displayCharacter.origin.name)
+                info(
+                  label: "episodes",
+                  value: "\(store.displayCharacter.episode.count)"
+                )
+              }
+            }
+          }
+        }
+        .listRowSeparator(.hidden)
       }
+      .listStyle(.plain)
+      .navigationTitle(store.displayCharacter.name)
       .onAppear {
         if !UIConstants.inPreview {
           store.send(.loadFirstTime)
@@ -37,6 +63,24 @@ enum CharacterDetailsFeature {
       }
     }
 
+    private func info(label: String, value: String) -> some View {
+      HStack {
+        Text(label).font(.caption)
+        Spacer()
+        Text(value)
+          .font(.body)
+          .foregroundStyle(.primary)
+          .modifier(loadableContentModifier)
+      }
+    }
+
+    private func sectionHeader() -> some View {
+      VStack(alignment: .center) {
+        Text("character profile")
+          .font(.title3)
+      }
+      .frame(maxWidth: .infinity)
+    }
     private let characterIDMinWidth = UIConstants.space * 6
 
     private func reloadView() -> some View {
@@ -165,19 +209,7 @@ enum CharacterDetailsFeature {
     BaseCharacterFeature
     .previewFailureStore(dependencies: .preview())
 
-  List {
-    VStack(alignment: .leading) {
-      Text("placeholder")
-      CharacterDetailsFeature.FeatureView(store: placeholderStore)
-    }
-    VStack(alignment: .leading) {
-      Text("success")
-      CharacterDetailsFeature.FeatureView(store: successStore)
-    }
-    VStack(alignment: .leading) {
-      Text("failure")
-      CharacterDetailsFeature.FeatureView(store: failureStore)
-    }
+  NavigationStack {
+    CharacterDetailsFeature.FeatureView(store: successStore)
   }
-  .listStyle(.plain)
 }
