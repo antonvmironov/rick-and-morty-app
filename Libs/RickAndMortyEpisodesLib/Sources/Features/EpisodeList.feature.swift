@@ -30,7 +30,7 @@ enum EpisodeListFeature {
   }
 
   struct FeatureView: View {
-    @State
+    @Bindable
     var store: FeatureStore
 
     init(store: FeatureStore) {
@@ -128,8 +128,8 @@ enum EpisodeListFeature {
       }
       .navigationDestination(
         item: $store.scope(
-          state: \.selectedEpisodeDetails,
-          action: \.episodeDetails
+          state: \.selectedEpisodeDetails?.value,
+          action: \.selectedEpisodeDetails
         )
       ) { store in
         EpisodeDetailsFeature.FeatureView(store: store)
@@ -150,19 +150,30 @@ enum EpisodeListFeature {
     var networkGateway
 
     var body: some ReducerOf<Self> {
+      BindingReducer()
+      episodeDetailsReducer
       userInputReducer
-        .ifLet(\.$selectedEpisodeDetails, action: \.episodeDetails) {
-          EpisodeDetailsFeature.FeatureReducer()
-        }
       paginationReducer
+    }
+
+    var episodeDetailsReducer: some ReducerOf<Self> {
+      EmptyReducer()
+        .ifLet(\.$selectedEpisodeDetails, action: \.selectedEpisodeDetails) {
+          Scope(state: \.value, action: \.self) {
+            EpisodeDetailsFeature.FeatureReducer()
+          }
+        }
     }
 
     var userInputReducer: some ReducerOf<Self> {
       Reduce { (state: inout State, action: Action) in
         switch action {
         case .presetEpisode(let episode):
-          state.selectedEpisodeDetails = .initial(episode: episode)
-          return .send(.episodeDetails(.presented(.preload)))
+          state.selectedEpisodeDetails = Identified(
+            .initial(episode: episode),
+            id: \.episode.id
+          )
+          return .send(.selectedEpisodeDetails(.presented(.preload)))
         default:
           return .none
         }
@@ -189,9 +200,9 @@ enum EpisodeListFeature {
   @ObservableState
   struct FeatureState: Equatable {
     var pagination: PaginationFeature.FeatureState
-
     @Presents
-    var selectedEpisodeDetails: EpisodeDetailsFeature.FeatureState?
+    var selectedEpisodeDetails:
+      Identified<EpisodeID, EpisodeDetailsFeature.FeatureState>?
 
     static func initial(firstPageURL: URL?) -> Self {
       FeatureState(pagination: .initial(firstInput: firstPageURL))
@@ -199,10 +210,13 @@ enum EpisodeListFeature {
   }
 
   @CasePathable
-  enum FeatureAction: Equatable {
+  enum FeatureAction: Equatable, BindableAction {
     case presetEpisode(EpisodeDomainModel)
     case pagination(PaginationFeature.FeatureAction)
-    case episodeDetails(PresentationAction<EpisodeDetailsFeature.FeatureAction>)
+    case selectedEpisodeDetails(
+      PresentationAction<EpisodeDetailsFeature.FeatureAction>
+    )
+    case binding(BindingAction<FeatureState>)
   }
 }
 

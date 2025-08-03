@@ -6,8 +6,8 @@ import SharedLib
 import Shimmer
 import SwiftUI
 
-/// Namespace for the CharacterBrief feature. Serves as an anchor for project navigation.
-enum CharacterBriefFeature {
+/// Namespace for the CharacterDetails feature. Serves as an anchor for project navigation.
+enum CharacterDetailsFeature {
   typealias CharacterLoadingFeature = ProcessHostFeature<
     URL, CharacterDomainModel
   >
@@ -26,10 +26,15 @@ enum CharacterBriefFeature {
     }
 
     var body: some View {
-      HStack {
-        characterContentView(character: store.displayCharacter)
-        Spacer(minLength: 0)
+      List {
+        Section {
+        } header: {
+          sectionHeader()
+        }
+        .listRowSeparator(.hidden)
       }
+      .listStyle(.plain)
+      .navigationTitle(store.displayCharacter.name)
       .onAppear {
         if !UIConstants.inPreview {
           store.send(.loadFirstTime)
@@ -37,6 +42,43 @@ enum CharacterBriefFeature {
       }
     }
 
+    private func info(label: String, value: String) -> some View {
+      HStack {
+        Text(label).font(.caption)
+        Spacer()
+        Text(value)
+          .font(.body)
+          .foregroundStyle(.primary)
+          .modifier(loadableContentModifier)
+      }
+    }
+
+    private func sectionHeader() -> some View {
+      VStack(alignment: .center) {
+        Text("character profile")
+          .font(.title3)
+        HStack(alignment: .top) {
+          characterImage()
+          VStack {
+            info(label: "name", value: store.displayCharacter.name)
+            info(
+              label: "status",
+              value: store.displayCharacter.status.rawValue
+            )
+            info(
+              label: "species",
+              value: store.displayCharacter.species.rawValue
+            )
+            info(label: "origin", value: store.displayCharacter.origin.name)
+            info(
+              label: "episodes",
+              value: "\(store.displayCharacter.episode.count)"
+            )
+          }
+        }
+      }
+      .frame(maxWidth: .infinity)
+    }
     private let characterIDMinWidth = UIConstants.space * 6
 
     private func reloadView() -> some View {
@@ -67,61 +109,6 @@ enum CharacterBriefFeature {
         isEnabled: store.isPlaceholder,
         isShimmering: store.isShimmering,
       )
-    }
-
-    private func characterContentView(
-      character: CharacterDomainModel
-    ) -> some View {
-      HStack(spacing: UIConstants.space) {
-        VStack(alignment: .leading) {
-          HStack {
-            Text(store.characterIDString)
-              .font(.body)
-              .fontDesign(.monospaced)
-              .padding(UIConstants.space / 2)
-              .frame(
-                minWidth: characterIDMinWidth,
-                alignment: .center
-              )
-              .cornerRadius(UIConstants.cornerRadius)
-              .background(
-                RoundedRectangle(cornerRadius: UIConstants.cornerRadius)
-                  .fill(
-                    UIConstants.inPreview ? .gray : Color("SecondaryBackground")
-                  )
-              )
-            Text(character.name)
-              .font(.headline)
-              .modifier(loadableContentModifier)
-          }
-          HStack(alignment: .top) {
-            if store.characterLoading.status.failureMessage != nil {
-              reloadView()
-            } else {
-              tagView(label: "species", content: character.species.rawValue)
-              tagView(label: "origin", content: character.origin.name)
-            }
-          }
-          .lineLimit(1)
-        }
-        Spacer()
-        characterImage()
-      }
-    }
-
-    private func tagView(
-      label: String,
-      content: String,
-    ) -> some View {
-      VStack(alignment: .leading, spacing: UIConstants.space / 2) {
-        Text(label)
-          .minimumScaleFactor(0.5)
-          .font(.caption2)
-        Text(content)
-          .minimumScaleFactor(0.5)
-          .font(.caption)
-          .modifier(loadableContentModifier)
-      }
     }
 
     private func characterImagePlaceholder() -> some View {
@@ -165,19 +152,7 @@ enum CharacterBriefFeature {
     BaseCharacterFeature
     .previewFailureStore(dependencies: .preview())
 
-  List {
-    VStack(alignment: .leading) {
-      Text("placeholder")
-      CharacterBriefFeature.FeatureView(store: placeholderStore)
-    }
-    VStack(alignment: .leading) {
-      Text("success")
-      CharacterBriefFeature.FeatureView(store: successStore)
-    }
-    VStack(alignment: .leading) {
-      Text("failure")
-      CharacterBriefFeature.FeatureView(store: failureStore)
-    }
+  NavigationStack {
+    CharacterDetailsFeature.FeatureView(store: successStore)
   }
-  .listStyle(.plain)
 }

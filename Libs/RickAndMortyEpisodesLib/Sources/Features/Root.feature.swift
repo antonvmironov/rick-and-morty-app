@@ -39,7 +39,7 @@ public enum RootFeature {
   }
 
   public struct FeatureView: View {
-    @State
+    @Bindable
     var store: FeatureStore
 
     let apiURL: URL
