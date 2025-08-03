@@ -25,35 +25,18 @@ enum CharacterBriefFeature {
     }
 
     var body: some View {
-      loadableContent()
-        .onAppear {
-          if !UIConstants.inPreview {
-            store.send(.loadFirstTime)
-          }
-        }
-    }
-
-    private func loadableContent() -> some View {
-      return HStack(spacing: UIConstants.space) {
-        ZStack {
-          if store.characterLoading.status.failureMessage != nil {
-            reloadView()
-            characterIDView().hidden()
-          } else {
-            reloadView().hidden()
-            characterIDView()
-          }
-        }
+      HStack {
         characterContentView(character: store.displayCharacter)
         Spacer(minLength: 0)
       }
+      .onAppear {
+        if !UIConstants.inPreview {
+          store.send(.loadFirstTime)
+        }
+      }
     }
 
-    private func characterIDView() -> some View {
-      Text(store.characterURL.lastPathComponent)
-        .font(.body)
-        .fontDesign(.monospaced)
-    }
+    private let characterIDMinWidth = UIConstants.space * 6
 
     private func reloadView() -> some View {
       return Button(
@@ -72,38 +55,64 @@ enum CharacterBriefFeature {
               )
             }
           )
-          .labelStyle(.iconOnly)
+          .labelStyle(.titleAndIcon)
         }
       )
       .buttonStyle(.bordered)
     }
 
-    private func characterContentView(character: CharacterDomainModel)
-      -> some View
-    {
+    private func characterContentView(
+      character: CharacterDomainModel
+    ) -> some View {
       let contentModifier = SkeletonDecorationFeature.FeatureViewModifier(
         isEnabled: store.isPlaceholder,
         isShimmering: store.isShimmering,
       )
-      return VStack(alignment: .leading) {
-        Text(character.name)
-          .font(.headline)
-          .modifier(contentModifier)
-        HFlow {
-          Group {
-            Text(character.species.description)
-              .modifier(contentModifier)
-            if !character.type.isEmpty {
-              Text("species: \(character.type)")
-                .modifier(contentModifier)
-            }
-            Text("origin: \(character.origin.name)")
-              .modifier(contentModifier)
-          }
-          .font(.body)
-          .tagDecoration()
-          Spacer()
+
+      func tagView(
+        label: String,
+        content: String,
+      ) -> some View {
+        VStack(alignment: .leading, spacing: UIConstants.space / 2) {
+          Text(label)
+            .minimumScaleFactor(0.5)
+            .font(.caption2)
+          Text(content)
+            .minimumScaleFactor(0.5)
+            .font(.caption)
+            .modifier(contentModifier)
         }
+      }
+
+      return VStack(alignment: .leading) {
+        HStack {
+          Text(store.characterIDString)
+            .font(.body)
+            .fontDesign(.monospaced)
+            .padding(UIConstants.space / 2)
+            .frame(
+              minWidth: characterIDMinWidth,
+              alignment: .center
+            )
+            .cornerRadius(UIConstants.cornerRadius)
+            .background(
+              RoundedRectangle(cornerRadius: UIConstants.cornerRadius)
+                .fill(
+                  UIConstants.inPreview ? .gray : Color("SecondaryBackground")
+                )
+            )
+          Text(character.name)
+            .font(.headline)
+            .modifier(contentModifier)
+        }
+        HStack(alignment: .top) {
+          if store.characterLoading.status.failureMessage != nil {
+            reloadView()
+          }
+          tagView(label: "species", content: character.species.rawValue)
+          tagView(label: "origin", content: character.origin.name)
+        }
+        .lineLimit(1)
       }
     }
   }
@@ -120,16 +129,19 @@ enum CharacterBriefFeature {
     BaseCharacterFeature
     .previewFailureStore(dependencies: .preview())
 
-  VStack {
-    GroupBox("placeholder") {
+  List {
+    VStack(alignment: .leading) {
+      Text("placeholder")
       CharacterBriefFeature.FeatureView(store: placeholderStore)
     }
-    GroupBox("success") {
+    VStack(alignment: .leading) {
+      Text("succes")
       CharacterBriefFeature.FeatureView(store: successStore)
     }
-    GroupBox("failure") {
+    VStack(alignment: .leading) {
+      Text("failure")
       CharacterBriefFeature.FeatureView(store: failureStore)
     }
   }
-  .frame(maxWidth: .infinity)
+  .listStyle(.plain)
 }

@@ -127,7 +127,10 @@ enum EpisodeListFeature {
         store.send(.pagination(.loadFirstPageIfNeeded))
       }
       .navigationDestination(
-        item: $store.scope(state: \.episodeDetails, action: \.episodeDetails)
+        item: $store.scope(
+          state: \.selectedEpisodeDetails,
+          action: \.episodeDetails
+        )
       ) { store in
         EpisodeDetailsFeature.FeatureView(store: store)
       }
@@ -148,7 +151,7 @@ enum EpisodeListFeature {
 
     var body: some ReducerOf<Self> {
       userInputReducer
-        .ifLet(\.$episodeDetails, action: \.episodeDetails) {
+        .ifLet(\.$selectedEpisodeDetails, action: \.episodeDetails) {
           EpisodeDetailsFeature.FeatureReducer()
         }
       paginationReducer
@@ -158,8 +161,8 @@ enum EpisodeListFeature {
       Reduce { (state: inout State, action: Action) in
         switch action {
         case .presetEpisode(let episode):
-          state.episodeDetails = .initial(episode: episode)
-          return .none
+          state.selectedEpisodeDetails = .initial(episode: episode)
+          return .send(.episodeDetails(.presented(.preload)))
         default:
           return .none
         }
@@ -186,8 +189,9 @@ enum EpisodeListFeature {
   @ObservableState
   struct FeatureState: Equatable {
     var pagination: PaginationFeature.FeatureState
+
     @Presents
-    var episodeDetails: EpisodeDetailsFeature.FeatureState?
+    var selectedEpisodeDetails: EpisodeDetailsFeature.FeatureState?
 
     static func initial(firstPageURL: URL?) -> Self {
       FeatureState(pagination: .initial(firstInput: firstPageURL))

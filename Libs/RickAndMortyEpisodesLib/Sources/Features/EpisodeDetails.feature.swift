@@ -68,6 +68,9 @@ enum EpisodeDetailsFeature {
       }
       .listStyle(.plain)
       .navigationTitle(store.episode.name)
+      .onAppear {
+        store.send(.preload)
+      }
     }
 
     func row(characterStore: CharacterFeature.FeatureStore) -> some View {
@@ -94,6 +97,13 @@ enum EpisodeDetailsFeature {
     var body: some ReducerOf<Self> {
       Reduce { state, action in
         switch action {
+        case .preload:
+          let characterIDsToPreload = state.characters.prefix(20).map(\.id)
+          return .run { @MainActor send in
+            for id in characterIDsToPreload {
+              send(.characters(.element(id: id, action: .loadFirstTime)))
+            }
+          }
         default:
           return .none
         }
@@ -122,6 +132,7 @@ enum EpisodeDetailsFeature {
   @CasePathable
   enum FeatureAction: Equatable {
     case characters(IdentifiedActionOf<CharacterFeature.FeatureReducer>)
+    case preload
   }
 }
 
