@@ -127,16 +127,12 @@ enum EpisodeListFeature {
         store.send(.pagination(.loadFirstPageIfNeeded))
       }
       .navigationDestination(
-        item: $store.selectedEpisodeDetails
-      ) { episodeDetails in
-        if let selectedStore = store.scope(
-          state: \.selectedEpisodeDetails,
+        item: $store.scope(
+          state: \.selectedEpisodeDetails?.value,
           action: \.selectedEpisodeDetails
-        ) {
-          EpisodeDetailsFeature.FeatureView(store: selectedStore)
-        } else {
-          EmptyView()
-        }
+        )
+      ) { store in
+        EpisodeDetailsFeature.FeatureView(store: store)
       }
     }
 
@@ -162,8 +158,10 @@ enum EpisodeListFeature {
 
     var episodeDetailsReducer: some ReducerOf<Self> {
       EmptyReducer()
-        .ifLet(\.selectedEpisodeDetails, action: \.selectedEpisodeDetails) {
-          EpisodeDetailsFeature.FeatureReducer()
+        .ifLet(\.$selectedEpisodeDetails, action: \.selectedEpisodeDetails) {
+          Scope(state: \.value, action: \.self) {
+            EpisodeDetailsFeature.FeatureReducer()
+          }
         }
     }
 
@@ -171,8 +169,11 @@ enum EpisodeListFeature {
       Reduce { (state: inout State, action: Action) in
         switch action {
         case .presetEpisode(let episode):
-          state.selectedEpisodeDetails = .initial(episode: episode)
-          return .send(.selectedEpisodeDetails(.preload))
+          state.selectedEpisodeDetails = Identified(
+            .initial(episode: episode),
+            id: \.episode.id
+          )
+          return .send(.selectedEpisodeDetails(.presented(.preload)))
         default:
           return .none
         }
@@ -199,7 +200,9 @@ enum EpisodeListFeature {
   @ObservableState
   struct FeatureState: Equatable {
     var pagination: PaginationFeature.FeatureState
-    var selectedEpisodeDetails: EpisodeDetailsFeature.FeatureState?
+    @Presents
+    var selectedEpisodeDetails:
+      Identified<EpisodeID, EpisodeDetailsFeature.FeatureState>?
 
     static func initial(firstPageURL: URL?) -> Self {
       FeatureState(pagination: .initial(firstInput: firstPageURL))
@@ -210,7 +213,9 @@ enum EpisodeListFeature {
   enum FeatureAction: Equatable, BindableAction {
     case presetEpisode(EpisodeDomainModel)
     case pagination(PaginationFeature.FeatureAction)
-    case selectedEpisodeDetails(EpisodeDetailsFeature.FeatureAction)
+    case selectedEpisodeDetails(
+      PresentationAction<EpisodeDetailsFeature.FeatureAction>
+    )
     case binding(BindingAction<FeatureState>)
   }
 }

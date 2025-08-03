@@ -50,12 +50,10 @@ enum EpisodeDetailsFeature {
         store.send(.preload)
       }
       .navigationDestination(
-        item:
-          $store
-          .scope(
-            state: \.selectedCharacterID?.value,
-            action: \.selectedCharacter
-          )
+        item: $store.scope(
+          state: \.selectedCharacterID?.value,
+          action: \.selectedCharacter
+        )
       ) { scope in
         CharacterDetailsFeature.FeatureView(store: scope)
       }
