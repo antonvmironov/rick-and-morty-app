@@ -76,7 +76,10 @@ enum EpisodeDetailsFeature {
           // TODO: navigate
         },
         label: {
-          CharacterFeature.FeatureView(store: characterStore)
+          HStack {
+            CharacterFeature.FeatureView(store: characterStore)
+            Image(systemName: "chevron.right")
+          }
         }
       )
       .listRowSeparator(.hidden)
