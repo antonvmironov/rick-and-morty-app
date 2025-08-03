@@ -67,9 +67,14 @@ enum CharacterBriefFeature {
 
     var body: some View {
       loadableContent()
+        .onAppear {
+          if !UIConstants.inPreview {
+            store.send(.loadFirstTime)
+          }
+        }
     }
 
-    func loadableContent() -> some View {
+    private func loadableContent() -> some View {
       return HStack(spacing: UIConstants.space) {
         ZStack {
           if store.characterLoading.status.failureMessage != nil {
@@ -85,16 +90,16 @@ enum CharacterBriefFeature {
       }
     }
 
-    func characterIDView() -> some View {
+    private func characterIDView() -> some View {
       Text(store.characterURL.lastPathComponent)
         .font(.body)
         .fontDesign(.monospaced)
     }
 
-    func reloadView() -> some View {
+    private func reloadView() -> some View {
       return Button(
         action: {
-          print("TDB")
+          store.send(.reloadOnFailure)
         },
         label: {
           Label(
@@ -114,7 +119,9 @@ enum CharacterBriefFeature {
       .buttonStyle(.bordered)
     }
 
-    func characterContentView(character: CharacterDomainModel) -> some View {
+    private func characterContentView(character: CharacterDomainModel)
+      -> some View
+    {
       let contentModifier = SkeletonDecorationFeature.FeatureViewModifier(
         isEnabled: store.isPlaceholder,
         isShimmering: store.isShimmering,
@@ -146,6 +153,10 @@ enum CharacterBriefFeature {
   struct FeatureReducer {
     typealias State = FeatureState
     typealias Action = FeatureAction
+
+    @Dependency(\.networkGateway)
+    var networkGateway: NetworkGateway
+
     var body: some ReducerOf<Self> {
       Reduce { state, action in
         switch action {
@@ -155,8 +166,24 @@ enum CharacterBriefFeature {
           } else {
             return .none
           }
+        case .loadFirstTime:
+          if case .idle(.some, .none) = state.characterLoading.status {
+            return .send(.characterLoading(.process(state.characterURL)))
+          } else {
+            return .none
+          }
         default:
           return .none
+        }
+      }
+      Scope(state: \.characterLoading, action: \.characterLoading) {
+        [networkGateway] in
+        CharacterLoadingFeature.FeatureReducer { characterURL in
+          try await networkGateway
+            .getCharacter(
+              url: characterURL,
+              cachePolicy: .returnCacheDataElseLoad
+            ).output
         }
       }
     }
@@ -193,6 +220,7 @@ enum CharacterBriefFeature {
   @CasePathable
   enum FeatureAction: Equatable {
     case characterLoading(CharacterLoadingFeature.FeatureAction)
+    case loadFirstTime
     case reloadOnFailure
   }
 }
