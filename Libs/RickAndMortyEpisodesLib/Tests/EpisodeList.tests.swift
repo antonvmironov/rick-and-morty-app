@@ -3,8 +3,8 @@ import Testing
 
 @testable import RickAndMortyEpisodesLib
 
-@Test("EpisodeListFeature.formatAirDate formats air date correctly")
-func EpisodeListFeature_formatAirDate_formats_correctly() {
+@Test("EpisodesRootFeature.formatAirDate formats air date correctly")
+func EpisodesRootFeature_formatAirDate_formats_correctly() {
   let episode = EpisodeDomainModel(
     id: 1,
     name: "Pilot",
