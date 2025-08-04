@@ -33,6 +33,9 @@ enum EpisodeListFeature {
     @Bindable
     var store: FeatureStore
 
+    @State
+    var cachedSinceReferenceDate: Date = Date()
+
     init(store: FeatureStore) {
       self.store = store
     }
@@ -40,6 +43,23 @@ enum EpisodeListFeature {
     var body: some View {
       episodeList()
         .navigationTitle("Episode List")
+        .refreshable {
+          do {
+            _ = try await withCheckedThrowingContinuation { continuation in
+              store.send(.reload(continuation: continuation))
+            }
+          } catch {
+            // TODO: handle this error
+            print(error)
+          }
+        }
+        .task(id: "update cachedSinceReferenceDate", priority: .low) {
+          let clock = ContinuousClock()
+          while !Task.isCancelled {
+            try? await clock.sleep(for: .seconds(5))
+            cachedSinceReferenceDate = Date()
+          }
+        }
     }
 
     func episodeRow(
@@ -54,19 +74,40 @@ enum EpisodeListFeature {
       }
     }
 
+    static let cachedSinceFormatter: RelativeDateTimeFormatter = {
+      let formatter = RelativeDateTimeFormatter()
+      formatter.formattingContext = .middleOfSentence
+      return formatter
+    }()
+
     func episodeListItems() -> some View {
-      ForEach(store.pagination.items) { episode in
-        Button(
-          action: {
-            store.send(.presetEpisode(episode))
-          },
-          label: {
-            episodeRow(episode: episode, isPlaceholder: false)
+      Section(
+        content: {
+          ForEach(store.pagination.items) { episode in
+            Button(
+              action: {
+                store.send(.presetEpisode(episode))
+              },
+              label: {
+                episodeRow(episode: episode, isPlaceholder: false)
+              }
+            )
+            .listRowSeparator(.hidden)
+            .tag(episode.id)
           }
-        )
-        .listRowSeparator(.hidden)
-        .tag(episode.id)
-      }
+        },
+        header: {
+          if let date = store.cachedSince {
+            HStack {
+              Spacer()
+              Text(
+                "cached \(Self.cachedSinceFormatter.localizedString(for: date, relativeTo: cachedSinceReferenceDate))"
+              )
+              .font(.caption2)
+            }
+          }
+        }
+      )
     }
 
     func skeletonListItems() -> some View {
@@ -92,7 +133,7 @@ enum EpisodeListFeature {
             }
           }
           .onAppear {
-            store.send(.pagination(.loadNextPage))
+            store.send(.pagination(.loadNextPage()))
           }
           .frame(maxWidth: .infinity, alignment: .center)
           .listRowSeparator(.hidden)
@@ -149,11 +190,29 @@ enum EpisodeListFeature {
     @Dependency(\.networkGateway)
     var networkGateway
 
+    @Dependency(\.urlCacheFactory)
+    var urlCacheFactory
+
     var body: some ReducerOf<Self> {
       BindingReducer()
       episodeDetailsReducer
       userInputReducer
+      reloadReducer
       paginationReducer
+    }
+
+    var reloadReducer: some ReducerOf<Self> {
+      Reduce { state, action in
+        switch action {
+        case .reload(let continuation):
+          return .run { [urlCacheFactory] send in
+            urlCacheFactory.clearCache(category: .episodes)
+            await send(.pagination(.reload(continuation: continuation)))
+          }
+        default:
+          return .none
+        }
+      }
     }
 
     var episodeDetailsReducer: some ReducerOf<Self> {
@@ -204,15 +263,18 @@ enum EpisodeListFeature {
     var selectedEpisodeDetails:
       Identified<EpisodeID, EpisodeDetailsFeature.FeatureState>?
 
+    var cachedSince: Date? { pagination.cachedSince }
+
     static func initial(firstPageURL: URL?) -> Self {
       FeatureState(pagination: .initial(firstInput: firstPageURL))
     }
   }
 
   @CasePathable
-  enum FeatureAction: Equatable, BindableAction {
+  enum FeatureAction: BindableAction {
     case presetEpisode(EpisodeDomainModel)
     case pagination(PaginationFeature.FeatureAction)
+    case reload(continuation: PaginationFeature.PageLoadingContinuation?)
     case selectedEpisodeDetails(
       PresentationAction<EpisodeDetailsFeature.FeatureAction>
     )

@@ -1,5 +1,6 @@
 import ComposableArchitecture
 import Foundation
+import SharedLib
 import SwiftUI
 
 /// Namespace for the ContinuousPagination feature. Serves as an anchor for project navigation.
@@ -9,6 +10,7 @@ enum ContinuousPaginationFeature<
 > {
   typealias Page = ResponsePageContainer<Item>
   typealias PageLoadingFeature = ProcessHostFeature<Input, Page>
+  typealias PageLoadingContinuation = CheckedContinuation<Page, Error>
   typealias FeatureStore = StoreOf<FeatureReducer>
   typealias TestStore = TestStoreOf<FeatureReducer>
   typealias GetPage = @Sendable (Input) async throws -> Page
@@ -73,17 +75,32 @@ enum ContinuousPaginationFeature<
         case (_, .setFirstInput(let input)):
           state.firstInput = input
           state.reset()
-          return .send(.loadNextPage)
+          return .send(.loadNextPage())
         case (.idle, .loadFirstPageIfNeeded):
           guard state.needsToLoadFirstPage else {
             return .none
           }
-          return .send(.loadNextPage)
-        case (.idle, .loadNextPage):
+          return .send(.loadNextPage())
+        case (.idle, .loadNextPage(let continuation)):
+          if let continuation {
+            state.finishedLoadingPageContinuations.append(continuation)
+          }
           guard let nextInput = state.nextInput else {
             return .none
           }
           return .send(.pageLoading(.process(nextInput)))
+        case (.idle, .reload(let continuation)):
+          state.reset()
+          return .send(.loadNextPage(continuation: continuation))
+        case (.processing, .pageLoading(.failedProcessing)):
+          let continuations = state.finishedLoadingPageContinuations
+          state.finishedLoadingPageContinuations.removeAll()
+          return .run { _ in
+            // TODO: test this and make a dedicated error
+            for continuation in continuations {
+              continuation.resume(throwing: CancellationError())
+            }
+          }
         case (.processing, .pageLoading(.finishProcessing(let page))):
           if isPageFirst(page) {
             state.reset()
@@ -92,7 +109,13 @@ enum ContinuousPaginationFeature<
           state.pages.append(page)
           state.items.append(contentsOf: page.payload.results)
           state.nextInput = getNextInput(page)
-          return .none
+          let continuations = state.finishedLoadingPageContinuations
+          state.finishedLoadingPageContinuations.removeAll()
+          return .run { _ in
+            for continuation in continuations {
+              continuation.resume(returning: page)
+            }
+          }
         default:
           return .none
         }
@@ -120,6 +143,9 @@ enum ContinuousPaginationFeature<
     var pages = [Page]()
     var nextInput: Input?
     var pageLoading: PageLoadingFeature.FeatureState = .initial()
+    var finishedLoadingPageContinuations = [PageLoadingContinuation]()
+    var cachedSince: Date? { pages.first?.cachedSince }
+
     var needsToLoadFirstPage: Bool {
       items.isEmpty && canLoadNextPage
     }
@@ -132,13 +158,22 @@ enum ContinuousPaginationFeature<
       pages.removeAll()
       nextInput = firstInput
     }
+
+    static func == (lhs: Self, rhs: Self) -> Bool {
+      lhs.firstInput == rhs.firstInput
+        && lhs.items == rhs.items
+        && lhs.pages == rhs.pages
+        && lhs.nextInput == rhs.nextInput
+        && lhs.pageLoading == rhs.pageLoading
+    }
   }
 
   @CasePathable
-  enum FeatureAction: Equatable {
+  enum FeatureAction {
     case setFirstInput(input: Input)
-    case loadNextPage
+    case loadNextPage(continuation: PageLoadingContinuation? = nil)
     case loadFirstPageIfNeeded
+    case reload(continuation: PageLoadingContinuation? = nil)
     case pageLoading(PageLoadingFeature.FeatureAction)
   }
 }

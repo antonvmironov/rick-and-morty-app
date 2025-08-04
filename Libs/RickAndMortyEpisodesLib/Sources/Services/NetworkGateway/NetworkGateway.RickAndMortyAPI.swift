@@ -11,6 +11,7 @@ extension NetworkGateway {
     let request = URLRequest(url: apiURL, cachePolicy: cachePolicy)
     let output = try await get(
       request: request,
+      cacheCategory: .shared,
       output: EndpointsDomainModel.self,
     )
     return output
@@ -36,6 +37,7 @@ extension NetworkGateway {
     let request = URLRequest(url: url, cachePolicy: cachePolicy)
     let output = try await get(
       request: request,
+      cacheCategory: .characters,
       output: CharacterDomainModel.self,
     )
     return output
@@ -48,6 +50,7 @@ extension NetworkGateway {
     let request = URLRequest(url: pageURL, cachePolicy: cachePolicy)
     let output = try await get(
       request: request,
+      cacheCategory: .characters,
       output: ResponsePagePayload<CharacterDomainModel>.self,
     )
     return ResponsePageContainer(
@@ -68,6 +71,7 @@ extension NetworkGateway {
     let request = URLRequest(url: url, cachePolicy: cachePolicy)
     let output = try await get(
       request: request,
+      cacheCategory: .locations,
       output: LocationDomainModel.self,
     )
     return output
@@ -80,6 +84,7 @@ extension NetworkGateway {
     let request = URLRequest(url: pageURL, cachePolicy: cachePolicy)
     let output = try await get(
       request: request,
+      cacheCategory: .locations,
       output: ResponsePagePayload<LocationDomainModel>.self,
     )
     return ResponsePageContainer(
@@ -100,6 +105,7 @@ extension NetworkGateway {
     let request = URLRequest(url: url, cachePolicy: cachePolicy)
     let output = try await get(
       request: request,
+      cacheCategory: .episodes,
       output: EpisodeDomainModel.self,
     )
     return output
@@ -112,6 +118,7 @@ extension NetworkGateway {
     let request = URLRequest(url: pageURL, cachePolicy: cachePolicy)
     let output = try await get(
       request: request,
+      cacheCategory: .episodes,
       output: ResponsePagePayload<EpisodeDomainModel>.self,
     )
     return ResponsePageContainer(

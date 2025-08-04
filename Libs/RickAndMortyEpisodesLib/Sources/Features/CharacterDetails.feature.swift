@@ -73,9 +73,6 @@ enum CharacterDetailsFeature {
     @Bindable
     var store: FeatureStore
 
-    @State
-    var isExportingToPDF: Bool = false
-
     init(store: FeatureStore) {
       self.store = store
     }
@@ -110,15 +107,6 @@ enum CharacterDetailsFeature {
           store.send(.preloadIfNeeded)
         }
       }
-      .fileExporter(
-        isPresented: $isExportingToPDF,
-        item:
-          CharacterExportFeature
-          .transferrable(character: store.character.displayCharacter),
-        onCompletion: { result in
-          print("expored \(result)")
-        }
-      )
     }
 
     private func shareLink(exported: Exported) -> some View {

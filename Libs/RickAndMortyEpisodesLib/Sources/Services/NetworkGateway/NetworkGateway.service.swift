@@ -5,6 +5,7 @@ import Foundation
 protocol NetworkGateway: Sendable {
   func get<Output: Decodable & Sendable>(
     request: URLRequest,
+    cacheCategory: URLCacheCategory,
     output: Output.Type,
   ) async throws(NetworkError) -> (output: Output, cachedSince: Date?)
 }
