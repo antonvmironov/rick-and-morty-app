@@ -6,12 +6,13 @@ extension Project {
     dependencies: [TargetDependency] = [],
     testDependencies: [TargetDependency] = [],
     testPlans: [Path] = [],
+    hasUITests: Bool = false,
   ) -> Project {
     var targets = [Target]()
 
     do {  // app target declaration
       let infoPlist: [String: Plist.Value] = [
-        "CFBundleShortVersionString": "2025.07.31",
+        "CFBundleShortVersionString": "2025.08.04",
         "CFBundleVersion": "1",
         "CFBundleDisplayName": "R&M Demo",
         "UILaunchScreen": [
@@ -45,6 +46,20 @@ extension Project {
         dependencies: [.target(name: name)] + testDependencies
       )
       targets.append(testTarget)
+    }
+
+    if hasUITests {
+      let uiTestTarget = Target.target(
+        name: "\(name)UITests",
+        destinations: destinations,
+        product: .uiTests,
+        bundleId: testsBundleID(name: "\(name)UITests"),
+        infoPlist: .default,
+        sources: ["UITests/**"],
+        resources: ["Fixtures/**"],
+        dependencies: [.target(name: name)] + testDependencies
+      )
+      targets.append(uiTestTarget)
     }
 
     return Project(

@@ -12,4 +12,5 @@ let project = Project.app(
   testPlans: [
     "Fixtures/RickAndMortyApp.xctestplan"
   ],
+  hasUITests: true,
 )
