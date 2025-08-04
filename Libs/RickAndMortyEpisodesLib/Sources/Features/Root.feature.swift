@@ -15,26 +15,45 @@ public enum RootFeature {
     apiURL: URL,
     dependencies: Dependencies
   ) -> some View {
-    let store = initialStore { deps in
-      dependencies.updateDeps(&deps)
-    }
+    let store = initialStore(apiURL: apiURL, dependencies: dependencies)
     return FeatureView(store: store, apiURL: apiURL)
   }
 
   @MainActor
   static func initialStore(
-    withDependencies: @escaping (inout DependencyValues) -> Void
+    apiURL: URL,
+    dependencies: Dependencies
   ) -> FeatureStore {
+    let cachedEndpoints = try? dependencies.networkGateway
+      .getCachedEndpoints(apiURL: apiURL)?.output
+    let endpointsLoading = EndpointsLoadingFeature.FeatureState
+      .initial(cachedSuccess: cachedEndpoints)
+    let episodeList: EpisodesRootFeature.FeatureState = {
+      guard let firstPageURL = cachedEndpoints?.episodes else {
+        return EpisodesRootFeature.FeatureState
+          .initial(firstPageURL: cachedEndpoints?.episodes)
+      }
+      let cachedFirstPage = try? dependencies.networkGateway
+        .getPageOfCachedEpisodes(pageURL: firstPageURL)
+      guard let cachedFirstPage else {
+        return EpisodesRootFeature.FeatureState
+          .initial(firstPageURL: cachedEndpoints?.episodes)
+      }
+
+      return EpisodesRootFeature.FeatureState
+        .initialFromCache(firstPageURL: firstPageURL, pages: [cachedFirstPage])
+    }()
+
     let initialState = FeatureState(
-      endpointsLoading: EndpointsLoadingFeature.FeatureState.initial(),
-      episodeList: EpisodesRootFeature.FeatureState.initial(firstPageURL: nil)
+      endpointsLoading: endpointsLoading,
+      episodeList: episodeList,
     )
     return FeatureStore(
       initialState: initialState,
       reducer: {
-        FeatureReducer()
+        FeatureReducer(apiURL: apiURL)
       },
-      withDependencies: withDependencies
+      withDependencies: dependencies.updateDeps
     )
   }
 
@@ -54,7 +73,7 @@ public enum RootFeature {
         store: store.scope(state: \.episodeList, action: \.episodeList)
       )
       .onAppear {
-        store.send(.endpointsLoading(.process(apiURL)))
+        store.send(.preloadIfNeeded)
       }
     }
   }
@@ -63,6 +82,8 @@ public enum RootFeature {
   struct FeatureReducer {
     typealias State = FeatureState
     typealias Action = FeatureAction
+
+    let apiURL: URL
 
     @Dependency(\.networkGateway)
     var networkGateway: NetworkGateway
@@ -86,9 +107,18 @@ public enum RootFeature {
     var coordinatingReducer: some ReducerOf<Self> {
       Reduce { state, action in
         switch action {
-        case .endpointsLoading(.finishProcessing(let endpoint)):
+        case .preloadIfNeeded:
+          if let endpoints = state.endpointsLoading.status.success {
+            let action: Action = .episodeList(
+              .pagination(.setFirstInput(input: endpoints.episodes))
+            )
+            return .send(action)
+          } else {
+            return .send(.endpointsLoading(.process(apiURL)))
+          }
+        case .endpointsLoading(.finishProcessing(let endpoints)):
           let action: Action = .episodeList(
-            .pagination(.setFirstInput(input: endpoint.episodes))
+            .pagination(.setFirstInput(input: endpoints.episodes))
           )
           return .send(action)
         default:
@@ -106,6 +136,7 @@ public enum RootFeature {
 
   @CasePathable
   enum FeatureAction {
+    case preloadIfNeeded
     case endpointsLoading(EndpointsLoadingFeature.FeatureAction)
     case episodeList(EpisodesRootFeature.FeatureAction)
   }

@@ -21,7 +21,7 @@ enum BaseCharacterFeature {
   ) -> FeatureStore {
     let initialState = FeatureState.preview(
       characterURL: MockNetworkGateway.characterFirstAPIURL,
-      characterLoading: .initial()
+      characterLoading: .initial(cachedSuccess: nil)
     )
     return previewStore(initialState: initialState, dependencies: dependencies)
   }
@@ -136,9 +136,13 @@ enum BaseCharacterFeature {
     }
 
     static func initial(
-      characterURL: URL
+      characterURL: URL,
+      cachedCharacter: CharacterDomainModel?
     ) -> Self {
-      .init(characterURL: characterURL, characterLoading: .init())
+      .init(
+        characterURL: characterURL,
+        characterLoading: .initial(cachedSuccess: cachedCharacter)
+      )
     }
   }
 

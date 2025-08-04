@@ -23,15 +23,16 @@ enum ProcessHostFeature<Input: Equatable & Sendable, Output: Equatable> {
   static func previewStore(
     operation: @escaping @Sendable (Input) async throws -> Output
   ) -> FeatureStore {
-    return initialStore(operation: operation)
+    return initialStore(cachedSuccess: nil, operation: operation)
   }
 
   @MainActor
   static func initialStore(
+    cachedSuccess: Output?,
     operation: @escaping @Sendable (Input) async throws -> Output
   ) -> FeatureStore {
     return FeatureStore(
-      initialState: FeatureState(),
+      initialState: FeatureState.initial(cachedSuccess: cachedSuccess),
       reducer: {
         FeatureReducer(operation: operation)
       }
@@ -84,13 +85,11 @@ enum ProcessHostFeature<Input: Equatable & Sendable, Output: Equatable> {
 
   @ObservableState
   struct FeatureState: Equatable {
-    var status: FeatureStatus = .idle(
-      previousSuccess: nil,
-      previousFailure: nil
-    )
-
-    static func initial() -> Self {
-      return .init()
+    var status: FeatureStatus
+    static func initial(cachedSuccess: Output?) -> Self {
+      return .init(
+        status: .idle(previousSuccess: cachedSuccess, previousFailure: nil),
+      )
     }
 
     static func success(_ output: Output) -> Self {

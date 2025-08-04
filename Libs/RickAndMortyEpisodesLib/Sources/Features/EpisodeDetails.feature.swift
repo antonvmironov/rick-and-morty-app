@@ -16,7 +16,8 @@ enum EpisodeDetailsFeature {
   ) -> FeatureStore {
     return FeatureStore(
       initialState: FeatureState.initial(
-        episode: BaseEpisodeFeature.previewEpisode()
+        episode: BaseEpisodeFeature.previewEpisode(),
+        getCachedCharacter: { _ in nil },
       ),
       reducer: { FeatureReducer() },
       withDependencies: dependencies.updateDeps
@@ -175,11 +176,22 @@ enum EpisodeDetailsFeature {
     var canPreload: Bool {
       !UIConstants.inPreview && !isTornDown
     }
-    static func initial(episode: EpisodeDomainModel) -> Self {
+
+    static func initial(
+      episode: EpisodeDomainModel,
+      getCachedCharacter: (URL) -> CharacterDomainModel?
+    ) -> Self {
       .init(
         episode: episode,
         characters: CharacterStatesArray(
-          uniqueElements: episode.characters.map(CharacterState.initial)
+          uniqueElements: episode.characters.map { url in
+            let cachedCharacter = getCachedCharacter(url)
+            let state = CharacterState.initial(
+              characterURL: url,
+              cachedCharacter: cachedCharacter
+            )
+            return state
+          }
         ),
       )
     }

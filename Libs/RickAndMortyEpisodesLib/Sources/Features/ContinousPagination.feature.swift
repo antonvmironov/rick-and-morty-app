@@ -19,29 +19,11 @@ enum ContinuousPaginationFeature<
 
   @MainActor
   static func previewStore(
-    initialInput: Input,
-    getPage: @escaping GetPage,
-    getNextInput: @escaping GetNextInput,
-    isPageFirst: @escaping IsPageFirst,
-    dependencies: Dependencies
-  ) -> FeatureStore {
-    initialStore(
-      firstInput: initialInput,
-      getPage: getPage,
-      getNextInput: getNextInput,
-      isPageFirst: isPageFirst,
-      withDependencies: dependencies.updateDeps,
-    )
-  }
-
-  @MainActor
-  static func initialStore(
     firstInput: Input,
     getPage: @escaping GetPage,
     getNextInput: @escaping GetNextInput,
     isPageFirst: @escaping IsPageFirst,
-    withDependencies setupDependencies: @escaping (inout DependencyValues) ->
-      Void
+    dependencies: Dependencies
   ) -> FeatureStore {
     return FeatureStore(
       initialState: .initial(firstInput: firstInput),
@@ -52,7 +34,7 @@ enum ContinuousPaginationFeature<
           isPageFirst: isPageFirst
         )
       },
-      withDependencies: setupDependencies
+      withDependencies: dependencies.updateDeps,
     )
   }
 
@@ -134,10 +116,27 @@ enum ContinuousPaginationFeature<
 
   @ObservableState
   struct FeatureState: Equatable {
-    static func initial(firstInput: Input? = nil) -> Self {
+    static func initial(
+      firstInput: Input? = nil,
+    ) -> Self {
       .init(
         firstInput: firstInput,
         nextInput: firstInput
+      )
+    }
+
+    static func initialFromCache(
+      firstInput: Input,
+      pages: [Page],
+      nextInput: Input?,
+    ) -> Self {
+      .init(
+        firstInput: firstInput,
+        items: IdentifiedArray(
+          uniqueElements: pages.flatMap(\.payload.results)
+        ),
+        pages: pages,
+        nextInput: nextInput
       )
     }
 
@@ -145,7 +144,9 @@ enum ContinuousPaginationFeature<
     var items = IdentifiedArray<Item.ID, Item>()
     var pages = [Page]()
     var nextInput: Input?
-    var pageLoading: PageLoadingFeature.FeatureState = .initial()
+    var pageLoading: PageLoadingFeature.FeatureState = .initial(
+      cachedSuccess: nil
+    )
     var finishedLoadingPageContinuations = [PageLoadingContinuation]()
     var cachedSince: Date? { pages.first?.cachedSince }
 

@@ -73,7 +73,7 @@ extension DependencyValues {
 }
 
 enum IsPreloadingEnabledKey: EnvironmentKey {
-  static var defaultValue: Bool { false }
+  static var defaultValue: Bool { true }
 }
 
 extension EnvironmentValues {

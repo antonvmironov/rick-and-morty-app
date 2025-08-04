@@ -21,7 +21,7 @@ enum CharacterDetailsFeature {
   ) -> FeatureStore {
     let initialState = BaseCharacterFeature.FeatureState.preview(
       characterURL: MockNetworkGateway.characterFirstAPIURL,
-      characterLoading: .initial()
+      characterLoading: .initial(cachedSuccess: nil)
     )
     return previewStore(
       initialCharacterState: initialState,
@@ -124,9 +124,10 @@ enum CharacterDetailsFeature {
       .environment(\.isPreloadingEnabled, canPreload)
     }
 
-    private func shareLink(exported: Exported, character: CharacterDomainModel)
-      -> some View
-    {
+    private func shareLink(
+      exported: Exported,
+      character: CharacterDomainModel
+    ) -> some View {
       ShareLink(
         item: CharacterExportFeature.transferrable(
           character: character,

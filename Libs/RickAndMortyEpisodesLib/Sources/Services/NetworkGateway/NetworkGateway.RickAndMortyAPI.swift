@@ -17,6 +17,21 @@ extension NetworkGateway {
     return output
   }
 
+  func getCachedEndpoints(
+    apiURL: URL,
+    cachePolicy: URLRequest.CachePolicy = .useProtocolCachePolicy
+  ) throws(NetworkError) -> (
+    output: EndpointsDomainModel, cachedSince: Date?
+  )? {
+    let request = URLRequest(url: apiURL, cachePolicy: cachePolicy)
+    let output = try getCached(
+      request: request,
+      cacheCategory: .shared,
+      output: EndpointsDomainModel.self,
+    )
+    return output
+  }
+
   func getCharacter(
     endpoints: EndpointsDomainModel,
     id: CharacterID,
@@ -36,6 +51,21 @@ extension NetworkGateway {
   ) {
     let request = URLRequest(url: url, cachePolicy: cachePolicy)
     let output = try await get(
+      request: request,
+      cacheCategory: .characters,
+      output: CharacterDomainModel.self,
+    )
+    return output
+  }
+
+  func getCachedCharacter(
+    url: URL,
+    cachePolicy: URLRequest.CachePolicy = .useProtocolCachePolicy
+  ) throws(NetworkError) -> (
+    output: CharacterDomainModel, cachedSince: Date?
+  )? {
+    let request = URLRequest(url: url, cachePolicy: cachePolicy)
+    let output = try getCached(
       request: request,
       cacheCategory: .characters,
       output: CharacterDomainModel.self,
@@ -121,6 +151,25 @@ extension NetworkGateway {
       cacheCategory: .episodes,
       output: ResponsePagePayload<EpisodeDomainModel>.self,
     )
+    return ResponsePageContainer(
+      payload: output.output,
+      cachedSince: output.cachedSince,
+      pageURL: pageURL,
+    )
+  }
+
+  func getPageOfCachedEpisodes(
+    pageURL: URL,
+    cachePolicy: URLRequest.CachePolicy = .useProtocolCachePolicy
+  ) throws(NetworkError) -> ResponsePageContainer<EpisodeDomainModel>? {
+    let request = URLRequest(url: pageURL, cachePolicy: cachePolicy)
+    guard
+      let output = try getCached(
+        request: request,
+        cacheCategory: .episodes,
+        output: ResponsePagePayload<EpisodeDomainModel>.self,
+      )
+    else { return nil }
     return ResponsePageContainer(
       payload: output.output,
       cachedSince: output.cachedSince,

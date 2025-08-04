@@ -16,9 +16,7 @@ enum EpisodesRootFeature {
   ) -> FeatureStore {
     let initialState = FeatureState(
       pagination: .initial(
-        firstInput: MockNetworkGateway.exampleAPIURL.appendingPathComponent(
-          "episode"
-        )
+        firstInput: MockNetworkGateway.episodeFirstPageAPIURL
       )
     )
     return FeatureStore(
@@ -69,7 +67,7 @@ enum EpisodesRootFeature {
       BindingReducer()
     }
 
-    var reloadReducer: some ReducerOf<Self> {
+    private var reloadReducer: some ReducerOf<Self> {
       Reduce { state, action in
         switch action {
         case .reload(let continuation):
@@ -83,7 +81,7 @@ enum EpisodesRootFeature {
       }
     }
 
-    var episodeDetailsReducer: some ReducerOf<Self> {
+    private var episodeDetailsReducer: some ReducerOf<Self> {
       Reduce { state, action in
         switch action {
         case .selectedEpisodeDetails(.dismiss):
@@ -100,7 +98,7 @@ enum EpisodesRootFeature {
       }
     }
 
-    var userInputReducer: some ReducerOf<Self> {
+    private var userInputReducer: some ReducerOf<Self> {
       Reduce { state, action in
         switch action {
         case .preloadIfNeeded:
@@ -108,10 +106,11 @@ enum EpisodesRootFeature {
         case .loadNextPage:
           return .send(.pagination(.loadNextPage()))
         case .presetEpisode(let episode):
-          state.selectedEpisodeDetails = Identified(
-            .initial(episode: episode),
-            id: \.episode.id
-          )
+          return .run { send in
+            await presentEpisode(episode: episode, send: send)
+          }
+        case .didLoadEpisodeState(let selectedEpisodeDetails):
+          state.selectedEpisodeDetails = selectedEpisodeDetails
           return .send(.selectedEpisodeDetails(.presented(.preloadIfNeeded)))
         default:
           return .none
@@ -119,7 +118,21 @@ enum EpisodesRootFeature {
       }
     }
 
-    var paginationReducer: some ReducerOf<Self> {
+    private func presentEpisode(
+      episode: EpisodeDomainModel,
+      send: Send<Action>
+    ) async {
+      let state = EpisodeDetailsFeature.FeatureState.initial(
+        episode: episode,
+        getCachedCharacter: {
+          try? networkGateway.getCachedCharacter(url: $0)?.output
+        }
+      )
+      let selectedEpisodeDetails = Identified(state, id: \.episode.id)
+      await send(.didLoadEpisodeState(selectedEpisodeDetails))
+    }
+
+    private var paginationReducer: some ReducerOf<Self> {
       Scope(state: \.pagination, action: \.pagination) {
         PaginationFeature.FeatureReducer(
           getPage: { pageURL in
@@ -149,11 +162,27 @@ enum EpisodesRootFeature {
     static func initial(firstPageURL: URL?) -> Self {
       FeatureState(pagination: .initial(firstInput: firstPageURL))
     }
+
+    static func initialFromCache(
+      firstPageURL: URL,
+      pages: [PaginationFeature.Page],
+    ) -> Self {
+      FeatureState(
+        pagination: .initialFromCache(
+          firstInput: firstPageURL,
+          pages: pages,
+          nextInput: pages.last?.payload.info.next,
+        )
+      )
+    }
   }
 
   @CasePathable
   enum FeatureAction: BindableAction {
     case presetEpisode(EpisodeDomainModel)
+    case didLoadEpisodeState(
+      Identified<EpisodeID, EpisodeDetailsFeature.FeatureState>
+    )
     case loadNextPage
     case preloadIfNeeded
     case reload(continuation: PaginationFeature.PageLoadingContinuation?)
