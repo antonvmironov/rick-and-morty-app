@@ -92,7 +92,7 @@ enum ContinuousPaginationFeature<
         case (.idle, .reload(let continuation)):
           state.reset()
           return .send(.loadNextPage(continuation: continuation))
-        case (.processing, .pageLoading(.failedProcessing(let message))):
+        case (.processing, .pageLoading(.failedProcessing)):
           let continuations = state.finishedLoadingPageContinuations
           state.finishedLoadingPageContinuations.removeAll()
           return .run { _ in
@@ -144,6 +144,7 @@ enum ContinuousPaginationFeature<
     var nextInput: Input?
     var pageLoading: PageLoadingFeature.FeatureState = .initial()
     var finishedLoadingPageContinuations = [PageLoadingContinuation]()
+    var cachedSince: Date? { pages.first?.cachedSince }
 
     var needsToLoadFirstPage: Bool {
       items.isEmpty && canLoadNextPage

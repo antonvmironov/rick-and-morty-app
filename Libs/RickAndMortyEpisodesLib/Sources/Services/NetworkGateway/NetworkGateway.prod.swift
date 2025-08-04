@@ -51,6 +51,7 @@ actor ProdNetworkGateway: NetworkGateway {
       do {
         (data, response) = try await urlSession.data(for: request)
         storeCachedResponse = true
+        cachedSince = Date()
       } catch {
         throw NetworkError.networkFailure(error)
       }
@@ -74,7 +75,7 @@ actor ProdNetworkGateway: NetworkGateway {
       let output = try jsonDecoder.decode(Output.self, from: data)
       if storeCachedResponse {
         var userInfo: [String: Any] = [:]
-        userInfo["received_date"] = Date()
+        userInfo["received_date"] = cachedSince
         let cachedResponse = CachedURLResponse(
           response: httpURLResponse,
           data: data,

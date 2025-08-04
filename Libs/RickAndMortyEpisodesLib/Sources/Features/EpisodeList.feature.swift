@@ -33,6 +33,9 @@ enum EpisodeListFeature {
     @Bindable
     var store: FeatureStore
 
+    @State
+    var cachedSinceReferenceDate: Date = Date()
+
     init(store: FeatureStore) {
       self.store = store
     }
@@ -50,6 +53,13 @@ enum EpisodeListFeature {
             print(error)
           }
         }
+        .task(id: "update cachedSinceReferenceDate", priority: .low) {
+          let clock = ContinuousClock()
+          while !Task.isCancelled {
+            try? await clock.sleep(for: .seconds(5))
+            cachedSinceReferenceDate = Date()
+          }
+        }
     }
 
     func episodeRow(
@@ -64,19 +74,40 @@ enum EpisodeListFeature {
       }
     }
 
+    static let cachedSinceFormatter: RelativeDateTimeFormatter = {
+      let formatter = RelativeDateTimeFormatter()
+      formatter.formattingContext = .middleOfSentence
+      return formatter
+    }()
+
     func episodeListItems() -> some View {
-      ForEach(store.pagination.items) { episode in
-        Button(
-          action: {
-            store.send(.presetEpisode(episode))
-          },
-          label: {
-            episodeRow(episode: episode, isPlaceholder: false)
+      Section(
+        content: {
+          ForEach(store.pagination.items) { episode in
+            Button(
+              action: {
+                store.send(.presetEpisode(episode))
+              },
+              label: {
+                episodeRow(episode: episode, isPlaceholder: false)
+              }
+            )
+            .listRowSeparator(.hidden)
+            .tag(episode.id)
           }
-        )
-        .listRowSeparator(.hidden)
-        .tag(episode.id)
-      }
+        },
+        header: {
+          if let date = store.cachedSince {
+            HStack {
+              Spacer()
+              Text(
+                "cached \(Self.cachedSinceFormatter.localizedString(for: date, relativeTo: cachedSinceReferenceDate))"
+              )
+              .font(.caption2)
+            }
+          }
+        }
+      )
     }
 
     func skeletonListItems() -> some View {
@@ -231,6 +262,8 @@ enum EpisodeListFeature {
     @Presents
     var selectedEpisodeDetails:
       Identified<EpisodeID, EpisodeDetailsFeature.FeatureState>?
+
+    var cachedSince: Date? { pagination.cachedSince }
 
     static func initial(firstPageURL: URL?) -> Self {
       FeatureState(pagination: .initial(firstInput: firstPageURL))
