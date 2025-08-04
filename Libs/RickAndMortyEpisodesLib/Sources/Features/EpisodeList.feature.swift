@@ -33,9 +33,6 @@ enum EpisodeListFeature {
     @Bindable
     var store: FeatureStore
 
-    @State
-    var cachedSinceReferenceDate: Date = Date()
-
     init(store: FeatureStore) {
       self.store = store
     }
@@ -53,13 +50,6 @@ enum EpisodeListFeature {
             print(error)
           }
         }
-        .task(id: "update cachedSinceReferenceDate", priority: .low) {
-          let clock = ContinuousClock()
-          while !Task.isCancelled {
-            try? await clock.sleep(for: .seconds(5))
-            cachedSinceReferenceDate = Date()
-          }
-        }
     }
 
     func episodeRow(
@@ -74,40 +64,24 @@ enum EpisodeListFeature {
       }
     }
 
-    static let cachedSinceFormatter: RelativeDateTimeFormatter = {
-      let formatter = RelativeDateTimeFormatter()
-      formatter.formattingContext = .middleOfSentence
+    static let cachedSinceFormatter: ISO8601DateFormatter = {
+      let formatter = ISO8601DateFormatter()
       return formatter
     }()
 
     func episodeListItems() -> some View {
-      Section(
-        content: {
-          ForEach(store.pagination.items) { episode in
-            Button(
-              action: {
-                store.send(.presetEpisode(episode))
-              },
-              label: {
-                episodeRow(episode: episode, isPlaceholder: false)
-              }
-            )
-            .listRowSeparator(.hidden)
-            .tag(episode.id)
+      ForEach(store.pagination.items) { episode in
+        Button(
+          action: {
+            store.send(.presetEpisode(episode))
+          },
+          label: {
+            episodeRow(episode: episode, isPlaceholder: false)
           }
-        },
-        header: {
-          if let date = store.cachedSince {
-            HStack {
-              Spacer()
-              Text(
-                "cached \(Self.cachedSinceFormatter.localizedString(for: date, relativeTo: cachedSinceReferenceDate))"
-              )
-              .font(.caption2)
-            }
-          }
-        }
-      )
+        )
+        .listRowSeparator(.hidden)
+        .tag(episode.id)
+      }
     }
 
     func skeletonListItems() -> some View {
@@ -149,19 +123,38 @@ enum EpisodeListFeature {
       }
     }
 
-    func episodeList() -> some View {
+    private func failureView(failureMessage: String) -> some View {
+      Text("⚠️ \(failureMessage)")
+        .font(.caption)
+    }
+
+    private func episodeList() -> some View {
       List {
-        if let previousFailure = store.pagination.pageLoading.status
-          .failureMessage
-        {
-          Text("Failure \(previousFailure)")
-        }
-        if store.pagination.items.isEmpty {
-          skeletonListItems()
-        } else {
-          episodeListItems()
-        }
-        lastItem()
+        Section(
+          content: {
+            if store.pagination.items.isEmpty {
+              skeletonListItems()
+            } else {
+              episodeListItems()
+            }
+            lastItem()
+          },
+          header: {
+            if let failureMessage = store.failureMessage {
+              failureView(failureMessage: failureMessage)
+            } else if let date = store.cachedSince,
+              let dateString = Self.cachedSinceFormatter.string(for: date)
+            {
+              HStack {
+                Spacer()
+                Text(
+                  "cached on \(dateString)"
+                )
+                .font(.caption2)
+              }
+            }
+          }
+        )
       }
       .listStyle(.plain)
       .onAppear {
@@ -264,6 +257,7 @@ enum EpisodeListFeature {
       Identified<EpisodeID, EpisodeDetailsFeature.FeatureState>?
 
     var cachedSince: Date? { pagination.cachedSince }
+    var failureMessage: String? { pagination.pageLoading.status.failureMessage }
 
     static func initial(firstPageURL: URL?) -> Self {
       FeatureState(pagination: .initial(firstInput: firstPageURL))
