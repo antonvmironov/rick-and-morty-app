@@ -30,6 +30,10 @@ actor ProdNetworkGateway: NetworkGateway {
     self.jsonEncoder = Transformers.jsonEncoder()
   }
 
+  private func getCurrentDate() -> Date {
+    Date()  // TBD: inject date for test
+  }
+
   func get<Output: Decodable & Sendable>(
     request: URLRequest,
     cacheCategory: URLCacheCategory,
@@ -51,7 +55,7 @@ actor ProdNetworkGateway: NetworkGateway {
       do {
         (data, response) = try await urlSession.data(for: request)
         storeCachedResponse = true
-        cachedSince = Date()
+        cachedSince = getCurrentDate()
       } catch {
         throw NetworkError.networkFailure(error)
       }

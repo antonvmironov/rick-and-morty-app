@@ -15,10 +15,6 @@ final class URLCacheFactory: Sendable {
     diskCapacity: 20_000_000
   )
 
-  init() {
-
-  }
-
   func cache(category: URLCacheCategory) -> URLCache {
     switch category {
     case .shared: shared
