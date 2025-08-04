@@ -7,7 +7,6 @@ import SwiftUI
 enum EpisodeDetailsFeature {
   typealias FeatureStore = StoreOf<FeatureReducer>
   typealias TestStore = TestStoreOf<FeatureReducer>
-  typealias CharacterFeature = CharacterBriefFeature
   typealias CharacterState = CharacterBriefFeature.FeatureState
   typealias CharacterStatesArray = IdentifiedArrayOf<CharacterState>
 
@@ -60,7 +59,7 @@ enum EpisodeDetailsFeature {
     }
 
     private func row(
-      characterStore: CharacterFeature.FeatureStore
+      characterStore: CharacterBriefFeature.FeatureStore
     ) -> some View {
       Button(
         action: {
@@ -68,7 +67,7 @@ enum EpisodeDetailsFeature {
         },
         label: {
           HStack {
-            CharacterFeature.FeatureView(store: characterStore)
+            CharacterBriefFeature.FeatureView(store: characterStore)
             Image(systemName: "chevron.right")
           }
         }
@@ -140,7 +139,7 @@ enum EpisodeDetailsFeature {
     var charactersReducer: some ReducerOf<Self> {
       EmptyReducer()
         .forEach(\.characters, action: \.characters) {
-          CharacterFeature.FeatureReducer()
+          CharacterBriefFeature.FeatureReducer()
         }
     }
 
@@ -157,7 +156,7 @@ enum EpisodeDetailsFeature {
   @ObservableState
   struct FeatureState: Equatable {
     var episode: EpisodeDomainModel
-    var characters: IdentifiedArrayOf<CharacterState>
+    var characters: CharacterStatesArray
     @Presents
     var selectedCharacterID:
       Identified<CharacterState.ID, CharacterDetailsFeature.FeatureState>?
@@ -177,7 +176,7 @@ enum EpisodeDetailsFeature {
     case selectedCharacter(
       PresentationAction<CharacterDetailsFeature.FeatureAction>
     )
-    case characters(IdentifiedActionOf<CharacterFeature.FeatureReducer>)
+    case characters(IdentifiedActionOf<CharacterBriefFeature.FeatureReducer>)
     case preload
     case selectCharacter(CharacterState.ID?)
     case binding(BindingAction<FeatureState>)

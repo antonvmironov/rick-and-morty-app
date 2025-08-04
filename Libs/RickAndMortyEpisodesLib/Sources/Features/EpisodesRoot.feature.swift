@@ -39,6 +39,14 @@ enum EpisodesRootFeature {
     var body: some View {
       EpisodeListFeature.FeatureView(store: store)
         .navigationTitle("Episode List")
+        .navigationDestination(
+          item: $store.scope(
+            state: \.selectedEpisodeDetails?.value,
+            action: \.selectedEpisodeDetails
+          )
+        ) { store in
+          EpisodeDetailsFeature.FeatureView(store: store)
+        }
     }
   }
 

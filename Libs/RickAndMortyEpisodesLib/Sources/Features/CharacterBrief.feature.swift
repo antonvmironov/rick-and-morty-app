@@ -26,15 +26,12 @@ enum CharacterBriefFeature {
     }
 
     var body: some View {
-      HStack {
-        characterContentView(character: store.displayCharacter)
-        Spacer(minLength: 0)
-      }
-      .onAppear {
-        if !UIConstants.inPreview {
-          store.send(.preloadIfNeeded)
+      characterContentView(character: store.displayCharacter)
+        .onAppear {
+          if !UIConstants.inPreview {
+            store.send(.preloadIfNeeded)
+          }
         }
-      }
     }
 
     private let characterIDMinWidth = UIConstants.space * 6
