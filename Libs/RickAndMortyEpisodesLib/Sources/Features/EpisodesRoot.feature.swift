@@ -43,16 +43,15 @@ enum EpisodesRootFeature: Feature {
         .navigationDestination(
           isPresented: $store.isPresentingEpisodeDetails
         ) {
-          EpisodeDetailsFeature
-            .FeatureView(
-              store:
-                store
-                .scope(
-                  state: \.selectedEpisodeDetails,
-                  action: \.selectedEpisodeDetails
-                )
-            )
-            .storeActions(isEnabled: store.isPresentingEpisodeDetails)
+          if let nestedStore = store.scope(
+            state: \.selectedEpisodeDetails,
+            action: \.selectedEpisodeDetails
+          ) {
+            EpisodeDetailsFeature.FeatureView(store: nestedStore)
+              .storeActions(isEnabled: store.isPresentingEpisodeDetails)
+          } else {
+            Text("Try again later")
+          }
         }
     }
   }
@@ -91,12 +90,10 @@ enum EpisodesRootFeature: Feature {
     }
 
     private var episodeDetailsReducer: some ReducerOf<Self> {
-      Scope(
-        state: \.selectedEpisodeDetails,
-        action: \.selectedEpisodeDetails
-      ) {
-        EpisodeDetailsFeature.FeatureReducer()
-      }
+      EmptyReducer()
+        .ifLet(\.selectedEpisodeDetails, action: \.selectedEpisodeDetails) {
+          EpisodeDetailsFeature.FeatureReducer()
+        }
     }
 
     private var userInputReducer: some ReducerOf<Self> {
@@ -154,14 +151,11 @@ enum EpisodesRootFeature: Feature {
   @ObservableState
   struct FeatureState: Equatable {
     var pagination: PaginationFeature.FeatureState
-    var selectedEpisodeDetails = EpisodeDetailsFeature.FeatureState.initial(
-      episode: .dummy,
-      characters: [],
-    )
+    var selectedEpisodeDetails: EpisodeDetailsFeature.FeatureState?
     var route: FeatureRoute = .root
     var isPresentingEpisodeDetails: Bool {
       get {
-        if case .episodeDetails = route {
+        if case .episodeDetails = route, selectedEpisodeDetails != nil {
           true
         } else {
           false

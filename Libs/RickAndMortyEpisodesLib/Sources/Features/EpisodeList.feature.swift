@@ -142,6 +142,8 @@ enum EpisodeListFeature {
 
     private func failureView(failureMessage: String) -> some View {
       Text("⚠️ \(failureMessage)")
+        .lineLimit(3)
+        .truncationMode(.middle)
         .font(.caption)
     }
   }

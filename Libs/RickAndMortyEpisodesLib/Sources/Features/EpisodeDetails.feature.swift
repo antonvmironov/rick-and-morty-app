@@ -61,7 +61,7 @@ enum EpisodeDetailsFeature: Feature {
         ) {
           CharacterDetailsFeature.FeatureView(store: store)
         } else {
-          EmptyView()
+          Text("Unable to load character details. Please try again later.")
         }
       }
     }

@@ -19,29 +19,47 @@ import SwiftUI
           apiURL: Self.prodAPIURL,
           dependencies: dependencies
         )
-        .navigationDestination(isPresented: $isSettingsPresented) {
-          SettingsView()
+        .sheet(isPresented: $isSettingsPresented) {
+          NavigationStack {
+            SettingsView()
+          }
+          .overlay(alignment: .topTrailing) {
+            toggleSettingsPresentedButton(
+              title: "Back",
+              iconSystemName: "escape"
+            )
+          }
         }
       }
       .overlay(alignment: .topTrailing) {
-        Button(
-          action: {
-            self.isSettingsPresented.toggle()
-          },
-          label: {
-            Label(
-              title: {
-                Text("SettingsView")
-              },
-              icon: {
-                Image(systemName: "figure.walk")
-              }
-            ).labelStyle(.iconOnly)
-          }
+        toggleSettingsPresentedButton(
+          title: "Settings",
+          iconSystemName: "figure.walk"
         )
-        .buttonStyle(.bordered)
-        .accessibilityHidden(true)
       }
     }
+  }
+
+  func toggleSettingsPresentedButton(
+    title: String,
+    iconSystemName: String
+  ) -> some View {
+    Button(
+      action: {
+        self.isSettingsPresented.toggle()
+      },
+      label: {
+        Label(
+          title: {
+            Text("Settings")
+          },
+          icon: {
+            Image(systemName: iconSystemName)
+          }
+        ).labelStyle(.iconOnly)
+      }
+    )
+    .buttonStyle(.bordered)
+    .accessibilityHidden(true)
   }
 }
