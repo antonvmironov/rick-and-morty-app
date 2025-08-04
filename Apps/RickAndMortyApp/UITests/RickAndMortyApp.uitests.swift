@@ -14,17 +14,7 @@ import XCUIAutomation
 final class RickAndMortyAppUITests: XCTestCase {
   let app = XCUIApplication()
 
-  func testToSettingsAndBack() async {
-    app.launch()
-
-    app.waitForScreen(title: "Episode List")
-    app.buttons[RootFeature.A11yIDs.enterSettingsButton].waitToAppear().tap()
-    app.waitForScreen(title: "Settings")
-    app.buttons[RootFeature.A11yIDs.exitSettingsButton].waitToAppear().tap()
-    app.waitForScreen(title: "Episode List")
-  }
-
-  func testToCharacterDetails() async {
+  func testDemo() async {
     app.launch()
 
     app.waitForScreen(title: "Episode List")
@@ -43,6 +33,16 @@ final class RickAndMortyAppUITests: XCTestCase {
     app.buttons["header.closeButton"]  // an id for a system share sheet
       .waitToAppear(timeout: 10)
       .tap()
+  }
+
+  func testToSettingsAndBack() async {
+    app.launch()
+
+    app.waitForScreen(title: "Episode List")
+    app.buttons[RootFeature.A11yIDs.enterSettingsButton].waitToAppear().tap()
+    app.waitForScreen(title: "Settings")
+    app.buttons[RootFeature.A11yIDs.exitSettingsButton].waitToAppear().tap()
+    app.waitForScreen(title: "Episode List")
   }
 }
 
