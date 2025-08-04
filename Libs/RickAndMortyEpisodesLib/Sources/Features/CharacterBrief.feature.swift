@@ -7,7 +7,7 @@ import Shimmer
 import SwiftUI
 
 /// Namespace for the CharacterBrief feature. Serves as an anchor for project navigation.
-enum CharacterBriefFeature {
+enum CharacterBriefFeature: Feature {
   typealias CharacterLoadingFeature = ProcessHostFeature<
     URL, CharacterDomainModel
   >

@@ -7,12 +7,12 @@ import SwiftUI
 enum ContinuousPaginationFeature<
   Input: Equatable & Sendable,
   Item: Equatable & Sendable & Codable & Identifiable
-> {
+>: Feature {
+  typealias FeatureView = Never
+
   typealias Page = ResponsePageContainer<Item>
   typealias PageLoadingFeature = ProcessHostFeature<Input, Page>
   typealias PageLoadingContinuation = CheckedContinuation<Page, Error>
-  typealias FeatureStore = StoreOf<FeatureReducer>
-  typealias TestStore = TestStoreOf<FeatureReducer>
   typealias GetPage = @Sendable (Input) async throws -> Page
   typealias GetNextInput = @Sendable (Page) -> Input?
   typealias IsPageFirst = @Sendable (Page) -> Bool

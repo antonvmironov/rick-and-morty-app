@@ -7,12 +7,10 @@ import Shimmer
 import SwiftUI
 
 /// Namespace for the CharacterDetails feature. Serves as an anchor for project navigation.
-enum CharacterDetailsFeature {
+enum CharacterDetailsFeature: Feature {
   typealias CharacterLoadingFeature = ProcessHostFeature<
     URL, CharacterDomainModel
   >
-  typealias FeatureStore = StoreOf<FeatureReducer>
-  typealias TestStore = TestStoreOf<FeatureReducer>
   typealias Exported = CharacterExportFeature.FeatureState
 
   @MainActor
@@ -83,7 +81,7 @@ enum CharacterDetailsFeature {
     var body: some View {
       List {
         Section {
-          CharacterProfileFeature.CharacterProfileView(
+          CharacterProfileFeature.FeatureView(
             actualCharacter: store.character.actualCharacter,
             placeholderCharacter: store.character.placeholderCharacter,
             mode: .uiRendering(

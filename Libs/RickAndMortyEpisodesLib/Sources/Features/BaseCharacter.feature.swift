@@ -4,13 +4,12 @@ import SharedLib
 import SwiftUI
 
 /// Namespace for the BaseCharacter feature. Serves as an anchor for project navigation.
-enum BaseCharacterFeature {
+enum BaseCharacterFeature: Feature {
+  typealias FeatureView = Never
+
   typealias CharacterLoadingFeature = ProcessHostFeature<
     URL, CharacterDomainModel
   >
-  typealias FeatureStore = StoreOf<FeatureReducer>
-  typealias TestStore = TestStoreOf<FeatureReducer>
-
   static func previewCharacter() -> CharacterDomainModel {
     return .dummy
   }

@@ -6,18 +6,18 @@ import SwiftUI
 
 /// Namespace for the BaseCharacter feature. Serves as an anchor for project navigation.
 enum CharacterProfileFeature {
-  enum CharacterProfileMode {
+  enum FeatureMode {
     case uiRendering(isPlaceholder: Bool, isShimmering: Bool)
     case snapshotRendering(imageOverride: Image)
   }
 
-  struct CharacterProfileView: View {
+  struct FeatureView: View {
     var actualCharacter: CharacterDomainModel?
     var placeholderCharacter: CharacterDomainModel = .dummy
     private var displayCharacter: CharacterDomainModel {
       actualCharacter ?? placeholderCharacter
     }
-    var mode: CharacterProfileMode
+    var mode: FeatureMode
 
     var body: some View {
       HStack(alignment: .top) {
@@ -99,35 +99,35 @@ enum CharacterProfileFeature {
   List {
     VStack(alignment: .leading) {
       Text("baseline")
-      CharacterProfileFeature.CharacterProfileView(
+      CharacterProfileFeature.FeatureView(
         actualCharacter: .dummy,
         mode: .uiRendering(isPlaceholder: false, isShimmering: false),
       )
     }
     VStack(alignment: .leading) {
       Text("placeholder")
-      CharacterProfileFeature.CharacterProfileView(
+      CharacterProfileFeature.FeatureView(
         actualCharacter: .dummy,
         mode: .uiRendering(isPlaceholder: true, isShimmering: false),
       )
     }
     VStack(alignment: .leading) {
       Text("shimmer")
-      CharacterProfileFeature.CharacterProfileView(
+      CharacterProfileFeature.FeatureView(
         actualCharacter: .dummy,
         mode: .uiRendering(isPlaceholder: false, isShimmering: true),
       )
     }
     VStack(alignment: .leading) {
       Text("placeholder & shimmer")
-      CharacterProfileFeature.CharacterProfileView(
+      CharacterProfileFeature.FeatureView(
         actualCharacter: .dummy,
         mode: .uiRendering(isPlaceholder: true, isShimmering: true),
       )
     }
     VStack(alignment: .leading) {
       Text("snapshot")
-      CharacterProfileFeature.CharacterProfileView(
+      CharacterProfileFeature.FeatureView(
         actualCharacter: .dummy,
         mode: .snapshotRendering(
           imageOverride: Image(systemName: "person.circle")

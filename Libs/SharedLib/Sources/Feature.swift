@@ -12,11 +12,21 @@ public protocol Feature {
   associatedtype TestStore = TestStoreOf<FeatureReducer>
 }
 
+public protocol A11yIDProvider {
+  var a11yID: String { get }
+}
+
+extension A11yIDProvider where Self: RawRepresentable, Self.RawValue == String {
+  var a11yID: String { rawValue }
+}
+
 extension View {
-  func accessibilityIdentifier<F: Feature>(
-    feature: F.Type = F.self,
-    _ featureKeyPath: KeyPath<F.Type, String>
+  public func a11yID<A: A11yIDProvider>(
+    _ provider: A,
+    isHidden: Bool = false
   ) -> some View {
-    accessibilityIdentifier(feature[keyPath: featureKeyPath])
+    accessibilityIdentifier(provider.a11yID)
+      .accessibilityElement()
+      .accessibilityHidden(true, isEnabled: !isHidden)
   }
 }

@@ -52,7 +52,7 @@ enum CharacterExportFeature {
         .appendingPathComponent("\(character.name).pdf", conformingTo: .pdf)
 
       let padding = UIConstants.space * 4
-      let view = CharacterProfileFeature.CharacterProfileView(
+      let view = CharacterProfileFeature.FeatureView(
         actualCharacter: character,
         mode: .snapshotRendering(imageOverride: imageOverride)
       )

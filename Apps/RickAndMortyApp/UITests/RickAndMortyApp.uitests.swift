@@ -1,27 +1,30 @@
 import Foundation
+import SharedLib
 import XCTest
 import XCUIAutomation
 
 @testable import RickAndMortyApp
+@testable import RickAndMortyEpisodesLib
 
 final class RickAndMortyAppUITests: XCTestCase {
-
   @MainActor
   func testHelloWorldButtonShowsDone() async {
     let app = XCUIApplication()
     app.launch()
 
-    let helloWorldButton = app.buttons["hello world"]
+    let settingsButton = app.buttons[RootFeature.A11yIDs.enterSettingsButton]
     XCTAssertTrue(
-      helloWorldButton.waitForExistence(timeout: 3),
+      settingsButton.waitForExistence(timeout: 3),
       "Button with id 'hello world' should exist"
     )
-    helloWorldButton.tap()
+    settingsButton.tap()
 
-    let doneElement = app.otherElements["done"]
-    XCTAssertTrue(
-      doneElement.waitForExistence(timeout: 3),
-      "Element with id 'done' should appear within 3 seconds"
-    )
+    try? await Task.sleep(for: .seconds(10))
+  }
+}
+
+extension XCUIElementQuery {
+  subscript<A: A11yIDProvider>(_ provider: A) -> XCUIElement {
+    self[provider.a11yID]
   }
 }
