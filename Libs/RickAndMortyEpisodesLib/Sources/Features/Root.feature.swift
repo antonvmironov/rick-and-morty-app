@@ -10,6 +10,7 @@ public enum RootFeature {
     URL, EndpointsDomainModel
   >
   enum A11yIDs: String, A11yIDProvider {
+    case navTitle = "nav-title"
     case enterSettingsButton = "enter-settings-button"
     case exitSettingsButton = "escape-settings-button"
     var a11yID: String { rawValue }
@@ -75,22 +76,21 @@ public enum RootFeature {
     }
 
     public var body: some View {
-      NavigationStack {
-        EpisodesRootFeature.FeatureView(
-          store: store.scope(state: \.episodeList, action: \.episodeList)
-        )
-        .onAppear {
-          store.send(.preloadIfNeeded)
-        }
-        .toolbar {
-          ToolbarItem {
-            toggleSettingsPresentedButton(
-              title: "Settings",
-              iconSystemName: "figure.walk"
-            )
-            .a11yID(A11yIDs.enterSettingsButton)
-            .padding(UIConstants.space)
-          }
+      EpisodesRootFeature.FeatureView(
+        store: store.scope(state: \.episodeList, action: \.episodeList)
+      )
+      .a11yID(A11yIDs.navTitle)
+      .onAppear {
+        store.send(.preloadIfNeeded)
+      }
+      .toolbar {
+        ToolbarItem {
+          toggleSettingsPresentedButton(
+            title: "Settings",
+            iconSystemName: "figure.walk"
+          )
+          .padding(UIConstants.space)
+          .a11yID(A11yIDs.enterSettingsButton)
         }
       }
       .sheet(isPresented: $store.isSettingsPresented) {
@@ -124,7 +124,7 @@ public enum RootFeature {
         label: {
           Label(
             title: {
-              Text("Settings")
+              Text(title)
             },
             icon: {
               Image(systemName: iconSystemName)
@@ -132,9 +132,10 @@ public enum RootFeature {
           ).labelStyle(.iconOnly)
         }
       )
-      .aspectRatio(1, contentMode: .fit)
       .buttonStyle(.bordered)
-      .accessibilityHidden(true)
+      .accessibilityAction {
+        store.send(.toggleSettingsPresentation)
+      }
     }
   }
 

@@ -11,10 +11,12 @@ import SwiftUI
 
   var body: some Scene {
     WindowGroup {
-      RickAndMortyEpisodesLib.RootFeature.rootView(
-        apiURL: Self.prodAPIURL,
-        dependencies: dependencies
-      )
+      NavigationStack {
+        RickAndMortyEpisodesLib.RootFeature.rootView(
+          apiURL: Self.prodAPIURL,
+          dependencies: dependencies
+        )
+      }
     }
   }
 }

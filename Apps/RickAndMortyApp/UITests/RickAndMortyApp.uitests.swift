@@ -8,23 +8,58 @@ import XCUIAutomation
 
 final class RickAndMortyAppUITests: XCTestCase {
   @MainActor
-  func testHelloWorldButtonShowsDone() async {
+  func testToSettingsAndBack() async {
     let app = XCUIApplication()
     app.launch()
 
-    let settingsButton = app.buttons[RootFeature.A11yIDs.enterSettingsButton]
-    XCTAssertTrue(
-      settingsButton.waitForExistence(timeout: 3),
-      "Button with id 'hello world' should exist"
-    )
-    settingsButton.tap()
-
-    try? await Task.sleep(for: .seconds(10))
+    app.waitForScreen(title: "Episode List")
+    app.waitForButton(RootFeature.A11yIDs.enterSettingsButton).tap()
+    app.waitForScreen(title: "Settings")
+    app.waitForButton(RootFeature.A11yIDs.exitSettingsButton).tap()
+    app.waitForScreen(title: "Episode List")
   }
 }
 
 extension XCUIElementQuery {
   subscript<A: A11yIDProvider>(_ provider: A) -> XCUIElement {
     self[provider.a11yID]
+  }
+}
+
+extension XCUIElementTypeQueryProvider {
+  var navTitle: XCUIElement {
+    navigationBars.element
+  }
+
+  func waitForScreen(
+    title: String,
+    timeout: TimeInterval = 3,
+    file: StaticString = #filePath,
+    line: UInt = #line
+  ) {
+    XCTAssertTrue(
+      navigationBars[title].waitForExistence(timeout: 3),
+      "Awaiting for '\(title)' title to appear",
+      file: file,
+      line: line,
+    )
+  }
+
+  @discardableResult
+  func waitForButton<A: A11yIDProvider>(
+    _ idProvider: A,
+    timeout: TimeInterval = 3,
+    file: StaticString = #filePath,
+    line: UInt = #line
+  ) -> XCUIElement {
+    let idString = idProvider.a11yID
+    let button = buttons[idString]
+    XCTAssertTrue(
+      button.waitForExistence(timeout: 3),
+      "Awaiting for `\(idString)` title to appear",
+      file: file,
+      line: line,
+    )
+    return button
   }
 }

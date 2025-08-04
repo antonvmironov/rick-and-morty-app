@@ -23,10 +23,7 @@ extension A11yIDProvider where Self: RawRepresentable, Self.RawValue == String {
 extension View {
   public func a11yID<A: A11yIDProvider>(
     _ provider: A,
-    isHidden: Bool = false
   ) -> some View {
     accessibilityIdentifier(provider.a11yID)
-      .accessibilityElement()
-      .accessibilityHidden(true, isEnabled: !isHidden)
   }
 }
