@@ -1,4 +1,3 @@
-import ComposableArchitecture
 import RickAndMortyEpisodesLib
 import SwiftUI
 
@@ -10,6 +9,9 @@ import SwiftUI
   @State
   var dependencies = RickAndMortyEpisodesLib.Dependencies.prod()
 
+  @State
+  var isSettingsPresented: Bool = false
+
   var body: some Scene {
     WindowGroup {
       NavigationStack {
@@ -17,6 +19,28 @@ import SwiftUI
           apiURL: Self.prodAPIURL,
           dependencies: dependencies
         )
+        .navigationDestination(isPresented: $isSettingsPresented) {
+          SettingsView()
+        }
+      }
+      .overlay(alignment: .topTrailing) {
+        Button(
+          action: {
+            self.isSettingsPresented.toggle()
+          },
+          label: {
+            Label(
+              title: {
+                Text("SettingsView")
+              },
+              icon: {
+                Image(systemName: "figure.walk")
+              }
+            ).labelStyle(.iconOnly)
+          }
+        )
+        .buttonStyle(.bordered)
+        .accessibilityHidden(true)
       }
     }
   }
