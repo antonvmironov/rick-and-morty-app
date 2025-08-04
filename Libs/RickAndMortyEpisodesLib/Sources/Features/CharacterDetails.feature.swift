@@ -124,9 +124,10 @@ enum CharacterDetailsFeature {
       .environment(\.isPreloadingEnabled, canPreload)
     }
 
-    private func shareLink(exported: Exported, character: CharacterDomainModel)
-      -> some View
-    {
+    private func shareLink(
+      exported: Exported,
+      character: CharacterDomainModel
+    ) -> some View {
       ShareLink(
         item: CharacterExportFeature.transferrable(
           character: character,
