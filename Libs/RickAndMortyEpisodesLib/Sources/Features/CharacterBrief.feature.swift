@@ -94,15 +94,16 @@ enum CharacterBriefFeature {
               .font(.headline)
               .modifier(loadableContentModifier)
           }
-          HStack(alignment: .top) {
-            if store.characterLoading.status.failureMessage != nil {
+          if store.characterLoading.status.failureMessage != nil {
+            VStack(alignment: .leading) {
               reloadView()
-            } else {
+            }
+          } else {
+            Grid(alignment: .leadingFirstTextBaseline) {
               tagView(label: "species", content: character.species.rawValue)
               tagView(label: "origin", content: character.origin.name)
             }
           }
-          .lineLimit(1)
         }
         Spacer()
         characterImage()
@@ -113,7 +114,7 @@ enum CharacterBriefFeature {
       label: String,
       content: String,
     ) -> some View {
-      VStack(alignment: .leading, spacing: UIConstants.space / 2) {
+      GridRow {
         Text(label)
           .minimumScaleFactor(0.5)
           .font(.caption2)
