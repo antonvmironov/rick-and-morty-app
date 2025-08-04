@@ -101,7 +101,6 @@ enum EpisodeListFeature {
 
     private func episodeListItems() -> some View {
       ForEach(store.pagination.items) { episode in
-        var string: String { "Episode \"\(episode.name)\" \(episode.episode)" }
         Button(
           action: { store.send(.presetEpisode(episode)) },
           label: { episodeRow(episode: episode, isPlaceholder: false) }
@@ -111,7 +110,7 @@ enum EpisodeListFeature {
         .a11yID(A11yIDs.episodeRow(id: "\(episode.id)"))
         .accessibilityElement(children: .ignore)
         .accessibilityAction { store.send(.presetEpisode(episode)) }
-        .accessibilityLabel(string)
+        .accessibilityLabel("Episode \"\(episode.name)\" \(episode.episode)")
         .accessibilityAddTraits(.isButton)
       }
     }

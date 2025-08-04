@@ -6,6 +6,10 @@ import XCUIAutomation
 @testable import RickAndMortyApp
 @testable import RickAndMortyEpisodesLib
 
+/*
+ Thease tests are PoC. They are still connected to network.
+ */
+
 @MainActor
 final class RickAndMortyAppUITests: XCTestCase {
   let app = XCUIApplication()
@@ -29,6 +33,16 @@ final class RickAndMortyAppUITests: XCTestCase {
       .waitToAppear()
       .tap()
     app.waitForScreen(title: "Anatomy Park")
+    app.buttons[EpisodeDetailsFeature.A11yIDs.characterRow(id: "38")]
+      .waitToAppear()
+      .tap()
+    app.waitForScreen(title: "Beth Smith")
+    app.buttons[CharacterDetailsFeature.A11yIDs.exportToPDF]
+      .waitToAppear()
+      .tap()
+    app.buttons["header.closeButton"]  // an id for a system share sheet
+      .waitToAppear(timeout: 10)
+      .tap()
   }
 }
 

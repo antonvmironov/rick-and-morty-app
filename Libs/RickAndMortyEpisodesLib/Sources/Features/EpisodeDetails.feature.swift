@@ -8,6 +8,15 @@ enum EpisodeDetailsFeature: Feature {
   typealias CharacterState = CharacterBriefFeature.FeatureState
   typealias CharacterStatesArray = IdentifiedArrayOf<CharacterState>
 
+  enum A11yIDs: A11yIDProvider {
+    case characterRow(id: String)
+    var a11yID: String {
+      switch self {
+      case .characterRow(let id): "character-row-\(id)"
+      }
+    }
+  }
+
   @MainActor
   static func previewStore(
     dependencies: Dependencies
@@ -82,6 +91,13 @@ enum EpisodeDetailsFeature: Feature {
       )
       .listRowSeparator(.hidden)
       .tag(characterStore.state.id)
+      .a11yID(A11yIDs.characterRow(id: characterStore.state.characterIDString))
+      .accessibilityElement(children: .ignore)
+      .accessibilityAction {
+        store.send(.presentCharacter(characterStore.characterURL))
+      }
+      .accessibilityLabel("Character \(characterStore.displayCharacter.name)")
+      .accessibilityAddTraits(.isButton)
     }
 
     private func sectionHeader() -> some View {

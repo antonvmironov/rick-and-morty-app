@@ -13,6 +13,11 @@ enum CharacterDetailsFeature: Feature {
   >
   typealias Exported = CharacterExportFeature.FeatureState
 
+  enum A11yIDs: String, A11yIDProvider {
+    case exportToPDF = "export-to-pdf"
+    var a11yID: String { rawValue }
+  }
+
   @MainActor
   static func previewPlaceholderStore(
     dependencies: Dependencies
@@ -141,6 +146,10 @@ enum CharacterDetailsFeature: Feature {
         )
       }
       .buttonStyle(.bordered)
+      .accessibilityElement(children: .ignore)
+      .a11yID(A11yIDs.exportToPDF)
+      .accessibilityLabel("Export profile of \(character.name) to PDF")
+      .accessibilityAddTraits(.isButton)
     }
   }
 

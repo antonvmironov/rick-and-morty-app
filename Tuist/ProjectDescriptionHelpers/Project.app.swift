@@ -15,6 +15,9 @@ extension Project {
         "CFBundleShortVersionString": "2025.08.04",
         "CFBundleVersion": "1",
         "CFBundleDisplayName": "R&M Demo",
+        "UISupportedInterfaceOrientations": [
+          "UIInterfaceOrientationPortrait"
+        ],
         "UILaunchScreen": [
           "UIColorName": "Background",
           "UIImageName": "logo.png",
