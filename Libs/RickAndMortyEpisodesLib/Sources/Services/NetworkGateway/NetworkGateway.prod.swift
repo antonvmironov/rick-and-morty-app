@@ -3,48 +3,36 @@ import SharedLib
 
 /// Production implementaiton of ``NetworkGateway``.
 actor ProdNetworkGateway: NetworkGateway {
-  private let urlCache: URLCache
+  private let urlCacheFactory: URLCacheFactory
   private let urlSession: URLSession
+  private let jsonEncoder: JSONEncoder
   private let jsonDecoder: JSONDecoder
-  private let sessionDelegate: SessionDelegate
 
-  static func build() -> ProdNetworkGateway {
-    let urlCache = URLCache(
-      memoryCapacity: 5_000_000,
-      diskCapacity: 10_000_000,
-      diskPath: "rick-and-morty-episodes-cache"
-    )
+  static func build(
+    urlCacheFactory: URLCacheFactory,
+  ) -> ProdNetworkGateway {
     let configuration = URLSessionConfiguration.default
-    configuration.urlCache = urlCache
-    let sessionDelegate = SessionDelegate()
-    let urlSession = URLSession(
-      configuration: configuration,
-      delegate: sessionDelegate,
-      delegateQueue: nil
-    )
-    let jsonDecoder = Transformers.jsonDecoder()
+    configuration.urlCache = nil
+    let urlSession = URLSession(configuration: configuration)
     return ProdNetworkGateway(
-      urlCache: urlCache,
+      urlCacheFactory: urlCacheFactory,
       urlSession: urlSession,
-      jsonDecoder: jsonDecoder,
-      sessionDelegate: sessionDelegate,
     )
   }
 
   private init(
-    urlCache: URLCache,
+    urlCacheFactory: URLCacheFactory,
     urlSession: URLSession,
-    jsonDecoder: JSONDecoder,
-    sessionDelegate: SessionDelegate,
   ) {
-    self.urlCache = urlCache
+    self.urlCacheFactory = urlCacheFactory
     self.urlSession = urlSession
-    self.jsonDecoder = jsonDecoder
-    self.sessionDelegate = sessionDelegate
+    self.jsonDecoder = Transformers.jsonDecoder()
+    self.jsonEncoder = Transformers.jsonEncoder()
   }
 
   func get<Output: Decodable & Sendable>(
     request: URLRequest,
+    cacheCategory: URLCacheCategory,
     output: Output.Type,
   ) async throws(NetworkError) -> (output: Output, cachedSince: Date?) {
     // receive response
@@ -53,6 +41,7 @@ actor ProdNetworkGateway: NetworkGateway {
     var cachedSince: Date?
     var storeCachedResponse = false
 
+    let urlCache = urlCacheFactory.cache(category: cacheCategory)
     if let cachedResponse = urlCache.cachedResponse(for: request) {
       let userInfo = cachedResponse.userInfo as? [String: Any]
       cachedSince = userInfo?["received_date"] as? Date
@@ -99,22 +88,5 @@ actor ProdNetworkGateway: NetworkGateway {
     } catch {
       throw NetworkError.responseDecodingFailed(error: error, data: data)
     }
-  }
-}
-
-private final class SessionDelegate: NSObject, URLSessionDataDelegate {
-  func urlSession(
-    _ session: URLSession,
-    dataTask: URLSessionDataTask,
-    willCacheResponse proposedResponse: CachedURLResponse
-  ) async -> CachedURLResponse? {
-    var userInfo: [String: Any] = proposedResponse.userInfo as! [String: Any]
-    userInfo["received_date"] = Date()
-    return CachedURLResponse(
-      response: proposedResponse.response,
-      data: proposedResponse.data,
-      userInfo: userInfo,
-      storagePolicy: .allowed
-    )
   }
 }
