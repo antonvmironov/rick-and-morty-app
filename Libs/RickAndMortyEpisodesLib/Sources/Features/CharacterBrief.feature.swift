@@ -18,6 +18,8 @@ enum CharacterBriefFeature {
   typealias FeatureAction = BaseCharacterFeature.FeatureAction
 
   struct FeatureView: View {
+    private static let characterIDMinWidth = UIConstants.space * 6
+
     @Bindable
     var store: FeatureStore
 
@@ -36,8 +38,6 @@ enum CharacterBriefFeature {
           }
         }
     }
-
-    private let characterIDMinWidth = UIConstants.space * 6
 
     private func reloadView() -> some View {
       return Button(
@@ -80,7 +80,7 @@ enum CharacterBriefFeature {
               .fontDesign(.monospaced)
               .padding(UIConstants.space / 2)
               .frame(
-                minWidth: characterIDMinWidth,
+                minWidth: Self.characterIDMinWidth,
                 alignment: .center
               )
               .cornerRadius(UIConstants.cornerRadius)
