@@ -7,7 +7,7 @@ import XCUIAutomation
 @testable import RickAndMortyEpisodesLib
 
 /*
- Thease tests are PoC. They are still connected to network.
+ These tests are PoC. They are still connected to network.
  */
 
 @MainActor
