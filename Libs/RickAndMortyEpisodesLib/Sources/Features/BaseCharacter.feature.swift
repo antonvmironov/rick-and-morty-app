@@ -77,7 +77,7 @@ enum BaseCharacterFeature {
           } else {
             return .none
           }
-        case .loadFirstTime:
+        case .preloadIfNeeded:
           if case .idle(.none, .none) = state.characterLoading.status {
             return .send(.characterLoading(.process(state.characterURL)))
           } else {
@@ -143,7 +143,7 @@ enum BaseCharacterFeature {
   @CasePathable
   enum FeatureAction: Equatable {
     case characterLoading(CharacterLoadingFeature.FeatureAction)
-    case loadFirstTime
+    case preloadIfNeeded
     case reloadOnFailure
   }
 }

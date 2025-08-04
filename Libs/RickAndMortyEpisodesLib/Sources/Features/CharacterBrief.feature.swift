@@ -32,7 +32,7 @@ enum CharacterBriefFeature {
       }
       .onAppear {
         if !UIConstants.inPreview {
-          store.send(.loadFirstTime)
+          store.send(.preloadIfNeeded)
         }
       }
     }

@@ -115,7 +115,7 @@ enum EpisodeDetailsFeature {
           let characterIDsToPreload = state.characters.prefix(20).map(\.id)
           return .run { @MainActor send in
             for id in characterIDsToPreload {
-              send(.characters(.element(id: id, action: .loadFirstTime)))
+              send(.characters(.element(id: id, action: .preloadIfNeeded)))
             }
           }
         case .selectCharacter(let characterID):

@@ -39,8 +39,8 @@ enum NetworkGatewayKey: DependencyKey {
   static var liveValue: NetworkGateway { fatalError("unavailable") }
 }
 
-enum ImageCacheKey: DependencyKey {
-  static var liveValue: Kingfisher.ImageCache { .default }
+enum ImageManagerKey: DependencyKey {
+  static var liveValue: KingfisherManager { .shared }
 }
 
 extension DependencyValues {
@@ -49,8 +49,8 @@ extension DependencyValues {
     set { self[NetworkGatewayKey.self] = newValue }
   }
 
-  var imageCache: Kingfisher.ImageCache {
-    get { self[ImageCacheKey.self] }
-    set { self[ImageCacheKey.self] = newValue }
+  var imageManager: KingfisherManager {
+    get { self[ImageManagerKey.self] }
+    set { self[ImageManagerKey.self] = newValue }
   }
 }

@@ -8,12 +8,13 @@ enum CharacterExportFeature {
   static func transferrable(
     character: CharacterDomainModel,
     imageManager: KingfisherManager = .shared
-  ) -> some Transferable {
+  ) -> FeatureState {
     FeatureState(character: character, imageManager: imageManager)
   }
 
-  struct FeatureState: Transferable {
+  struct FeatureState: Transferable, Equatable {
     var character: CharacterDomainModel
+    @ExcludedFromEquality
     var imageManager: KingfisherManager
 
     static var transferRepresentation: some TransferRepresentation {

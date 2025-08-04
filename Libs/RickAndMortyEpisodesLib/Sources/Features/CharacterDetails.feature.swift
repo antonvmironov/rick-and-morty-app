@@ -13,6 +13,7 @@ enum CharacterDetailsFeature {
   >
   typealias FeatureStore = StoreOf<FeatureReducer>
   typealias TestStore = TestStoreOf<FeatureReducer>
+  typealias Exported = CharacterExportFeature.FeatureState
 
   @MainActor
   static func previewPlaceholderStore(
@@ -67,28 +68,6 @@ enum CharacterDetailsFeature {
       withDependencies: dependencies.updateDeps
     )
   }
-  @Reducer
-  struct FeatureReducer {
-    typealias State = FeatureState
-    typealias Action = FeatureAction
-
-    var body: some ReducerOf<Self> {
-      Scope(state: \.character, action: \.character) {
-        BaseCharacterFeature.FeatureReducer()
-      }
-    }
-  }
-
-  @ObservableState
-  struct FeatureState: Equatable {
-    var character: BaseCharacterFeature.FeatureState
-  }
-
-  @CasePathable
-  enum FeatureAction: Equatable {
-    case character(BaseCharacterFeature.FeatureAction)
-    case exportToPDF
-  }
 
   struct FeatureView: View {
     @Bindable
@@ -112,10 +91,12 @@ enum CharacterDetailsFeature {
               isShimmering: store.character.isShimmering
             ),
           )
-          VStack(alignment: .center) {
-            shareLink()
+          if let exported = store.exported {
+            VStack(alignment: .center) {
+              shareLink(exported: exported)
+            }
+            .frame(maxWidth: .infinity)
           }
-          .frame(maxWidth: .infinity)
         } header: {
           sectionHeader()
         }
@@ -126,7 +107,7 @@ enum CharacterDetailsFeature {
       .navigationTitle(store.character.displayCharacter.name)
       .onAppear {
         if !UIConstants.inPreview {
-          store.send(.character(.loadFirstTime))
+          store.send(.preloadIfNeeded)
         }
       }
       .fileExporter(
@@ -140,10 +121,11 @@ enum CharacterDetailsFeature {
       )
     }
 
-    private func shareLink() -> some View {
+    private func shareLink(exported: Exported) -> some View {
       ShareLink(
         item: CharacterExportFeature.transferrable(
-          character: store.character.displayCharacter
+          character: store.character.displayCharacter,
+          imageManager: .shared
         ),
         preview: SharePreview(
           "\(store.character.displayCharacter.name) - Rick and Morty character",
@@ -207,6 +189,53 @@ enum CharacterDetailsFeature {
         )
         .modifier(loadableContentModifier)
     }
+  }
+
+  @Reducer
+  struct FeatureReducer {
+    typealias State = FeatureState
+    typealias Action = FeatureAction
+
+    @Dependency(\.imageManager)
+    var imageManager: KingfisherManager
+
+    var body: some ReducerOf<Self> {
+      Reduce { state, action in
+        switch action {
+        case .preloadIfNeeded:
+          if let character = state.character.actualCharacter {
+            state.exported = Exported(
+              character: character,
+              imageManager: imageManager
+            )
+          }
+          return .send(.character(.preloadIfNeeded))
+        case .character(.characterLoading(.finishProcessing(let character))):
+          state.exported = Exported(
+            character: character,
+            imageManager: imageManager
+          )
+          return .none
+        default:
+          return .none
+        }
+      }
+      Scope(state: \.character, action: \.character) {
+        BaseCharacterFeature.FeatureReducer()
+      }
+    }
+  }
+
+  @ObservableState
+  struct FeatureState: Equatable {
+    var character: BaseCharacterFeature.FeatureState
+    var exported: Exported?
+  }
+
+  @CasePathable
+  enum FeatureAction: Equatable {
+    case character(BaseCharacterFeature.FeatureAction)
+    case preloadIfNeeded
   }
 }
 
