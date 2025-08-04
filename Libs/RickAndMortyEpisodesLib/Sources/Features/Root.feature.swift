@@ -1,5 +1,6 @@
 import ComposableArchitecture
 import Foundation
+import SharedLib
 import SwiftUI
 
 /// Namespace for the RootFeature feature. Serves as an anchor for project navigation.
@@ -8,7 +9,12 @@ public enum RootFeature {
   typealias EndpointsLoadingFeature = ProcessHostFeature<
     URL, EndpointsDomainModel
   >
-  //typealias EpisodesRootFeature = EpisodesRootFeature
+  enum A11yIDs: String, A11yIDProvider {
+    case navTitle = "nav-title"
+    case enterSettingsButton = "enter-settings-button"
+    case exitSettingsButton = "escape-settings-button"
+    var a11yID: String { rawValue }
+  }
 
   @MainActor
   public static func rootView(
@@ -47,6 +53,7 @@ public enum RootFeature {
     let initialState = FeatureState(
       endpointsLoading: endpointsLoading,
       episodeList: episodeList,
+      settings: .init()
     )
     return FeatureStore(
       initialState: initialState,
@@ -72,8 +79,62 @@ public enum RootFeature {
       EpisodesRootFeature.FeatureView(
         store: store.scope(state: \.episodeList, action: \.episodeList)
       )
+      .a11yID(A11yIDs.navTitle)
       .onAppear {
         store.send(.preloadIfNeeded)
+      }
+      .toolbar {
+        ToolbarItem {
+          toggleSettingsPresentedButton(
+            title: "Settings",
+            iconSystemName: "figure.walk"
+          )
+          .padding(UIConstants.space)
+          .a11yID(A11yIDs.enterSettingsButton)
+        }
+      }
+      .sheet(isPresented: $store.isSettingsPresented) {
+        NavigationStack {
+          SettingsFeature.FeatureView(
+            store: store.scope(
+              state: \.settings,
+              action: \.settings
+            )
+          )
+        }
+        .overlay(alignment: .topTrailing) {
+          toggleSettingsPresentedButton(
+            title: "Back",
+            iconSystemName: "escape"
+          )
+          .a11yID(A11yIDs.exitSettingsButton)
+          .padding(UIConstants.space)
+        }
+      }
+    }
+
+    private func toggleSettingsPresentedButton(
+      title: String,
+      iconSystemName: String
+    ) -> some View {
+      Button(
+        action: {
+          store.send(.toggleSettingsPresentation)
+        },
+        label: {
+          Label(
+            title: {
+              Text(title)
+            },
+            icon: {
+              Image(systemName: iconSystemName)
+            }
+          ).labelStyle(.iconOnly)
+        }
+      )
+      .buttonStyle(.bordered)
+      .accessibilityAction {
+        store.send(.toggleSettingsPresentation)
       }
     }
   }
@@ -102,6 +163,10 @@ public enum RootFeature {
       Scope(state: \.episodeList, action: \.episodeList) {
         EpisodesRootFeature.FeatureReducer()
       }
+      Scope(state: \.settings, action: \.settings) {
+        SettingsFeature.FeatureReducer()
+      }
+      BindingReducer()
     }
 
     var coordinatingReducer: some ReducerOf<Self> {
@@ -116,6 +181,9 @@ public enum RootFeature {
           } else {
             return .send(.endpointsLoading(.process(apiURL)))
           }
+        case .toggleSettingsPresentation:
+          state.isSettingsPresented.toggle()
+          return .none
         case .endpointsLoading(.finishProcessing(let endpoints)):
           let action: Action = .episodeList(
             .pagination(.setFirstInput(input: endpoints.episodes))
@@ -132,24 +200,27 @@ public enum RootFeature {
   struct FeatureState: Equatable {
     var endpointsLoading: EndpointsLoadingFeature.FeatureState
     var episodeList: EpisodesRootFeature.FeatureState
+    var settings: SettingsFeature.FeatureState
+    var isSettingsPresented = false
   }
 
   @CasePathable
-  enum FeatureAction {
+  enum FeatureAction: BindableAction {
     case preloadIfNeeded
+    case toggleSettingsPresentation
     case endpointsLoading(EndpointsLoadingFeature.FeatureAction)
     case episodeList(EpisodesRootFeature.FeatureAction)
+    case settings(SettingsFeature.FeatureAction)
+    case binding(BindingAction<FeatureState>)
   }
 }
 
 #Preview {
   @Previewable let dependencies = Dependencies.preview()
-  NavigationStack {
-    RootFeature
-      .rootView(
-        apiURL: MockNetworkGateway.exampleAPIURL,
-        dependencies: dependencies
-      )
-      .navigationTitle("Test Episode List")
-  }
+  RootFeature
+    .rootView(
+      apiURL: MockNetworkGateway.exampleAPIURL,
+      dependencies: dependencies
+    )
+    .navigationTitle("Test Episode List")
 }

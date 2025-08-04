@@ -52,6 +52,7 @@ enum EpisodeListFeature {
         )
       }
       .listStyle(.plain)
+      .accessibilityElement(children: .contain)
       .onAppear {
         if canSendActions {
           store.send(.preloadIfNeeded)

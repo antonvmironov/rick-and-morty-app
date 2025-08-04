@@ -9,9 +9,6 @@ import SwiftUI
   @State
   var dependencies = RickAndMortyEpisodesLib.Dependencies.prod()
 
-  @State
-  var isSettingsPresented: Bool = false
-
   var body: some Scene {
     WindowGroup {
       NavigationStack {
@@ -19,47 +16,7 @@ import SwiftUI
           apiURL: Self.prodAPIURL,
           dependencies: dependencies
         )
-        .sheet(isPresented: $isSettingsPresented) {
-          NavigationStack {
-            SettingsView()
-          }
-          .overlay(alignment: .topTrailing) {
-            toggleSettingsPresentedButton(
-              title: "Back",
-              iconSystemName: "escape"
-            )
-          }
-        }
-      }
-      .overlay(alignment: .topTrailing) {
-        toggleSettingsPresentedButton(
-          title: "Settings",
-          iconSystemName: "figure.walk"
-        )
       }
     }
-  }
-
-  func toggleSettingsPresentedButton(
-    title: String,
-    iconSystemName: String
-  ) -> some View {
-    Button(
-      action: {
-        self.isSettingsPresented.toggle()
-      },
-      label: {
-        Label(
-          title: {
-            Text("Settings")
-          },
-          icon: {
-            Image(systemName: iconSystemName)
-          }
-        ).labelStyle(.iconOnly)
-      }
-    )
-    .buttonStyle(.bordered)
-    .accessibilityHidden(true)
   }
 }

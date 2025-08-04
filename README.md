@@ -14,10 +14,9 @@ A demo app. See [the assignement](./assignment.md) and [system design](./system_
 
 ## 🛠️ Development Environment Setup
 
-1. Clone this repository and navigate to the cloned directory in terminal.
-2. Run `./install.py` to install all required dependencies using Homebrew and Tuist.
-	- Purpose: Sets up the development environment by installing necessary tools and packages.
-3. Run `./generate.py` to generate the Xcode project using Tuist.
-	- Purpose: Creates the Xcode workspace and project files for development.
-4. Run `./format.py` to format all Swift files in the repository using swift-format.
-	- Purpose: Ensures code style consistency by formatting Swift source files automatically.
+```shell
+# clone the repo first
+./install.py # to install environment and dependenices
+./generate.py # to generate and re-generate Xcode workspace and projects
+./format.py # to auto-fix all Swift formatting
+```

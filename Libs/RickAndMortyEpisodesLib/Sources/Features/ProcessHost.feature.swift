@@ -1,11 +1,13 @@
 import ComposableArchitecture
 import Foundation
+import SharedLib
 import SwiftUI
 
 /// Namespace for the ProcessHost feature. Serves as an anchor for project navigation.
-enum ProcessHostFeature<Input: Equatable & Sendable, Output: Equatable> {
-  // constants and shared functions go here
-  typealias FeatureStore = StoreOf<FeatureReducer>
+enum ProcessHostFeature<Input: Equatable & Sendable, Output: Equatable>: Feature
+{
+  typealias FeatureView = Never
+
   static func processEffect(
     input: Input,
     operation: @escaping @Sendable (Input) async throws -> Output,
