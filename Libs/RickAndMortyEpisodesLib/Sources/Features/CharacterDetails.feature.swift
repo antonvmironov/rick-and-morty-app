@@ -113,11 +113,10 @@ enum CharacterDetailsFeature {
       .listStyle(.plain)
       .navigationTitle(store.character.displayCharacter.name)
       .onAppear {
-        if canSendActions && store.canPreload {
+        if canSendActions {
           store.send(.preloadIfNeeded)
         }
       }
-      .storeActions(isEnabled: store.canPreload)
     }
 
     private func shareLink(
@@ -186,7 +185,6 @@ enum CharacterDetailsFeature {
   struct FeatureState: Equatable {
     var character: BaseCharacterFeature.FeatureState
     var exported: Exported?
-    var canPreload: Bool { true }
   }
 
   @CasePathable

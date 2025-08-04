@@ -4,9 +4,7 @@ import SharedLib
 import SwiftUI
 
 /// Namespace for the EpisodeDetails feature. Serves as an anchor for project navigation.
-enum EpisodeDetailsFeature {
-  typealias FeatureStore = StoreOf<FeatureReducer>
-  typealias TestStore = TestStoreOf<FeatureReducer>
+enum EpisodeDetailsFeature: Feature {
   typealias CharacterState = CharacterBriefFeature.FeatureState
   typealias CharacterStatesArray = IdentifiedArrayOf<CharacterState>
 
@@ -55,12 +53,16 @@ enum EpisodeDetailsFeature {
         }
       }
       .navigationDestination(
-        item: $store.scope(
-          state: \.selectedCharacterID?.value,
+        isPresented: $store.isCharacterDetailsPresented
+      ) {
+        if let store = store.scope(
+          state: \.selectedCharacter,
           action: \.selectedCharacter
-        )
-      ) { scope in
-        CharacterDetailsFeature.FeatureView(store: scope)
+        ) {
+          CharacterDetailsFeature.FeatureView(store: store)
+        } else {
+          EmptyView()
+        }
       }
     }
 
@@ -69,7 +71,7 @@ enum EpisodeDetailsFeature {
     ) -> some View {
       Button(
         action: {
-          store.send(.selectCharacter(characterStore.characterURL))
+          store.send(.presentCharacter(characterStore.characterURL))
         },
         label: {
           HStack {
@@ -117,8 +119,6 @@ enum EpisodeDetailsFeature {
       Reduce { state, action in
         switch action {
         case .preloadIfNeeded:
-          guard !state.didPreload else { return .none }
-          state.didPreload = true
           let characterIDsToPreload = state.characters.prefix(20)
             .map {
               Effect.send(
@@ -126,18 +126,20 @@ enum EpisodeDetailsFeature {
               )
             }
           return .merge(characterIDsToPreload)
-        case .selectCharacter(let characterID):
-          state.selectedCharacterID =
-            characterID
-            .flatMap(state.characters.index(id:))
-            .map {
-              Identified(
-                CharacterDetailsFeature.FeatureState(
-                  character: state.characters[$0]
-                ),
-                id: \.character.id
-              )
-            }
+        case .presentCharacter(let characterID):
+          guard let characterID,
+            let characterIndex = state.characters.index(id: characterID)
+          else {
+            state.route = .root
+            return .none
+          }
+          state.route = .characterDetails
+          guard state.selectedCharacter?.character.id != characterID else {
+            return .none
+          }
+          state.selectedCharacter = CharacterDetailsFeature.FeatureState(
+            character: state.characters[characterIndex]
+          )
           return .none
         default:
           return .none
@@ -154,10 +156,8 @@ enum EpisodeDetailsFeature {
 
     var selectedCharacterReducer: some ReducerOf<Self> {
       EmptyReducer()
-        .ifLet(\.$selectedCharacterID, action: \.selectedCharacter) {
-          Scope(state: \.value, action: \.self) {
-            CharacterDetailsFeature.FeatureReducer()
-          }
+        .ifLet(\.selectedCharacter, action: \.selectedCharacter) {
+          CharacterDetailsFeature.FeatureReducer()
         }
     }
   }
@@ -166,39 +166,54 @@ enum EpisodeDetailsFeature {
   struct FeatureState: Equatable {
     var episode: EpisodeDomainModel
     var characters: CharacterStatesArray
-    var didPreload = false
-    @Presents
-    var selectedCharacterID:
-      Identified<CharacterState.ID, CharacterDetailsFeature.FeatureState>?
+    var route: FeatureRoute
+    var selectedCharacter: CharacterDetailsFeature.FeatureState?
+
+    var isCharacterDetailsPresented: Bool {
+      get { .characterDetails == route }
+      set { route = newValue ? .characterDetails : .root }
+    }
 
     static func initial(
       episode: EpisodeDomainModel,
       getCachedCharacter: (URL) -> CharacterDomainModel?
     ) -> Self {
+      let characters = CharacterStatesArray(
+        uniqueElements: episode.characters.map { url in
+          let cachedCharacter = getCachedCharacter(url)
+          let state = CharacterState.initial(
+            characterURL: url,
+            cachedCharacter: cachedCharacter
+          )
+          return state
+        }
+      )
+      return initial(episode: episode, characters: characters)
+    }
+
+    static func initial(
+      episode: EpisodeDomainModel,
+      characters: CharacterStatesArray,
+    ) -> Self {
       .init(
         episode: episode,
-        characters: CharacterStatesArray(
-          uniqueElements: episode.characters.map { url in
-            let cachedCharacter = getCachedCharacter(url)
-            let state = CharacterState.initial(
-              characterURL: url,
-              cachedCharacter: cachedCharacter
-            )
-            return state
-          }
-        ),
+        characters: characters,
+        route: .root,
       )
     }
   }
 
+  enum FeatureRoute: Sendable, Hashable {
+    case root
+    case characterDetails
+  }
+
   @CasePathable
   enum FeatureAction: Equatable, BindableAction {
-    case selectedCharacter(
-      PresentationAction<CharacterDetailsFeature.FeatureAction>
-    )
+    case selectedCharacter(CharacterDetailsFeature.FeatureAction)
     case characters(IdentifiedActionOf<CharacterBriefFeature.FeatureReducer>)
     case preloadIfNeeded
-    case selectCharacter(CharacterState.ID?)
+    case presentCharacter(CharacterState.ID?)
     case binding(BindingAction<FeatureState>)
   }
 }

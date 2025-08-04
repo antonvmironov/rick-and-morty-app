@@ -154,9 +154,9 @@ enum EpisodesRootFeature: Feature {
   @ObservableState
   struct FeatureState: Equatable {
     var pagination: PaginationFeature.FeatureState
-    var selectedEpisodeDetails = EpisodeDetailsFeature.FeatureState(
+    var selectedEpisodeDetails = EpisodeDetailsFeature.FeatureState.initial(
       episode: .dummy,
-      characters: []
+      characters: [],
     )
     var route: FeatureRoute = .root
     var isPresentingEpisodeDetails: Bool {
