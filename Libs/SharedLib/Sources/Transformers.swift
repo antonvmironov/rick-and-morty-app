@@ -33,13 +33,13 @@ public enum Transformers {
   }
 
   public static func jsonEncoder() -> JSONEncoder {
-    let decoder = JSONEncoder()
-    decoder.dateEncodingStrategy = .custom { date, encoder in
+    let encoder = JSONEncoder()
+    encoder.dateEncodingStrategy = .custom { date, encoder in
       let stringValue = lockedDateFormatter.withValue { $0.string(from: date) }
       var container = encoder.singleValueContainer()
       try container.encode(stringValue)
     }
-    return decoder
+    return encoder
   }
 
   public static func fromAssetCatalog<Output: Decodable>(
