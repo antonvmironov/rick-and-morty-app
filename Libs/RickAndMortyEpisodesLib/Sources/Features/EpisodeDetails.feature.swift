@@ -140,7 +140,9 @@ enum EpisodeDetailsFeature: Feature {
           state.selectedCharacter = CharacterDetailsFeature.FeatureState(
             character: state.characters[characterIndex]
           )
-          return .none
+          return .run { _ in
+            await UISelectionFeedbackGenerator().selectionChanged()
+          }
         default:
           return .none
         }
