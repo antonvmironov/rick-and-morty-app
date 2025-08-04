@@ -77,7 +77,7 @@ enum BaseCharacterFeature {
           } else {
             return .none
           }
-        case .loadFirstTime:
+        case .preloadIfNeeded:
           if case .idle(.none, .none) = state.characterLoading.status {
             return .send(.characterLoading(.process(state.characterURL)))
           } else {
@@ -110,9 +110,12 @@ enum BaseCharacterFeature {
     var characterLoading: CharacterLoadingFeature.FeatureState
     var characterIDString: String { characterURL.lastPathComponent }
 
-    var displayCharacter: CharacterDomainModel {
+    var actualCharacter: CharacterDomainModel? {
       characterLoading.status.success
-        ?? placeholderCharacter
+    }
+
+    var displayCharacter: CharacterDomainModel {
+      actualCharacter ?? placeholderCharacter
     }
 
     var isPlaceholder: Bool {
@@ -140,7 +143,7 @@ enum BaseCharacterFeature {
   @CasePathable
   enum FeatureAction: Equatable {
     case characterLoading(CharacterLoadingFeature.FeatureAction)
-    case loadFirstTime
+    case preloadIfNeeded
     case reloadOnFailure
   }
 }
