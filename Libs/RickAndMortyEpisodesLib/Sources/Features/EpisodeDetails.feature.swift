@@ -28,12 +28,8 @@ enum EpisodeDetailsFeature {
     @Bindable
     var store: FeatureStore
 
-    @Environment(\.isPreloadingEnabled)
-    var isPreloadingEnabled: Bool
-
-    var canPreload: Bool {
-      isPreloadingEnabled && store.canPreload
-    }
+    @Environment(\.canSendActions)
+    var canSendActions: Bool
 
     init(store: FeatureStore) {
       self.store = store
@@ -54,7 +50,7 @@ enum EpisodeDetailsFeature {
       .listStyle(.plain)
       .navigationTitle(store.episode.name)
       .onAppear {
-        if canPreload {
+        if canSendActions {
           store.send(.preloadIfNeeded)
         }
       }
@@ -66,7 +62,6 @@ enum EpisodeDetailsFeature {
       ) { scope in
         CharacterDetailsFeature.FeatureView(store: scope)
       }
-      .environment(\.isPreloadingEnabled, canPreload)
     }
 
     private func row(
@@ -122,13 +117,11 @@ enum EpisodeDetailsFeature {
       Reduce { state, action in
         switch action {
         case .preloadIfNeeded:
-          guard state.canPreload else { return .none }
-          let characterIDsToPreload = state.characters.prefix(20).map(\.id)
-          return .run { @MainActor send in
-            for id in characterIDsToPreload {
-              send(.characters(.element(id: id, action: .preloadIfNeeded)))
-            }
-          }
+          guard !state.didPreload else { return .none }
+          state.didPreload = true
+          let characterIDsToPreload = state.characters.prefix(20)
+            .map { Effect.send(Action.characters(.element(id: $0.id, action: .preloadIfNeeded))) }
+          return .merge(characterIDsToPreload)
         case .selectCharacter(let characterID):
           state.selectedCharacterID =
             characterID
@@ -169,13 +162,10 @@ enum EpisodeDetailsFeature {
   struct FeatureState: Equatable {
     var episode: EpisodeDomainModel
     var characters: CharacterStatesArray
+    var didPreload = false
     @Presents
     var selectedCharacterID:
       Identified<CharacterState.ID, CharacterDetailsFeature.FeatureState>?
-    var isTornDown = false
-    var canPreload: Bool {
-      !UIConstants.inPreview && !isTornDown
-    }
 
     static func initial(
       episode: EpisodeDomainModel,

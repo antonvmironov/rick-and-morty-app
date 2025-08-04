@@ -110,8 +110,6 @@ enum BaseCharacterFeature {
     var characterLoading: CharacterLoadingFeature.FeatureState
     var characterIDString: String { characterURL.lastPathComponent }
 
-    var canPreload: Bool { true }
-
     var actualCharacter: CharacterDomainModel? {
       characterLoading.status.success
     }

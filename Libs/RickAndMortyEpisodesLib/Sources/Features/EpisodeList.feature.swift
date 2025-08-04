@@ -16,6 +16,9 @@ enum EpisodeListFeature {
     @Bindable
     var store: FeatureStore
 
+    @Environment(\.canSendActions)
+    var canSendActions: Bool
+
     init(store: FeatureStore) {
       self.store = store
     }
@@ -50,7 +53,9 @@ enum EpisodeListFeature {
       }
       .listStyle(.plain)
       .onAppear {
-        store.send(.preloadIfNeeded)
+        if canSendActions {
+          store.send(.preloadIfNeeded)
+        }
       }
       .refreshable {
         do {

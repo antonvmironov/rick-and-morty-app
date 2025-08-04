@@ -4,11 +4,14 @@ import SharedLib
 import SwiftUI
 
 /// Namespace for the EpisodesRoot feature. Serves as an anchor for project navigation.
-enum EpisodesRootFeature {
+enum EpisodesRootFeature: Feature {
   typealias Item = EpisodeDomainModel
   typealias PaginationFeature = ContinuousPaginationFeature<URL, Item>
   typealias ListItemFeature = EpisodeBriefFeature
-  typealias FeatureStore = StoreOf<FeatureReducer>
+
+  enum AX {
+
+  }
 
   @MainActor
   static func previewStore(
@@ -42,8 +45,9 @@ enum EpisodesRootFeature {
             state: \.selectedEpisodeDetails?.value,
             action: \.selectedEpisodeDetails
           )
-        ) { store in
-          EpisodeDetailsFeature.FeatureView(store: store)
+        ) { nestedStore in
+          EpisodeDetailsFeature.FeatureView(store: nestedStore)
+            .storeActions(isEnabled: store.selectedEpisodeDetails != nil)
         }
     }
   }
@@ -85,7 +89,7 @@ enum EpisodesRootFeature {
       Reduce { state, action in
         switch action {
         case .selectedEpisodeDetails(.dismiss):
-          state.selectedEpisodeDetails?.isTornDown = true
+          print("hi")
           return .none
         default:
           return .none
@@ -129,6 +133,7 @@ enum EpisodesRootFeature {
         }
       )
       let selectedEpisodeDetails = Identified(state, id: \.episode.id)
+      await UISelectionFeedbackGenerator().selectionChanged()
       await send(.didLoadEpisodeState(selectedEpisodeDetails))
     }
 

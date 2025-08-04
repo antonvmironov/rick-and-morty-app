@@ -21,12 +21,8 @@ enum CharacterBriefFeature {
     @Bindable
     var store: FeatureStore
 
-    @Environment(\.isPreloadingEnabled)
-    var isPreloadingEnabled: Bool
-
-    var canPreload: Bool {
-      isPreloadingEnabled && store.canPreload
-    }
+    @Environment(\.canSendActions)
+    var canSendActions: Bool
 
     init(store: FeatureStore) {
       self.store = store
@@ -35,11 +31,10 @@ enum CharacterBriefFeature {
     var body: some View {
       characterContentView(character: store.displayCharacter)
         .onAppear {
-          if canPreload {
+          if canSendActions {
             store.send(.preloadIfNeeded)
           }
         }
-        .environment(\.isPreloadingEnabled, canPreload)
     }
 
     private let characterIDMinWidth = UIConstants.space * 6
