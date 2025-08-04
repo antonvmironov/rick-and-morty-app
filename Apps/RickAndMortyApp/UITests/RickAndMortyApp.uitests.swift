@@ -6,16 +6,42 @@ import XCUIAutomation
 @testable import RickAndMortyApp
 @testable import RickAndMortyEpisodesLib
 
+/*
+ These tests are PoC. They are still connected to network.
+ */
+
+@MainActor
 final class RickAndMortyAppUITests: XCTestCase {
-  @MainActor
-  func testToSettingsAndBack() async {
-    let app = XCUIApplication()
+  let app = XCUIApplication()
+
+  func testDemo() async {
     app.launch()
 
     app.waitForScreen(title: "Episode List")
-    app.waitForButton(RootFeature.A11yIDs.enterSettingsButton).tap()
+    app.staticTexts[EpisodeListFeature.A11yIDs.cachedSince].waitToAppear()
+    app.buttons[EpisodeListFeature.A11yIDs.episodeRow(id: "3")]
+      .waitToAppear()
+      .tap()
+    app.waitForScreen(title: "Anatomy Park")
+    app.buttons[EpisodeDetailsFeature.A11yIDs.characterRow(id: "38")]
+      .waitToAppear()
+      .tap()
+    app.waitForScreen(title: "Beth Smith")
+    app.buttons[CharacterDetailsFeature.A11yIDs.exportToPDF]
+      .waitToAppear()
+      .tap()
+    app.buttons["header.closeButton"]  // an id for a system share sheet
+      .waitToAppear(timeout: 10)
+      .tap()
+  }
+
+  func testToSettingsAndBack() async {
+    app.launch()
+
+    app.waitForScreen(title: "Episode List")
+    app.buttons[RootFeature.A11yIDs.enterSettingsButton].waitToAppear().tap()
     app.waitForScreen(title: "Settings")
-    app.waitForButton(RootFeature.A11yIDs.exitSettingsButton).tap()
+    app.buttons[RootFeature.A11yIDs.exitSettingsButton].waitToAppear().tap()
     app.waitForScreen(title: "Episode List")
   }
 }
@@ -23,6 +49,23 @@ final class RickAndMortyAppUITests: XCTestCase {
 extension XCUIElementQuery {
   subscript<A: A11yIDProvider>(_ provider: A) -> XCUIElement {
     self[provider.a11yID]
+  }
+}
+
+extension XCUIElement {
+  @discardableResult
+  func waitToAppear(
+    timeout: TimeInterval = 3,
+    file: StaticString = #filePath,
+    line: UInt = #line
+  ) -> XCUIElement {
+    XCTAssertTrue(
+      waitForExistence(timeout: timeout),
+      "Expected element `\(self)` did not appear in time",
+      file: file,
+      line: line,
+    )
+    return self
   }
 }
 
@@ -37,29 +80,6 @@ extension XCUIElementTypeQueryProvider {
     file: StaticString = #filePath,
     line: UInt = #line
   ) {
-    XCTAssertTrue(
-      navigationBars[title].waitForExistence(timeout: timeout),
-      "Awaiting for '\(title)' title to appear",
-      file: file,
-      line: line,
-    )
-  }
-
-  @discardableResult
-  func waitForButton<A: A11yIDProvider>(
-    _ idProvider: A,
-    timeout: TimeInterval = 3,
-    file: StaticString = #filePath,
-    line: UInt = #line
-  ) -> XCUIElement {
-    let idString = idProvider.a11yID
-    let button = buttons[idString]
-    XCTAssertTrue(
-      button.waitForExistence(timeout: timeout),
-      "Awaiting for `\(idString)` title to appear",
-      file: file,
-      line: line,
-    )
-    return button
+    navigationBars[title].waitToAppear(timeout: timeout)
   }
 }

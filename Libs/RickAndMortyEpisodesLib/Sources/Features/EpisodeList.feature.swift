@@ -12,6 +12,17 @@ enum EpisodeListFeature {
   typealias FeatureStore = EpisodesRootFeature.FeatureStore
   typealias Item = EpisodesRootFeature.Item
 
+  enum A11yIDs: A11yIDProvider {
+    case cachedSince
+    case episodeRow(id: String)
+    var a11yID: String {
+      switch self {
+      case .cachedSince: "cached-since"
+      case .episodeRow(let id): "episode-row-\(id)"
+      }
+    }
+  }
+
   struct FeatureView: View {
     @Bindable
     var store: FeatureStore
@@ -46,6 +57,8 @@ enum EpisodeListFeature {
                   "cached on \(dateString)"
                 )
                 .font(.caption2)
+                .a11yID(A11yIDs.cachedSince)
+                .accessibilityHidden(false)
               }
             }
           }
@@ -53,6 +66,7 @@ enum EpisodeListFeature {
       }
       .listStyle(.plain)
       .accessibilityElement(children: .contain)
+      .accessibilityLabel("Episodes list")
       .onAppear {
         if canSendActions {
           store.send(.preloadIfNeeded)
@@ -90,15 +104,16 @@ enum EpisodeListFeature {
     private func episodeListItems() -> some View {
       ForEach(store.pagination.items) { episode in
         Button(
-          action: {
-            store.send(.presetEpisode(episode))
-          },
-          label: {
-            episodeRow(episode: episode, isPlaceholder: false)
-          }
+          action: { store.send(.presetEpisode(episode)) },
+          label: { episodeRow(episode: episode, isPlaceholder: false) }
         )
         .listRowSeparator(.hidden)
         .tag(episode.id)
+        .a11yID(A11yIDs.episodeRow(id: "\(episode.id)"))
+        .accessibilityElement(children: .ignore)
+        .accessibilityAction { store.send(.presetEpisode(episode)) }
+        .accessibilityLabel("Episode \"\(episode.name)\" \(episode.episode)")
+        .accessibilityAddTraits(.isButton)
       }
     }
 
@@ -110,6 +125,7 @@ enum EpisodeListFeature {
         episodeRow(episode: element.element, isPlaceholder: true)
           .listRowSeparator(.hidden)
           .tag(element.offset)
+          .accessibilityHidden(true)
       }
     }
 
