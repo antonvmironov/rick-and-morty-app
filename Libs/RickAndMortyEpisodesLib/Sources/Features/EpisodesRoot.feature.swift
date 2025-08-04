@@ -16,9 +16,7 @@ enum EpisodesRootFeature {
   ) -> FeatureStore {
     let initialState = FeatureState(
       pagination: .initial(
-        firstInput: MockNetworkGateway.exampleAPIURL.appendingPathComponent(
-          "episode"
-        )
+        firstInput: MockNetworkGateway.episodeFirstPageAPIURL
       )
     )
     return FeatureStore(
@@ -148,6 +146,19 @@ enum EpisodesRootFeature {
 
     static func initial(firstPageURL: URL?) -> Self {
       FeatureState(pagination: .initial(firstInput: firstPageURL))
+    }
+
+    static func initialFromCache(
+      firstPageURL: URL,
+      pages: [PaginationFeature.Page],
+    ) -> Self {
+      FeatureState(
+        pagination: .initialFromCache(
+          firstInput: firstPageURL,
+          pages: pages,
+          nextInput: pages.last?.payload.info.next,
+        )
+      )
     }
   }
 

@@ -25,11 +25,28 @@ public enum RootFeature {
     dependencies: Dependencies
   ) -> FeatureStore {
     let cachedEndpoints = try? dependencies.networkGateway
-      .getCachedEndpoints(apiURL: apiURL)
+      .getCachedEndpoints(apiURL: apiURL)?.output
+    let endpointsLoading = EndpointsLoadingFeature.FeatureState
+      .initial(cachedSuccess: cachedEndpoints)
+    let episodeList: EpisodesRootFeature.FeatureState = {
+      guard let firstPageURL = cachedEndpoints?.episodes else {
+        return EpisodesRootFeature.FeatureState
+          .initial(firstPageURL: cachedEndpoints?.episodes)
+      }
+      let cachedFirstPage = try? dependencies.networkGateway
+        .getPageOfCachedEpisodes(pageURL: firstPageURL)
+      guard let cachedFirstPage else {
+        return EpisodesRootFeature.FeatureState
+          .initial(firstPageURL: cachedEndpoints?.episodes)
+      }
+
+      return EpisodesRootFeature.FeatureState
+        .initialFromCache(firstPageURL: firstPageURL, pages: [cachedFirstPage])
+    }()
+
     let initialState = FeatureState(
-      endpointsLoading: EndpointsLoadingFeature.FeatureState
-        .initial(cachedSuccess: cachedEndpoints?.output),
-      episodeList: EpisodesRootFeature.FeatureState.initial(firstPageURL: nil)
+      endpointsLoading: endpointsLoading,
+      episodeList: episodeList,
     )
     return FeatureStore(
       initialState: initialState,

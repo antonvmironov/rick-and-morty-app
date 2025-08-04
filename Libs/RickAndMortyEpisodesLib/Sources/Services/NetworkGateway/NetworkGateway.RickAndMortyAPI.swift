@@ -142,4 +142,23 @@ extension NetworkGateway {
       pageURL: pageURL,
     )
   }
+
+  func getPageOfCachedEpisodes(
+    pageURL: URL,
+    cachePolicy: URLRequest.CachePolicy = .useProtocolCachePolicy
+  ) throws(NetworkError) -> ResponsePageContainer<EpisodeDomainModel>? {
+    let request = URLRequest(url: pageURL, cachePolicy: cachePolicy)
+    guard
+      let output = try getCached(
+        request: request,
+        cacheCategory: .episodes,
+        output: ResponsePagePayload<EpisodeDomainModel>.self,
+      )
+    else { return nil }
+    return ResponsePageContainer(
+      payload: output.output,
+      cachedSince: output.cachedSince,
+      pageURL: pageURL,
+    )
+  }
 }
