@@ -38,7 +38,7 @@ extension XCUIElementTypeQueryProvider {
     line: UInt = #line
   ) {
     XCTAssertTrue(
-      navigationBars[title].waitForExistence(timeout: 3),
+      navigationBars[title].waitForExistence(timeout: timeout),
       "Awaiting for '\(title)' title to appear",
       file: file,
       line: line,
@@ -55,7 +55,7 @@ extension XCUIElementTypeQueryProvider {
     let idString = idProvider.a11yID
     let button = buttons[idString]
     XCTAssertTrue(
-      button.waitForExistence(timeout: 3),
+      button.waitForExistence(timeout: timeout),
       "Awaiting for `\(idString)` title to appear",
       file: file,
       line: line,

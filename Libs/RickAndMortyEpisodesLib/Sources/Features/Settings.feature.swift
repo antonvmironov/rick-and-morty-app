@@ -111,12 +111,12 @@ enum SettingsFeature: Feature {
         LabeledContent(
           "disk used",
           value: report.currentDiskUsage,
-          format: .byteCount(style: .memory)
+          format: .byteCount(style: .file)
         )
         LabeledContent(
           "disk max",
           value: report.diskCapacity,
-          format: .byteCount(style: .memory)
+          format: .byteCount(style: .file)
         )
       }
     }

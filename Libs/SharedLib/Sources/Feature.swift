@@ -16,10 +16,6 @@ public protocol A11yIDProvider {
   var a11yID: String { get }
 }
 
-extension A11yIDProvider where Self: RawRepresentable, Self.RawValue == String {
-  var a11yID: String { rawValue }
-}
-
 extension View {
   public func a11yID<A: A11yIDProvider>(
     _ provider: A,
