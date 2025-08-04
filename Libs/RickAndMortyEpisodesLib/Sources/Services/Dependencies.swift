@@ -71,3 +71,14 @@ extension DependencyValues {
     set { self[URLCacheFactory.self] = newValue }
   }
 }
+
+enum IsPreloadingEnabledKey: EnvironmentKey {
+  static var defaultValue: Bool { false }
+}
+
+extension EnvironmentValues {
+  var isPreloadingEnabled: Bool {
+    get { self[IsPreloadingEnabledKey.self] }
+    set { self[IsPreloadingEnabledKey.self] = newValue }
+  }
+}

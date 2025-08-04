@@ -2,13 +2,13 @@ import ComposableArchitecture
 import Foundation
 import SwiftUI
 
-/// Namespace for the EpisodeList feature. Serves as an anchor for project navigation.
+/// Namespace for the RootFeature feature. Serves as an anchor for project navigation.
 public enum RootFeature {
   typealias FeatureStore = StoreOf<FeatureReducer>
   typealias EndpointsLoadingFeature = ProcessHostFeature<
     URL, EndpointsDomainModel
   >
-  //typealias EpisodeListFeature = EpisodeListFeature
+  //typealias EpisodesRootFeature = EpisodesRootFeature
 
   @MainActor
   public static func rootView(
@@ -27,7 +27,7 @@ public enum RootFeature {
   ) -> FeatureStore {
     let initialState = FeatureState(
       endpointsLoading: EndpointsLoadingFeature.FeatureState.initial(),
-      episodeList: EpisodeListFeature.FeatureState.initial(firstPageURL: nil)
+      episodeList: EpisodesRootFeature.FeatureState.initial(firstPageURL: nil)
     )
     return FeatureStore(
       initialState: initialState,
@@ -50,7 +50,7 @@ public enum RootFeature {
     }
 
     public var body: some View {
-      EpisodeListFeature.FeatureView(
+      EpisodesRootFeature.FeatureView(
         store: store.scope(state: \.episodeList, action: \.episodeList)
       )
       .onAppear {
@@ -79,7 +79,7 @@ public enum RootFeature {
         }
       }
       Scope(state: \.episodeList, action: \.episodeList) {
-        EpisodeListFeature.FeatureReducer()
+        EpisodesRootFeature.FeatureReducer()
       }
     }
 
@@ -101,13 +101,13 @@ public enum RootFeature {
   @ObservableState
   struct FeatureState: Equatable {
     var endpointsLoading: EndpointsLoadingFeature.FeatureState
-    var episodeList: EpisodeListFeature.FeatureState
+    var episodeList: EpisodesRootFeature.FeatureState
   }
 
   @CasePathable
   enum FeatureAction {
     case endpointsLoading(EndpointsLoadingFeature.FeatureAction)
-    case episodeList(EpisodeListFeature.FeatureAction)
+    case episodeList(EpisodesRootFeature.FeatureAction)
   }
 }
 

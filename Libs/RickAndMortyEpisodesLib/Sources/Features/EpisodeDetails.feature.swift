@@ -7,7 +7,6 @@ import SwiftUI
 enum EpisodeDetailsFeature {
   typealias FeatureStore = StoreOf<FeatureReducer>
   typealias TestStore = TestStoreOf<FeatureReducer>
-  typealias CharacterFeature = CharacterBriefFeature
   typealias CharacterState = CharacterBriefFeature.FeatureState
   typealias CharacterStatesArray = IdentifiedArrayOf<CharacterState>
 
@@ -28,6 +27,13 @@ enum EpisodeDetailsFeature {
     @Bindable
     var store: FeatureStore
 
+    @Environment(\.isPreloadingEnabled)
+    var isPreloadingEnabled: Bool
+
+    var canPreload: Bool {
+      isPreloadingEnabled && store.canPreload
+    }
+
     init(store: FeatureStore) {
       self.store = store
     }
@@ -47,7 +53,9 @@ enum EpisodeDetailsFeature {
       .listStyle(.plain)
       .navigationTitle(store.episode.name)
       .onAppear {
-        store.send(.preload)
+        if canPreload {
+          store.send(.preloadIfNeeded)
+        }
       }
       .navigationDestination(
         item: $store.scope(
@@ -57,10 +65,11 @@ enum EpisodeDetailsFeature {
       ) { scope in
         CharacterDetailsFeature.FeatureView(store: scope)
       }
+      .environment(\.isPreloadingEnabled, canPreload)
     }
 
     private func row(
-      characterStore: CharacterFeature.FeatureStore
+      characterStore: CharacterBriefFeature.FeatureStore
     ) -> some View {
       Button(
         action: {
@@ -68,7 +77,7 @@ enum EpisodeDetailsFeature {
         },
         label: {
           HStack {
-            CharacterFeature.FeatureView(store: characterStore)
+            CharacterBriefFeature.FeatureView(store: characterStore)
             Image(systemName: "chevron.right")
           }
         }
@@ -111,7 +120,8 @@ enum EpisodeDetailsFeature {
     var coordinatingReducer: some ReducerOf<Self> {
       Reduce { state, action in
         switch action {
-        case .preload:
+        case .preloadIfNeeded:
+          guard state.canPreload else { return .none }
           let characterIDsToPreload = state.characters.prefix(20).map(\.id)
           return .run { @MainActor send in
             for id in characterIDsToPreload {
@@ -140,7 +150,7 @@ enum EpisodeDetailsFeature {
     var charactersReducer: some ReducerOf<Self> {
       EmptyReducer()
         .forEach(\.characters, action: \.characters) {
-          CharacterFeature.FeatureReducer()
+          CharacterBriefFeature.FeatureReducer()
         }
     }
 
@@ -157,11 +167,14 @@ enum EpisodeDetailsFeature {
   @ObservableState
   struct FeatureState: Equatable {
     var episode: EpisodeDomainModel
-    var characters: IdentifiedArrayOf<CharacterState>
+    var characters: CharacterStatesArray
     @Presents
     var selectedCharacterID:
       Identified<CharacterState.ID, CharacterDetailsFeature.FeatureState>?
-
+    var isTornDown = false
+    var canPreload: Bool {
+      !UIConstants.inPreview && !isTornDown
+    }
     static func initial(episode: EpisodeDomainModel) -> Self {
       .init(
         episode: episode,
@@ -177,8 +190,8 @@ enum EpisodeDetailsFeature {
     case selectedCharacter(
       PresentationAction<CharacterDetailsFeature.FeatureAction>
     )
-    case characters(IdentifiedActionOf<CharacterFeature.FeatureReducer>)
-    case preload
+    case characters(IdentifiedActionOf<CharacterBriefFeature.FeatureReducer>)
+    case preloadIfNeeded
     case selectCharacter(CharacterState.ID?)
     case binding(BindingAction<FeatureState>)
   }

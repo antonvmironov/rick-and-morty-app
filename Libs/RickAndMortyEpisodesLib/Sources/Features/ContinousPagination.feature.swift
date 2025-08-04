@@ -73,6 +73,9 @@ enum ContinuousPaginationFeature<
       Reduce { state, action in
         switch (state.pageLoading.status, action) {
         case (_, .setFirstInput(let input)):
+          guard input != state.firstInput else {
+            return .none
+          }
           state.firstInput = input
           state.reset()
           return .send(.loadNextPage())

@@ -73,6 +73,13 @@ enum CharacterDetailsFeature {
     @Bindable
     var store: FeatureStore
 
+    @Environment(\.isPreloadingEnabled)
+    var isPreloadingEnabled: Bool
+
+    var canPreload: Bool {
+      isPreloadingEnabled && store.canPreload
+    }
+
     init(store: FeatureStore) {
       self.store = store
     }
@@ -90,12 +97,19 @@ enum CharacterDetailsFeature {
           )
           if let exported = store.exported {
             VStack(alignment: .center) {
-              shareLink(exported: exported)
+              shareLink(
+                exported: exported,
+                character: store.character.displayCharacter
+              )
             }
             .frame(maxWidth: .infinity)
           }
         } header: {
-          sectionHeader()
+          VStack(alignment: .center) {
+            Text("character profile")
+              .font(.title3)
+          }
+          .frame(maxWidth: .infinity)
         }
         .listRowSeparator(.hidden)
         .listRowSpacing(UIConstants.space * 2)
@@ -103,20 +117,23 @@ enum CharacterDetailsFeature {
       .listStyle(.plain)
       .navigationTitle(store.character.displayCharacter.name)
       .onAppear {
-        if !UIConstants.inPreview {
+        if canPreload {
           store.send(.preloadIfNeeded)
         }
       }
+      .environment(\.isPreloadingEnabled, canPreload)
     }
 
-    private func shareLink(exported: Exported) -> some View {
+    private func shareLink(exported: Exported, character: CharacterDomainModel)
+      -> some View
+    {
       ShareLink(
         item: CharacterExportFeature.transferrable(
-          character: store.character.displayCharacter,
+          character: character,
           imageManager: .shared
         ),
         preview: SharePreview(
-          "\(store.character.displayCharacter.name) - Rick and Morty character",
+          "\(character.name) - Rick and Morty character",
           image: Image(systemName: "person.fill")
         ),
       ) {
@@ -130,52 +147,6 @@ enum CharacterDetailsFeature {
         )
       }
       .buttonStyle(.bordered)
-    }
-
-    private func sectionHeader() -> some View {
-      VStack(alignment: .center) {
-        Text("character profile")
-          .font(.title3)
-      }
-      .frame(maxWidth: .infinity)
-    }
-
-    private func reloadView() -> some View {
-      return Button(
-        action: {
-          store.send(.character(.reloadOnFailure))
-        },
-        label: {
-          Label(
-            title: {
-              Text("Retry")
-            },
-            icon: {
-              Image(
-                systemName:
-                  "exclamationmark.arrow.trianglehead.2.clockwise.rotate.90"
-              )
-            }
-          )
-          .labelStyle(.titleAndIcon)
-        }
-      )
-      .buttonStyle(.bordered)
-    }
-
-    private var loadableContentModifier: some ViewModifier {
-      SkeletonDecorationFeature.FeatureViewModifier(
-        isEnabled: store.character.isPlaceholder,
-        isShimmering: store.character.isShimmering,
-      )
-    }
-
-    private func characterImagePlaceholder() -> some View {
-      RoundedRectangle(cornerRadius: UIConstants.cornerRadius)
-        .fill(
-          UIConstants.inPreview ? .gray : Color("SecondaryBackground")
-        )
-        .modifier(loadableContentModifier)
     }
   }
 
@@ -218,6 +189,7 @@ enum CharacterDetailsFeature {
   struct FeatureState: Equatable {
     var character: BaseCharacterFeature.FeatureState
     var exported: Exported?
+    var canPreload: Bool { true }
   }
 
   @CasePathable
