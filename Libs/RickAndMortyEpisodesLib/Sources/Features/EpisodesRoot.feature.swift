@@ -4,11 +4,14 @@ import SharedLib
 import SwiftUI
 
 /// Namespace for the EpisodesRoot feature. Serves as an anchor for project navigation.
-enum EpisodesRootFeature {
+enum EpisodesRootFeature: Feature {
   typealias Item = EpisodeDomainModel
   typealias PaginationFeature = ContinuousPaginationFeature<URL, Item>
   typealias ListItemFeature = EpisodeBriefFeature
-  typealias FeatureStore = StoreOf<FeatureReducer>
+
+  enum AX {
+
+  }
 
   @MainActor
   static func previewStore(
@@ -38,12 +41,17 @@ enum EpisodesRootFeature {
       EpisodeListFeature.FeatureView(store: store)
         .navigationTitle("Episode List")
         .navigationDestination(
-          item: $store.scope(
-            state: \.selectedEpisodeDetails?.value,
+          isPresented: $store.isPresentingEpisodeDetails
+        ) {
+          if let nestedStore = store.scope(
+            state: \.selectedEpisodeDetails,
             action: \.selectedEpisodeDetails
-          )
-        ) { store in
-          EpisodeDetailsFeature.FeatureView(store: store)
+          ) {
+            EpisodeDetailsFeature.FeatureView(store: nestedStore)
+              .storeActions(isEnabled: store.isPresentingEpisodeDetails)
+          } else {
+            Text("Try again later")
+          }
         }
     }
   }
@@ -82,20 +90,10 @@ enum EpisodesRootFeature {
     }
 
     private var episodeDetailsReducer: some ReducerOf<Self> {
-      Reduce { state, action in
-        switch action {
-        case .selectedEpisodeDetails(.dismiss):
-          state.selectedEpisodeDetails?.isTornDown = true
-          return .none
-        default:
-          return .none
-        }
-      }
-      .ifLet(\.$selectedEpisodeDetails, action: \.selectedEpisodeDetails) {
-        Scope(state: \.value, action: \.self) {
+      EmptyReducer()
+        .ifLet(\.selectedEpisodeDetails, action: \.selectedEpisodeDetails) {
           EpisodeDetailsFeature.FeatureReducer()
         }
-      }
     }
 
     private var userInputReducer: some ReducerOf<Self> {
@@ -109,9 +107,10 @@ enum EpisodesRootFeature {
           return .run { send in
             await presentEpisode(episode: episode, send: send)
           }
-        case .didLoadEpisodeState(let selectedEpisodeDetails):
+        case .didPrepareEpisodeForPresentation(let selectedEpisodeDetails):
           state.selectedEpisodeDetails = selectedEpisodeDetails
-          return .send(.selectedEpisodeDetails(.presented(.preloadIfNeeded)))
+          state.route = .episodeDetails
+          return .send(.selectedEpisodeDetails(.preloadIfNeeded))
         default:
           return .none
         }
@@ -128,8 +127,8 @@ enum EpisodesRootFeature {
           try? networkGateway.getCachedCharacter(url: $0)?.output
         }
       )
-      let selectedEpisodeDetails = Identified(state, id: \.episode.id)
-      await send(.didLoadEpisodeState(selectedEpisodeDetails))
+      await UISelectionFeedbackGenerator().selectionChanged()
+      await send(.didPrepareEpisodeForPresentation(state))
     }
 
     private var paginationReducer: some ReducerOf<Self> {
@@ -152,15 +151,28 @@ enum EpisodesRootFeature {
   @ObservableState
   struct FeatureState: Equatable {
     var pagination: PaginationFeature.FeatureState
-    @Presents
-    var selectedEpisodeDetails:
-      Identified<EpisodeID, EpisodeDetailsFeature.FeatureState>?
+    var selectedEpisodeDetails: EpisodeDetailsFeature.FeatureState?
+    var route: FeatureRoute = .root
+    var isPresentingEpisodeDetails: Bool {
+      get {
+        if case .episodeDetails = route, selectedEpisodeDetails != nil {
+          true
+        } else {
+          false
+        }
+      }
+      set {
+        route = newValue ? .episodeDetails : .root
+      }
+    }
 
     var cachedSince: Date? { pagination.cachedSince }
     var failureMessage: String? { pagination.pageLoading.status.failureMessage }
 
     static func initial(firstPageURL: URL?) -> Self {
-      FeatureState(pagination: .initial(firstInput: firstPageURL))
+      FeatureState(
+        pagination: .initial(firstInput: firstPageURL),
+      )
     }
 
     static func initialFromCache(
@@ -172,25 +184,27 @@ enum EpisodesRootFeature {
           firstInput: firstPageURL,
           pages: pages,
           nextInput: pages.last?.payload.info.next,
-        )
+        ),
       )
     }
   }
 
   @CasePathable
+  enum FeatureRoute: Sendable, Hashable {
+    case root
+    case episodeDetails
+  }
+
+  @CasePathable
   enum FeatureAction: BindableAction {
     case presetEpisode(EpisodeDomainModel)
-    case didLoadEpisodeState(
-      Identified<EpisodeID, EpisodeDetailsFeature.FeatureState>
-    )
+    case didPrepareEpisodeForPresentation(EpisodeDetailsFeature.FeatureState)
     case loadNextPage
     case preloadIfNeeded
     case reload(continuation: PaginationFeature.PageLoadingContinuation?)
 
     case pagination(PaginationFeature.FeatureAction)
-    case selectedEpisodeDetails(
-      PresentationAction<EpisodeDetailsFeature.FeatureAction>
-    )
+    case selectedEpisodeDetails(EpisodeDetailsFeature.FeatureAction)
     case binding(BindingAction<FeatureState>)
   }
 }

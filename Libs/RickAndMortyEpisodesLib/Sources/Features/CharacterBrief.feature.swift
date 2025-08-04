@@ -18,15 +18,13 @@ enum CharacterBriefFeature {
   typealias FeatureAction = BaseCharacterFeature.FeatureAction
 
   struct FeatureView: View {
+    private static let characterIDMinWidth = UIConstants.space * 6
+
     @Bindable
     var store: FeatureStore
 
-    @Environment(\.isPreloadingEnabled)
-    var isPreloadingEnabled: Bool
-
-    var canPreload: Bool {
-      isPreloadingEnabled && store.canPreload
-    }
+    @Environment(\.canSendActions)
+    var canSendActions: Bool
 
     init(store: FeatureStore) {
       self.store = store
@@ -35,14 +33,11 @@ enum CharacterBriefFeature {
     var body: some View {
       characterContentView(character: store.displayCharacter)
         .onAppear {
-          if canPreload {
+          if canSendActions {
             store.send(.preloadIfNeeded)
           }
         }
-        .environment(\.isPreloadingEnabled, canPreload)
     }
-
-    private let characterIDMinWidth = UIConstants.space * 6
 
     private func reloadView() -> some View {
       return Button(
@@ -85,7 +80,7 @@ enum CharacterBriefFeature {
               .fontDesign(.monospaced)
               .padding(UIConstants.space / 2)
               .frame(
-                minWidth: characterIDMinWidth,
+                minWidth: Self.characterIDMinWidth,
                 alignment: .center
               )
               .cornerRadius(UIConstants.cornerRadius)

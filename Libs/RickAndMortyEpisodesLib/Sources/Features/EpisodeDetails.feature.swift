@@ -4,9 +4,7 @@ import SharedLib
 import SwiftUI
 
 /// Namespace for the EpisodeDetails feature. Serves as an anchor for project navigation.
-enum EpisodeDetailsFeature {
-  typealias FeatureStore = StoreOf<FeatureReducer>
-  typealias TestStore = TestStoreOf<FeatureReducer>
+enum EpisodeDetailsFeature: Feature {
   typealias CharacterState = CharacterBriefFeature.FeatureState
   typealias CharacterStatesArray = IdentifiedArrayOf<CharacterState>
 
@@ -28,12 +26,8 @@ enum EpisodeDetailsFeature {
     @Bindable
     var store: FeatureStore
 
-    @Environment(\.isPreloadingEnabled)
-    var isPreloadingEnabled: Bool
-
-    var canPreload: Bool {
-      isPreloadingEnabled && store.canPreload
-    }
+    @Environment(\.canSendActions)
+    var canSendActions: Bool
 
     init(store: FeatureStore) {
       self.store = store
@@ -54,19 +48,22 @@ enum EpisodeDetailsFeature {
       .listStyle(.plain)
       .navigationTitle(store.episode.name)
       .onAppear {
-        if canPreload {
+        if canSendActions {
           store.send(.preloadIfNeeded)
         }
       }
       .navigationDestination(
-        item: $store.scope(
-          state: \.selectedCharacterID?.value,
+        isPresented: $store.isCharacterDetailsPresented
+      ) {
+        if let store = store.scope(
+          state: \.selectedCharacter,
           action: \.selectedCharacter
-        )
-      ) { scope in
-        CharacterDetailsFeature.FeatureView(store: scope)
+        ) {
+          CharacterDetailsFeature.FeatureView(store: store)
+        } else {
+          Text("Unable to load character details. Please try again later.")
+        }
       }
-      .environment(\.isPreloadingEnabled, canPreload)
     }
 
     private func row(
@@ -74,7 +71,7 @@ enum EpisodeDetailsFeature {
     ) -> some View {
       Button(
         action: {
-          store.send(.selectCharacter(characterStore.characterURL))
+          store.send(.presentCharacter(characterStore.characterURL))
         },
         label: {
           HStack {
@@ -122,26 +119,30 @@ enum EpisodeDetailsFeature {
       Reduce { state, action in
         switch action {
         case .preloadIfNeeded:
-          guard state.canPreload else { return .none }
-          let characterIDsToPreload = state.characters.prefix(20).map(\.id)
-          return .run { @MainActor send in
-            for id in characterIDsToPreload {
-              send(.characters(.element(id: id, action: .preloadIfNeeded)))
-            }
-          }
-        case .selectCharacter(let characterID):
-          state.selectedCharacterID =
-            characterID
-            .flatMap(state.characters.index(id:))
+          let characterIDsToPreload = state.characters.prefix(20)
             .map {
-              Identified(
-                CharacterDetailsFeature.FeatureState(
-                  character: state.characters[$0]
-                ),
-                id: \.character.id
+              Effect.send(
+                Action.characters(.element(id: $0.id, action: .preloadIfNeeded))
               )
             }
-          return .none
+          return .merge(characterIDsToPreload)
+        case .presentCharacter(let characterID):
+          guard let characterID,
+            let characterIndex = state.characters.index(id: characterID)
+          else {
+            state.route = .root
+            return .none
+          }
+          state.route = .characterDetails
+          guard state.selectedCharacter?.character.id != characterID else {
+            return .none
+          }
+          state.selectedCharacter = CharacterDetailsFeature.FeatureState(
+            character: state.characters[characterIndex]
+          )
+          return .run { _ in
+            await UISelectionFeedbackGenerator().selectionChanged()
+          }
         default:
           return .none
         }
@@ -157,10 +158,8 @@ enum EpisodeDetailsFeature {
 
     var selectedCharacterReducer: some ReducerOf<Self> {
       EmptyReducer()
-        .ifLet(\.$selectedCharacterID, action: \.selectedCharacter) {
-          Scope(state: \.value, action: \.self) {
-            CharacterDetailsFeature.FeatureReducer()
-          }
+        .ifLet(\.selectedCharacter, action: \.selectedCharacter) {
+          CharacterDetailsFeature.FeatureReducer()
         }
     }
   }
@@ -169,42 +168,54 @@ enum EpisodeDetailsFeature {
   struct FeatureState: Equatable {
     var episode: EpisodeDomainModel
     var characters: CharacterStatesArray
-    @Presents
-    var selectedCharacterID:
-      Identified<CharacterState.ID, CharacterDetailsFeature.FeatureState>?
-    var isTornDown = false
-    var canPreload: Bool {
-      !UIConstants.inPreview && !isTornDown
+    var route: FeatureRoute
+    var selectedCharacter: CharacterDetailsFeature.FeatureState?
+
+    var isCharacterDetailsPresented: Bool {
+      get { .characterDetails == route }
+      set { route = newValue ? .characterDetails : .root }
     }
 
     static func initial(
       episode: EpisodeDomainModel,
       getCachedCharacter: (URL) -> CharacterDomainModel?
     ) -> Self {
+      let characters = CharacterStatesArray(
+        uniqueElements: episode.characters.map { url in
+          let cachedCharacter = getCachedCharacter(url)
+          let state = CharacterState.initial(
+            characterURL: url,
+            cachedCharacter: cachedCharacter
+          )
+          return state
+        }
+      )
+      return initial(episode: episode, characters: characters)
+    }
+
+    static func initial(
+      episode: EpisodeDomainModel,
+      characters: CharacterStatesArray,
+    ) -> Self {
       .init(
         episode: episode,
-        characters: CharacterStatesArray(
-          uniqueElements: episode.characters.map { url in
-            let cachedCharacter = getCachedCharacter(url)
-            let state = CharacterState.initial(
-              characterURL: url,
-              cachedCharacter: cachedCharacter
-            )
-            return state
-          }
-        ),
+        characters: characters,
+        route: .root,
       )
     }
   }
 
+  enum FeatureRoute: Sendable, Hashable {
+    case root
+    case characterDetails
+  }
+
   @CasePathable
   enum FeatureAction: Equatable, BindableAction {
-    case selectedCharacter(
-      PresentationAction<CharacterDetailsFeature.FeatureAction>
-    )
+    case selectedCharacter(CharacterDetailsFeature.FeatureAction)
     case characters(IdentifiedActionOf<CharacterBriefFeature.FeatureReducer>)
     case preloadIfNeeded
-    case selectCharacter(CharacterState.ID?)
+    case presentCharacter(CharacterState.ID?)
     case binding(BindingAction<FeatureState>)
   }
 }
