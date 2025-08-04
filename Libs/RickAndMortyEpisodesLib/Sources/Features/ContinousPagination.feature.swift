@@ -145,7 +145,9 @@ enum ContinuousPaginationFeature<
     var items = IdentifiedArray<Item.ID, Item>()
     var pages = [Page]()
     var nextInput: Input?
-    var pageLoading: PageLoadingFeature.FeatureState = .initial()
+    var pageLoading: PageLoadingFeature.FeatureState = .initial(
+      cachedSuccess: nil
+    )
     var finishedLoadingPageContinuations = [PageLoadingContinuation]()
     var cachedSince: Date? { pages.first?.cachedSince }
 

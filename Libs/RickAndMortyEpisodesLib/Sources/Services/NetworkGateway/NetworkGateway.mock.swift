@@ -42,13 +42,36 @@ struct MockNetworkGateway: NetworkGateway {
     )
   }
 
-  @Sendable
   func get<Output: Decodable & Sendable>(
     request: URLRequest,
     cacheCategory: URLCacheCategory,
     output: Output.Type,
   ) async throws(NetworkError) -> (output: Output, cachedSince: Date?) {
-    // receive response
+    try getFromFixture(
+      request: request,
+      cacheCategory: cacheCategory,
+      output: output
+    )
+  }
+
+  func getCached<Output: Decodable & Sendable>(
+    request: URLRequest,
+    cacheCategory: URLCacheCategory,
+    output: Output.Type,
+  ) throws(NetworkError) -> (output: Output, cachedSince: Date?)? {
+    try getFromFixture(
+      request: request,
+      cacheCategory: cacheCategory,
+      output: output
+    )
+  }
+
+  private func getFromFixture<Output: Decodable & Sendable>(
+    request: URLRequest,
+    cacheCategory: URLCacheCategory,
+    output: Output.Type,
+  ) throws(NetworkError) -> (output: Output, cachedSince: Date?) {
+    // enumerate handlers until one matches the response
     let data: Data
     let response: URLResponse
     do {

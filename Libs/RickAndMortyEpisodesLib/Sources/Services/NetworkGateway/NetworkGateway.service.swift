@@ -3,6 +3,12 @@ import Foundation
 
 /// Network gateway is an entry point into network.
 protocol NetworkGateway: Sendable {
+  func getCached<Output: Decodable & Sendable>(
+    request: URLRequest,
+    cacheCategory: URLCacheCategory,
+    output: Output.Type,
+  ) throws(NetworkError) -> (output: Output, cachedSince: Date?)?
+
   func get<Output: Decodable & Sendable>(
     request: URLRequest,
     cacheCategory: URLCacheCategory,

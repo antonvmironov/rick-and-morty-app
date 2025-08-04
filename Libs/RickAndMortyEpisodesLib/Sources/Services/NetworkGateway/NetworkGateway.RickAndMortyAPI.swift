@@ -17,6 +17,21 @@ extension NetworkGateway {
     return output
   }
 
+  func getCachedEndpoints(
+    apiURL: URL,
+    cachePolicy: URLRequest.CachePolicy = .useProtocolCachePolicy
+  ) throws(NetworkError) -> (
+    output: EndpointsDomainModel, cachedSince: Date?
+  )? {
+    let request = URLRequest(url: apiURL, cachePolicy: cachePolicy)
+    let output = try getCached(
+      request: request,
+      cacheCategory: .shared,
+      output: EndpointsDomainModel.self,
+    )
+    return output
+  }
+
   func getCharacter(
     endpoints: EndpointsDomainModel,
     id: CharacterID,
