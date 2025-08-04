@@ -2,7 +2,7 @@ import ComposableArchitecture
 import Foundation
 import SharedLib
 
-/// Production implementaiton of ``NetworkGateway``.
+/// Production implementation of ``NetworkGateway``.
 final class ProdNetworkGateway: NetworkGateway {
   private let urlCacheFactory: URLCacheFactory
   private let urlSession: URLSession
