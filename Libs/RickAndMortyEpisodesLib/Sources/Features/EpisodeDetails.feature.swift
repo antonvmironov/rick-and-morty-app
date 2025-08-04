@@ -123,10 +123,11 @@ enum EpisodeDetailsFeature {
         case .preloadIfNeeded:
           guard state.canPreload else { return .none }
           let characterIDsToPreload = state.characters.prefix(20).map(\.id)
-          let effects: [Effect<Action>] = characterIDsToPreload.map {
-            .send(.characters(.element(id: $0, action: .preloadIfNeeded)))
+          return .run { @MainActor send in
+            for id in characterIDsToPreload {
+              send(.characters(.element(id: id, action: .preloadIfNeeded)))
+            }
           }
-          return .merge(effects)
         case .selectCharacter(let characterID):
           state.selectedCharacterID =
             characterID
