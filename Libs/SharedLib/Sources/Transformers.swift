@@ -14,8 +14,9 @@ public enum Transformers {
     return formatter
   }
 
+  private static let lockedDateFormatter = LockIsolated(dateFormatter())
+
   public static func jsonDecoder() -> JSONDecoder {
-    let lockedDateFormatter = LockIsolated(dateFormatter())
     let decoder = JSONDecoder()
     decoder.dateDecodingStrategy = .custom { decoder in
       let stringValue = try decoder.singleValueContainer().decode(String.self)
@@ -27,6 +28,16 @@ public enum Transformers {
           .init(codingPath: [], debugDescription: "Unsupported date format")
         )
       }
+    }
+    return decoder
+  }
+
+  public static func jsonEncoder() -> JSONEncoder {
+    let decoder = JSONEncoder()
+    decoder.dateEncodingStrategy = .custom { date, encoder in
+      let stringValue = lockedDateFormatter.withValue { $0.string(from: date) }
+      var container = encoder.singleValueContainer()
+      try container.encode(stringValue)
     }
     return decoder
   }

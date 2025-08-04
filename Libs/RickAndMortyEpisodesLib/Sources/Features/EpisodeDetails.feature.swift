@@ -122,7 +122,14 @@ enum EpisodeDetailsFeature {
           state.selectedCharacterID =
             characterID
             .flatMap(state.characters.index(id:))
-            .map { Identified(state.characters[$0], id: \.id) }
+            .map {
+              Identified(
+                CharacterDetailsFeature.FeatureState(
+                  character: state.characters[$0]
+                ),
+                id: \.character.id
+              )
+            }
           return .none
         default:
           return .none
@@ -152,7 +159,8 @@ enum EpisodeDetailsFeature {
     var episode: EpisodeDomainModel
     var characters: IdentifiedArrayOf<CharacterState>
     @Presents
-    var selectedCharacterID: Identified<CharacterState.ID, CharacterState>?
+    var selectedCharacterID:
+      Identified<CharacterState.ID, CharacterDetailsFeature.FeatureState>?
 
     static func initial(episode: EpisodeDomainModel) -> Self {
       .init(
@@ -166,7 +174,9 @@ enum EpisodeDetailsFeature {
 
   @CasePathable
   enum FeatureAction: Equatable, BindableAction {
-    case selectedCharacter(PresentationAction<CharacterFeature.FeatureAction>)
+    case selectedCharacter(
+      PresentationAction<CharacterDetailsFeature.FeatureAction>
+    )
     case characters(IdentifiedActionOf<CharacterFeature.FeatureReducer>)
     case preload
     case selectCharacter(CharacterState.ID?)

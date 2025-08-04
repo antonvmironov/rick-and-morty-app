@@ -35,14 +35,3 @@ enum NetworkError: Error, CustomDebugStringConvertible {
     }
   }
 }
-
-enum NetworkGatewayKey: DependencyKey {
-  static var liveValue: NetworkGateway { fatalError("unavailable") }
-}
-
-extension DependencyValues {
-  var networkGateway: NetworkGateway {
-    get { self[NetworkGatewayKey.self] }
-    set { self[NetworkGatewayKey.self] = newValue }
-  }
-}
