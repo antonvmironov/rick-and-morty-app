@@ -62,11 +62,11 @@ enum EpisodesRootFeature {
     var urlCacheFactory
 
     var body: some ReducerOf<Self> {
-      BindingReducer()
       episodeDetailsReducer
       userInputReducer
       reloadReducer
       paginationReducer
+      BindingReducer()
     }
 
     var reloadReducer: some ReducerOf<Self> {
@@ -84,12 +84,20 @@ enum EpisodesRootFeature {
     }
 
     var episodeDetailsReducer: some ReducerOf<Self> {
-      EmptyReducer()
-        .ifLet(\.$selectedEpisodeDetails, action: \.selectedEpisodeDetails) {
-          Scope(state: \.value, action: \.self) {
-            EpisodeDetailsFeature.FeatureReducer()
-          }
+      Reduce { state, action in
+        switch action {
+        case .selectedEpisodeDetails(.dismiss):
+          state.selectedEpisodeDetails?.isTornDown = true
+          return .none
+        default:
+          return .none
         }
+      }
+      .ifLet(\.$selectedEpisodeDetails, action: \.selectedEpisodeDetails) {
+        Scope(state: \.value, action: \.self) {
+          EpisodeDetailsFeature.FeatureReducer()
+        }
+      }
     }
 
     var userInputReducer: some ReducerOf<Self> {

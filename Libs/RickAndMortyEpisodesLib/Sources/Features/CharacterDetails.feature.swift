@@ -73,6 +73,13 @@ enum CharacterDetailsFeature {
     @Bindable
     var store: FeatureStore
 
+    @Environment(\.isPreloadingEnabled)
+    var isPreloadingEnabled: Bool
+
+    var canPreload: Bool {
+      isPreloadingEnabled && store.canPreload
+    }
+
     init(store: FeatureStore) {
       self.store = store
     }
@@ -110,10 +117,11 @@ enum CharacterDetailsFeature {
       .listStyle(.plain)
       .navigationTitle(store.character.displayCharacter.name)
       .onAppear {
-        if !UIConstants.inPreview {
+        if canPreload {
           store.send(.preloadIfNeeded)
         }
       }
+      .environment(\.isPreloadingEnabled, canPreload)
     }
 
     private func shareLink(exported: Exported, character: CharacterDomainModel)
@@ -181,6 +189,7 @@ enum CharacterDetailsFeature {
   struct FeatureState: Equatable {
     var character: BaseCharacterFeature.FeatureState
     var exported: Exported?
+    var canPreload: Bool { true }
   }
 
   @CasePathable

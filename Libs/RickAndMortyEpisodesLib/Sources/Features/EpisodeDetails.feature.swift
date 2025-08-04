@@ -27,6 +27,13 @@ enum EpisodeDetailsFeature {
     @Bindable
     var store: FeatureStore
 
+    @Environment(\.isPreloadingEnabled)
+    var isPreloadingEnabled: Bool
+
+    var canPreload: Bool {
+      isPreloadingEnabled && store.canPreload
+    }
+
     init(store: FeatureStore) {
       self.store = store
     }
@@ -46,7 +53,9 @@ enum EpisodeDetailsFeature {
       .listStyle(.plain)
       .navigationTitle(store.episode.name)
       .onAppear {
-        store.send(.preloadIfNeeded)
+        if canPreload {
+          store.send(.preloadIfNeeded)
+        }
       }
       .navigationDestination(
         item: $store.scope(
@@ -56,6 +65,7 @@ enum EpisodeDetailsFeature {
       ) { scope in
         CharacterDetailsFeature.FeatureView(store: scope)
       }
+      .environment(\.isPreloadingEnabled, canPreload)
     }
 
     private func row(
@@ -111,8 +121,7 @@ enum EpisodeDetailsFeature {
       Reduce { state, action in
         switch action {
         case .preloadIfNeeded:
-          guard state.needsPreload else { return .none }
-          state.needsPreload = false
+          guard state.canPreload else { return .none }
           let characterIDsToPreload = state.characters.prefix(20).map(\.id)
           let effects: [Effect<Action>] = characterIDsToPreload.map {
             .send(.characters(.element(id: $0, action: .preloadIfNeeded)))
@@ -161,8 +170,10 @@ enum EpisodeDetailsFeature {
     @Presents
     var selectedCharacterID:
       Identified<CharacterState.ID, CharacterDetailsFeature.FeatureState>?
-    var needsPreload = true
-
+    var isTornDown = false
+    var canPreload: Bool {
+      !UIConstants.inPreview && !isTornDown
+    }
     static func initial(episode: EpisodeDomainModel) -> Self {
       .init(
         episode: episode,
