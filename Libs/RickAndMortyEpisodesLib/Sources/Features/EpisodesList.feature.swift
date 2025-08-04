@@ -50,7 +50,7 @@ enum EpisodeListFeature {
       }
       .listStyle(.plain)
       .onAppear {
-        store.send(.preload)
+        store.send(.preloadIfNeeded)
       }
       .refreshable {
         do {

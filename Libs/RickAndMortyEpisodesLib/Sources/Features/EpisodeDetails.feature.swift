@@ -46,7 +46,7 @@ enum EpisodeDetailsFeature {
       .listStyle(.plain)
       .navigationTitle(store.episode.name)
       .onAppear {
-        store.send(.preload)
+        store.send(.preloadIfNeeded)
       }
       .navigationDestination(
         item: $store.scope(
@@ -110,13 +110,14 @@ enum EpisodeDetailsFeature {
     var coordinatingReducer: some ReducerOf<Self> {
       Reduce { state, action in
         switch action {
-        case .preload:
+        case .preloadIfNeeded:
+          guard state.needsPreload else { return .none }
+          state.needsPreload = false
           let characterIDsToPreload = state.characters.prefix(20).map(\.id)
-          return .run { @MainActor send in
-            for id in characterIDsToPreload {
-              send(.characters(.element(id: id, action: .preloadIfNeeded)))
-            }
+          let effects: [Effect<Action>] = characterIDsToPreload.map {
+            .send(.characters(.element(id: $0, action: .preloadIfNeeded)))
           }
+          return .merge(effects)
         case .selectCharacter(let characterID):
           state.selectedCharacterID =
             characterID
@@ -160,6 +161,7 @@ enum EpisodeDetailsFeature {
     @Presents
     var selectedCharacterID:
       Identified<CharacterState.ID, CharacterDetailsFeature.FeatureState>?
+    var needsPreload = true
 
     static func initial(episode: EpisodeDomainModel) -> Self {
       .init(
@@ -177,7 +179,7 @@ enum EpisodeDetailsFeature {
       PresentationAction<CharacterDetailsFeature.FeatureAction>
     )
     case characters(IdentifiedActionOf<CharacterBriefFeature.FeatureReducer>)
-    case preload
+    case preloadIfNeeded
     case selectCharacter(CharacterState.ID?)
     case binding(BindingAction<FeatureState>)
   }

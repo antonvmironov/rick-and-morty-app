@@ -93,9 +93,9 @@ enum EpisodesRootFeature {
     }
 
     var userInputReducer: some ReducerOf<Self> {
-      Reduce { (state: inout State, action: Action) in
+      Reduce { state, action in
         switch action {
-        case .preload:
+        case .preloadIfNeeded:
           return .send(.pagination(.loadFirstPageIfNeeded))
         case .loadNextPage:
           return .send(.pagination(.loadNextPage()))
@@ -104,7 +104,7 @@ enum EpisodesRootFeature {
             .initial(episode: episode),
             id: \.episode.id
           )
-          return .send(.selectedEpisodeDetails(.presented(.preload)))
+          return .send(.selectedEpisodeDetails(.presented(.preloadIfNeeded)))
         default:
           return .none
         }
@@ -147,7 +147,7 @@ enum EpisodesRootFeature {
   enum FeatureAction: BindableAction {
     case presetEpisode(EpisodeDomainModel)
     case loadNextPage
-    case preload
+    case preloadIfNeeded
     case reload(continuation: PaginationFeature.PageLoadingContinuation?)
 
     case pagination(PaginationFeature.FeatureAction)
