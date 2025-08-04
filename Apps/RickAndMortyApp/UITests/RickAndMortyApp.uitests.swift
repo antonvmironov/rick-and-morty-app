@@ -6,23 +6,52 @@ import XCUIAutomation
 @testable import RickAndMortyApp
 @testable import RickAndMortyEpisodesLib
 
+@MainActor
 final class RickAndMortyAppUITests: XCTestCase {
-  @MainActor
+  let app = XCUIApplication()
+
   func testToSettingsAndBack() async {
-    let app = XCUIApplication()
     app.launch()
 
     app.waitForScreen(title: "Episode List")
-    app.waitForButton(RootFeature.A11yIDs.enterSettingsButton).tap()
+    app.buttons[RootFeature.A11yIDs.enterSettingsButton].waitToAppear().tap()
     app.waitForScreen(title: "Settings")
-    app.waitForButton(RootFeature.A11yIDs.exitSettingsButton).tap()
+    app.buttons[RootFeature.A11yIDs.exitSettingsButton].waitToAppear().tap()
     app.waitForScreen(title: "Episode List")
+  }
+
+  func testToCharacterDetails() async {
+    app.launch()
+
+    app.waitForScreen(title: "Episode List")
+    app.staticTexts[EpisodeListFeature.A11yIDs.cachedSince].waitToAppear()
+    app.buttons[EpisodeListFeature.A11yIDs.episodeRow(id: "3")]
+      .waitToAppear()
+      .tap()
+    app.waitForScreen(title: "Anatomy Park")
   }
 }
 
 extension XCUIElementQuery {
   subscript<A: A11yIDProvider>(_ provider: A) -> XCUIElement {
     self[provider.a11yID]
+  }
+}
+
+extension XCUIElement {
+  @discardableResult
+  func waitToAppear(
+    timeout: TimeInterval = 3,
+    file: StaticString = #filePath,
+    line: UInt = #line
+  ) -> XCUIElement {
+    XCTAssertTrue(
+      waitForExistence(timeout: timeout),
+      "Expected element `\(self)` did not appear in time",
+      file: file,
+      line: line,
+    )
+    return self
   }
 }
 
@@ -37,29 +66,6 @@ extension XCUIElementTypeQueryProvider {
     file: StaticString = #filePath,
     line: UInt = #line
   ) {
-    XCTAssertTrue(
-      navigationBars[title].waitForExistence(timeout: timeout),
-      "Awaiting for '\(title)' title to appear",
-      file: file,
-      line: line,
-    )
-  }
-
-  @discardableResult
-  func waitForButton<A: A11yIDProvider>(
-    _ idProvider: A,
-    timeout: TimeInterval = 3,
-    file: StaticString = #filePath,
-    line: UInt = #line
-  ) -> XCUIElement {
-    let idString = idProvider.a11yID
-    let button = buttons[idString]
-    XCTAssertTrue(
-      button.waitForExistence(timeout: timeout),
-      "Awaiting for `\(idString)` title to appear",
-      file: file,
-      line: line,
-    )
-    return button
+    navigationBars[title].waitToAppear(timeout: timeout)
   }
 }
