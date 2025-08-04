@@ -16,8 +16,9 @@ extension Project {
         "CFBundleVersion": "1",
         "CFBundleDisplayName": "R&M Demo",
         "UILaunchScreen": [
-          "UIColorName": "",
-          "UIImageName": "",
+          "UIColorName": "Background",
+          "UIImageName": "logo.png",
+          "UIImageRespectsSafeAreaInsets": "1",
         ],
       ]
 
