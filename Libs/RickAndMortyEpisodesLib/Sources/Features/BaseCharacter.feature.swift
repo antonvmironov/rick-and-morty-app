@@ -136,11 +136,12 @@ enum BaseCharacterFeature {
     }
 
     static func initial(
-      characterURL: URL
+      characterURL: URL,
+      cachedCharacter: CharacterDomainModel?
     ) -> Self {
       .init(
         characterURL: characterURL,
-        characterLoading: .initial(cachedSuccess: nil)
+        characterLoading: .initial(cachedSuccess: cachedCharacter)
       )
     }
   }
