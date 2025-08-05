@@ -65,13 +65,9 @@ func CharacterDomainModel_fuzz_decoding() throws {
     do {
       _ = try JSONDecoder().decode(CharacterDomainModel.self, from: jsonData)
       // If decoding succeeds, check basic invariants
-      #expect(true, "Decoding succeeded for fuzzed CharacterDomainModel JSON")
     } catch {
       // Decoding may fail for invalid/fuzzed data
-      #expect(
-        true,
-        "Decoding failed for fuzzed CharacterDomainModel JSON as expected"
-      )
+      // Decoding failed for fuzzed CharacterDomainModel JSON as expected
     }
   }
 }
@@ -105,7 +101,7 @@ func CharacterDomainModel_decoding_invalid_url_failure() {
       "Decoding should have failed for invalid URL string in 'url' field"
     )
   } catch {
-    #expect(true, "Decoding failed as expected for invalid URL string")
+    // Decoding failed as expected for invalid URL string
   }
 }
 
@@ -116,7 +112,7 @@ func CharacterDomainModel_decoding_failure() {
     _ = try JSONDecoder().decode(CharacterDomainModel.self, from: invalidJSON)
     Issue.record("Decoding should have failed for invalid JSON")
   } catch {
-    #expect(true, "Decoding failed as expected")
+    // Decoding failed as expected
   }
 }
 

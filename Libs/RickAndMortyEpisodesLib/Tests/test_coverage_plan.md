@@ -18,6 +18,15 @@
 4. [x] Add test for `CharacterLocation` initializer
 5. [x] Add basic test for static `.dummy` property of `Character`
 
+### Refactoring 1: Test Code Conciseness and Maintainability Plan
+
+5.1. [ ] Move all repeating arrays and constants (e.g., validNames, validStatuses, validSpecies, validGenders, validURLs, validImageURLs, validEpisodeURLs, validDates) from test files into `TestUtils.swift` as static properties.
+5.2. [ ] Reference these arrays and constants via `TestUtils` in all relevant tests to avoid duplication.
+5.3. [ ] Use parameterized tests (supported by swift-testing) for fuzzing and decoding scenarios, leveraging the shared arrays for input data.
+5.4. [ ] Keep equality assertions simple and direct (e.g., `#expect(a == b)`), without unnecessary abstraction.
+5.5. [ ] Extract any repeated JSON construction or decoding logic into helper methods in `TestUtils.swift` for reuse across tests.
+5.6. [ ] After each refactoring step, run all tests to ensure they remain green.
+
 ## CharacterSpecies.tests.swift
 6. [ ] Add decoding failure test for invalid species string
 7. [ ] Add property-based/fuzz test for `CharacterSpecies`
