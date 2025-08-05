@@ -23,6 +23,9 @@ FINAL_THUMBNAIL_PATH = "record_demo_final_thumbnail.png"
 COMPILER_LOG_PATH = "record_demo_compiler.log"
 FFMPEG_CONVERT_VIDEO_LOG_PATH = "record_demo_ffmpeg_convert_video.log"
 FFMPEG_GET_THUMBNAIL_LOG_PATH = "record_demo_ffmpeg_get_thumbnail.log"
+THUMBNAIL_TIMESTAMP_SECONDS = 13
+VIDEO_END_TRIM_SECONDS = 1
+VIDEO_START_TRIM_SECONDS = 7
 SIMCTL = "xcrun simctl"
 XCODEBUILD = "xcodebuild"
 
@@ -44,7 +47,6 @@ def boot_simulator_step():
     result = subprocess.run([
         *SIMCTL.split(), "list", "devices", "--json"
     ], capture_output=True, text=True)
-    import json
     devices = json.loads(result.stdout)["devices"]
     booted = False
     for runtime in devices:
@@ -122,9 +124,11 @@ def convert_and_trim_video_step():
             "-i", RAW_VIDEO_PATH,
         ]
     else:
-        # Trim first 7 seconds and last 1 second
-        start_trim = 7
-        end_trim = duration - 1 - start_trim
+        # Trim first VIDEO_START_TRIM_SECONDS seconds and last VIDEO_END_TRIM_SECONDS second
+        start_trim = VIDEO_START_TRIM_SECONDS
+        end_trim = duration - VIDEO_END_TRIM_SECONDS - start_trim
+        start_trim = VIDEO_START_TRIM_SECONDS
+        end_trim = duration - VIDEO_END_TRIM_SECONDS - start_trim
         trim_args = [
             "-ss", str(start_trim),
             "-i", RAW_VIDEO_PATH,
@@ -159,7 +163,7 @@ def convert_and_trim_video_step():
     thumbnail_cmd = [
         "ffmpeg",
         "-y",
-        "-ss", "13",
+        "-ss", str(THUMBNAIL_TIMESTAMP_SECONDS),
         "-i", FINAL_VIDEO_PATH,
         "-vframes", "1",
         FINAL_THUMBNAIL_PATH
@@ -196,7 +200,7 @@ def main():
         stop_recording_step(recorder)
     convert_and_trim_video_step()
     elapsed = time.time() - start
-    print(f"🎉\tDemo recording completed! Video saved to {RAW_VIDEO_PATH} (total time: {elapsed:.2f} seconds)")
+    print(f"🎉\tDemo recording completed! Video saved to {FINAL_VIDEO_PATH} (total time: {elapsed:.2f} seconds)")
 
 if __name__ == "__main__":
     main()
