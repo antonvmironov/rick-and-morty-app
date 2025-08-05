@@ -55,6 +55,14 @@ struct MockNetworkGateway: NetworkGateway {
     return response
   }
 
+  @discardableResult
+  func refresh<Response: Codable & Sendable>(
+    operation: NetworkOperation<Response>
+  ) async throws(NetworkError) -> NetworkResponse<Response> {
+    let response = try getFromFixture(operation: operation)
+    return response
+  }
+
   private func getFromFixture<Response: Codable & Sendable>(
     operation: NetworkOperation<Response>
   ) throws(NetworkError) -> NetworkResponse<Response> {

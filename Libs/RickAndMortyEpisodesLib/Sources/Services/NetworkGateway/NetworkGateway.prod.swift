@@ -58,7 +58,16 @@ final class ProdNetworkGateway: NetworkGateway {
   func get<Response: Codable & Sendable>(
     operation: NetworkOperation<Response>
   ) async throws(NetworkError) -> NetworkResponse<Response> {
-    if let cachedResponse = try getCached(operation: operation) {
+    try await get(operation: operation, validateCachedResponse: { _ in true })
+  }
+
+  func get<Response: Codable & Sendable>(
+    operation: NetworkOperation<Response>,
+    validateCachedResponse: (NetworkResponse<Response>) -> Bool
+  ) async throws(NetworkError) -> NetworkResponse<Response> {
+    if let cachedResponse = try getCached(operation: operation),
+      validateCachedResponse(cachedResponse)
+    {
       return cachedResponse
     }
 
@@ -87,6 +96,18 @@ final class ProdNetworkGateway: NetworkGateway {
     .mapError { NetworkError.responseDecodingFailed(error: $0, data: data) }
     .get()
     return decodedResponse
+  }
+
+  static private let minRefreshInterval: TimeInterval = 60 * 60  // 1 hour
+  @discardableResult
+  func refresh<Response: Codable & Sendable>(
+    operation: NetworkOperation<Response>
+  ) async throws(NetworkError) -> NetworkResponse<Response> {
+    try await get(operation: operation) {
+      let timeIntervalAgo = getCurrentDate()
+        .timeIntervalSince($0.cachedSince ?? .distantPast)
+      return timeIntervalAgo < Self.minRefreshInterval
+    }
   }
 
   private func getCurrentDate() -> Date {

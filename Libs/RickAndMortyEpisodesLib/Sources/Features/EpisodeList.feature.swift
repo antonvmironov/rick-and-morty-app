@@ -75,7 +75,12 @@ enum EpisodeListFeature {
       .refreshable {
         do {
           _ = try await withCheckedThrowingContinuation { continuation in
-            store.send(.reload(continuation: continuation))
+            store.send(
+              .reload(
+                invalidateCache: true,
+                continuation: continuation
+              )
+            )
           }
         } catch {
           // TODO: handle this error

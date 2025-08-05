@@ -78,9 +78,11 @@ enum EpisodesRootFeature: Feature {
     private var reloadReducer: some ReducerOf<Self> {
       Reduce { state, action in
         switch action {
-        case .reload(let continuation):
+        case .reload(let invalidateCache, let continuation):
           return .run { [urlCacheFactory] send in
-            urlCacheFactory.clearCache(category: .episodes)
+            if invalidateCache {
+              urlCacheFactory.clearCache(category: .episodes)
+            }
             await send(.pagination(.reload(continuation: continuation)))
           }
         default:
@@ -201,7 +203,10 @@ enum EpisodesRootFeature: Feature {
     case didPrepareEpisodeForPresentation(EpisodeDetailsFeature.FeatureState)
     case loadNextPage
     case preloadIfNeeded
-    case reload(continuation: PaginationFeature.PageLoadingContinuation?)
+    case reload(
+      invalidateCache: Bool,
+      continuation: PaginationFeature.PageLoadingContinuation?
+    )
 
     case pagination(PaginationFeature.FeatureAction)
     case selectedEpisodeDetails(EpisodeDetailsFeature.FeatureAction)

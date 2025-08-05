@@ -19,6 +19,7 @@ enum SettingsFeature: Feature {
       List {
         LabeledContent("Version", value: store.version)
         aboutSection
+        debugSection
         cacheSection
       }
       .listStyle(.plain)
@@ -39,6 +40,32 @@ enum SettingsFeature: Feature {
         },
         header: {
           Text("About")
+        }
+      )
+    }
+
+    private var debugSection: some View {
+      Section(
+        content: {
+          LabeledContent("Background Fetch") {
+            Button(
+              action: {
+                store.send(.simulateBackgroundRefresh)
+              },
+              label: {
+                Label(
+                  title: { Text("Simulate") },
+                  icon: { Image(systemName: "figure.run") }
+                )
+              }
+            )
+          }
+        },
+        header: {
+          HStack {
+            Text("Debug Settings")
+            Spacer()
+          }
         }
       )
     }
@@ -130,16 +157,21 @@ enum SettingsFeature: Feature {
     @Dependency(\.urlCacheFactory)
     var urlCacheFactory: URLCacheFactory
 
+    @Dependency(\.backgroundRefresher)
+    var backgroundRefresher: BackgroundRefresher
+
     var body: some ReducerOf<Self> {
       Reduce { state, action in
         switch action {
         case .updateCacheReports:
           state.cacheReports = urlCacheFactory.allReports()
           return .none
+        case .simulateBackgroundRefresh:
+          return .run { _ in
+            await backgroundRefresher.simulateSending()
+          }
         case .clearCache(let category):
           urlCacheFactory.clearCache(category: category)
-          return .none
-        default:
           return .none
         }
       }
@@ -158,6 +190,7 @@ enum SettingsFeature: Feature {
   @CasePathable
   enum FeatureAction: Equatable {
     case updateCacheReports
+    case simulateBackgroundRefresh
     case clearCache(URLCacheCategory)
   }
 }
