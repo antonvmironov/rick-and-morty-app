@@ -5,7 +5,8 @@ import Testing
 @testable import RickAndMortyEpisodesLib
 
 @Test("CharacterDomainModel fuzz decoding with random valid and invalid data")
-func CharacterDomainModel_fuzz_decoding() {
+func CharacterDomainModel_fuzz_decoding() throws {
+  let fuzzIterationCount = 50
   let validNames = [
     "Rick Sanchez", "Morty Smith", "Summer Smith", "Beth Smith", "Jerry Smith",
     "Birdperson", "Squanchy", "Mr. Meeseeks", "Unity", "Abradolf Lincler",
@@ -39,7 +40,7 @@ func CharacterDomainModel_fuzz_decoding() {
     "",
   ]
 
-  for _ in 0..<50 {
+  for _ in 0..<fuzzIterationCount {
     let json: [String: Any] = [
       "id": Int.random(in: 1...1000),
       "name": validNames.randomElement()!,
@@ -60,7 +61,7 @@ func CharacterDomainModel_fuzz_decoding() {
       "url": validURLs.randomElement()!,
       "created": validDates.randomElement()!,
     ]
-    let jsonData = try! JSONSerialization.data(withJSONObject: json)
+    let jsonData = try JSONSerialization.data(withJSONObject: json)
     do {
       _ = try JSONDecoder().decode(CharacterDomainModel.self, from: jsonData)
       // If decoding succeeds, check basic invariants

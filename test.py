@@ -43,7 +43,7 @@ def run_all_tests():
     print(f"🧪\tRunning: {' '.join(cmd)}")
     start = time.time()
     with open(COMPILER_LOG_PATH, "w") as log_file:
-        result = subprocess.run(cmd, cwd=os.getcwd(), stdout=log_file, stderr=subprocess.STDOUT)
+        result = subprocess.run(cmd, stdout=log_file, stderr=subprocess.STDOUT)
     elapsed = time.time() - start
     if result.returncode != 0:
         print(f"\t❌\tTests failed (see {COMPILER_LOG_PATH})")
@@ -66,7 +66,7 @@ def run_specific_test(test_name, scheme=DEFAULT_SCHEME):
     print(f"🧪\tRunning: {' '.join(cmd)}")
     start = time.time()
     with open(COMPILER_LOG_PATH, "w") as log_file:
-        result = subprocess.run(cmd, cwd=os.getcwd(), stdout=log_file, stderr=subprocess.STDOUT)
+        result = subprocess.run(cmd, stdout=log_file, stderr=subprocess.STDOUT)
     elapsed = time.time() - start
     if result.returncode != 0:
         print(f"\t❌\tTest failed (see {COMPILER_LOG_PATH})")
