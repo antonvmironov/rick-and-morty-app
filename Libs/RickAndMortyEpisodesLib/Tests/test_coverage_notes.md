@@ -63,11 +63,101 @@ Relies on presence of JSON fixtures in test bundle for coverage.
 ## Notes Per Production Code File
 *Add raw note about each file. Make sure you note missing tests or poor testability**
 
-### `tbd.feature.swift`
-This is a placeholder
+### `Character.entity.swift`
+Defines the domain model for Rick and Morty characters (`CharacterDomainModel`) and a helper struct for location (`CharacterLocation`).
+Model includes Codable, Equatable, Identifiable, and Sendable conformances. Contains a static dummy instance for testing.
 
-## Improvement Ideas
+Test coverage:
+- Codable and Equatable logic is covered in `Character.tests.swift` (see above)
+- Decoding from JSON fixtures and property validation is tested
+- Equality and serialization logic is robustly covered
 
-*Add all raw improvement ideas below. Including known gaps and risks*
+Missing tests / risks:
+- No direct tests for the static `dummy` property (relies on asset catalog and Transformers)
+- No explicit tests for error cases (e.g., decoding failures, invalid URLs)
+- No property-based or fuzz tests for edge cases
+- No direct tests for `CharacterLocation` initializers (only Codable logic tested)
 
-- TBD
+### `CharacterSpecies.swift`
+Defines the model for character species in the Rick and Morty domain. Implements `StringRepresentable` and provides static constants for common species.
+
+Test coverage:
+- Covered by `CharacterSpecies.tests.swift` (see above)
+- Tests include: ExpressibleByStringLiteral, static values, Codable, and Equatable conformance
+- Verifies correct `rawValue` and description for string literals and static cases
+- Tests Codable round-trip and equality logic for species values
+
+Missing tests / risks:
+- No explicit tests for error cases (e.g., invalid species strings, decoding failures)
+- No property-based or fuzz tests for edge cases
+
+### `CharacterStatus.swift`
+Defines the model for character status in the Rick and Morty domain. Implements `StringRepresentable` and provides static constants for common statuses (`alive`, `dead`, `unknown`).
+
+Test coverage:
+- Covered by `CharacterStatus.tests.swift` (see above)
+- Tests include: ExpressibleByStringLiteral, static values, Codable, and Equatable conformance
+- Verifies correct `rawValue` and description for string literals and static cases
+- Tests Codable round-trip and equality logic for status values
+
+Missing tests / risks:
+- No explicit tests for error cases (e.g., invalid status strings, decoding failures)
+- No property-based or fuzz tests for edge cases
+
+### `Endpoints.entity.swift`
+Defines the domain model for API endpoints in the Rick and Morty domain (`EndpointsDomainModel`).
+Model includes `Sendable`, `Codable`, and `Equatable` conformances. Contains a static `mock` instance for testing.
+
+Test coverage:
+- Covered by `Endpoints.tests.swift` (see above)
+- Tests include: initialization, Codable conformance, correct assignment of endpoint URLs, equality, and Codable round-trip for the model
+
+Missing tests / risks:
+- No explicit tests for error cases (e.g., decoding failures, invalid URLs)
+- No property-based or fuzz tests for edge cases
+
+### `Episode.entity.swift`
+Defines the domain model for Rick and Morty episodes (`EpisodeDomainModel`).
+Model includes Codable, Equatable, Identifiable, and Sendable conformances. Contains a static dummy instance for testing, loaded via asset catalog and Transformers.
+
+Test coverage:
+- Covered by `Episode.tests.swift` (see above)
+- Tests include: Codable round-trip for model, Equatable checks for identical and different models, decoding from episode_pilot.json fixture and property validation
+- Uses test constants and bundled JSON fixtures for robust coverage of model serialization and equality logic
+
+Missing tests / risks:
+- No direct tests for the static `dummy` property (relies on asset catalog and Transformers)
+- No explicit tests for error cases (e.g., decoding failures, invalid URLs)
+- No property-based or fuzz tests for edge cases
+
+### `Location.entity.swift`
+Defines the domain model for Rick and Morty locations (`LocationDomainModel`).
+Model includes Codable, Equatable, Identifiable, and Sendable conformances.
+
+Test coverage:
+- Covered by `Location.tests.swift` (see above)
+- Tests include: Codable round-trip for model, Equatable checks for identical and different models, decoding from location_earth1.json fixture and property validation
+- Uses test constants and bundled JSON fixtures for robust coverage of model serialization and equality logic
+
+Missing tests / risks:
+- No explicit tests for error cases (e.g., decoding failures, invalid URLs)
+- No property-based or fuzz tests for edge cases
+
+### `ResponsePage.entity.swift`
+Defines generic models for paginated API responses:
+- `ResponsePagePayload<Element>`: Contains page info and an array of results.
+- `ResponsePageInfo`: Holds pagination metadata (count, pages, next/prev URLs).
+- `ResponsePageContainer<Element>`: Wraps payload, cache timestamp, and page URL.
+All types conform to `Sendable`, `Codable`, and `Equatable` for safe concurrency, serialization, and equality checks.
+
+Test coverage:
+- No direct unit tests found for these types.
+- Codable and Equatable logic is not explicitly tested.
+- No coverage for edge cases (e.g., decoding failures, invalid URLs, empty results).
+
+Missing tests / risks:
+- No property-based or fuzz tests for edge cases.
+- No explicit tests for error cases (e.g., decoding failures, invalid/missing URLs).
+- No tests for cache logic or date handling in `ResponsePageContainer`.
+
+---
