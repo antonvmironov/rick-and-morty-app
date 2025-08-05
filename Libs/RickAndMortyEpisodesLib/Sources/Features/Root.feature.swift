@@ -60,13 +60,15 @@ public enum RootFeature {
       episodeList: episodeList,
       settings: .init()
     )
-    return FeatureStore(
+    let store = FeatureStore(
       initialState: initialState,
       reducer: {
         FeatureReducer(apiURL: apiURL)
       },
       withDependencies: dependencies.updateDeps
     )
+    store.send(.setupBackgroundRefresh)
+    return store
   }
 
   public struct FeatureView: View {
@@ -154,6 +156,9 @@ public enum RootFeature {
     @Dependency(\.networkGateway)
     var networkGateway: NetworkGateway
 
+    @Dependency(\.backgroundRefresher)
+    var backgroundRefresher: BackgroundRefresher
+
     var body: some ReducerOf<Self> {
       coordinatingReducer
       Scope(state: \.endpointsLoading, action: \.endpointsLoading) {
@@ -179,16 +184,30 @@ public enum RootFeature {
         switch action {
         case .preloadIfNeeded:
           if let endpoints = state.endpointsLoading.status.success {
+            let episodesPageURL = endpoints.episodes
             let action: Action = .episodeList(
-              .pagination(.setFirstInput(input: endpoints.episodes))
+              .pagination(.setFirstInput(input: episodesPageURL))
             )
-            return .send(action)
+            let operation = NetworkOperation.pageOfEpisodes(
+              pageURL: episodesPageURL
+            )
+            return .merge(
+              .send(action),
+              .run { [backgroundRefresher] _ in
+                await backgroundRefresher
+                  .scheduleRefreshing(operation: operation, id: "episodes-page")
+              }
+            )
           } else {
             return .send(.endpointsLoading(.process(apiURL)))
           }
         case .toggleSettingsPresentation:
           state.isSettingsPresented.toggle()
           return .none
+        case .setupBackgroundRefresh:
+          return .run { [backgroundRefresher] _ in
+            await backgroundRefresher.register()
+          }
         case .endpointsLoading(.finishProcessing(let endpoints)):
           let action: Action = .episodeList(
             .pagination(.setFirstInput(input: endpoints.episodes))
@@ -213,6 +232,7 @@ public enum RootFeature {
   enum FeatureAction: BindableAction {
     case preloadIfNeeded
     case toggleSettingsPresentation
+    case setupBackgroundRefresh
     case endpointsLoading(EndpointsLoadingFeature.FeatureAction)
     case episodeList(EpisodesRootFeature.FeatureAction)
     case settings(SettingsFeature.FeatureAction)

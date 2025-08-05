@@ -1,3 +1,4 @@
+import BackgroundTasks
 import ComposableArchitecture
 import Foundation
 import Kingfisher
@@ -7,34 +8,45 @@ public final class Dependencies: Sendable {
   let networkGateway: NetworkGateway
   let imageManager: KingfisherManager
   let urlCacheFactory: URLCacheFactory
+  let backgroundRefresher: BackgroundRefresher
 
   init(
     networkGateway: any NetworkGateway,
     imageManager: KingfisherManager,
     urlCacheFactory: URLCacheFactory,
+    backgroundRefresher: BackgroundRefresher
   ) {
     self.networkGateway = networkGateway
     self.imageManager = imageManager
     self.urlCacheFactory = urlCacheFactory
+    self.backgroundRefresher = backgroundRefresher
   }
 
   public static func prod() -> Dependencies {
     let urlCacheFactory = URLCacheFactory()
-    return .init(
-      networkGateway:
-        ProdNetworkGateway
-        .build(urlCacheFactory: urlCacheFactory),
-      imageManager: .shared,
-      urlCacheFactory: urlCacheFactory
+    let networkGateway =
+      ProdNetworkGateway
+      .build(urlCacheFactory: urlCacheFactory)
+    let backgroundRefresher = BackgroundRefresher(
+      networkGateway: networkGateway
     )
+    let dependencies = Dependencies(
+      networkGateway: networkGateway,
+      imageManager: .shared,
+      urlCacheFactory: urlCacheFactory,
+      backgroundRefresher: backgroundRefresher,
+    )
+    return dependencies
   }
 
   public static func preview() -> Dependencies {
     // keep this force unwrap. its only for SwiftUI preview
+    let networkGateway = try! MockNetworkGateway.preview()
     return .init(
-      networkGateway: try! MockNetworkGateway.preview(),
+      networkGateway: networkGateway,
       imageManager: .shared,
       urlCacheFactory: URLCacheFactory(),
+      backgroundRefresher: BackgroundRefresher(networkGateway: networkGateway)
     )
   }
 
@@ -42,6 +54,7 @@ public final class Dependencies: Sendable {
     deps.networkGateway = networkGateway
     deps.imageManager = imageManager
     deps.urlCacheFactory = urlCacheFactory
+    deps.backgroundRefresher = backgroundRefresher
   }
 }
 
@@ -57,6 +70,10 @@ extension URLCacheFactory: DependencyKey {
   static var liveValue: URLCacheFactory { fatalError("unavailable") }
 }
 
+extension BackgroundRefresher: DependencyKey {
+  static var liveValue: BackgroundRefresher { fatalError("unavailable") }
+}
+
 extension DependencyValues {
   var networkGateway: NetworkGateway {
     get { self[NetworkGatewayKey.self] }
@@ -69,5 +86,9 @@ extension DependencyValues {
   var urlCacheFactory: URLCacheFactory {
     get { self[URLCacheFactory.self] }
     set { self[URLCacheFactory.self] = newValue }
+  }
+  var backgroundRefresher: BackgroundRefresher {
+    get { self[BackgroundRefresher.self] }
+    set { self[BackgroundRefresher.self] = newValue }
   }
 }
