@@ -87,7 +87,14 @@ public enum RootFeature {
       )
       .a11yID(A11yIDs.navTitle)
       .onAppear {
-        store.send(.preloadIfNeeded)
+        store.send(
+          .preloadIfNeeded { [weak store] in
+            Task { @MainActor in
+              guard let store else { return }
+              store.send(.didRefreshOnBackground)
+            }
+          }
+        )
       }
       .toolbar {
         ToolbarItem {
@@ -181,7 +188,7 @@ public enum RootFeature {
     var coordinatingReducer: some ReducerOf<Self> {
       Reduce { state, action in
         switch action {
-        case .preloadIfNeeded:
+        case .preloadIfNeeded(let didRefresh):
           if let endpoints = state.endpointsLoading.status.success {
             let episodesPageURL = endpoints.episodes
             let action: Action = .episodeList(
@@ -197,7 +204,7 @@ public enum RootFeature {
                   operation: operation,
                   id: "episodes-page"
                 ) {
-                  await send(.didRefreshOnBackground)
+                  didRefresh()
                 }
               }
             )
@@ -238,7 +245,7 @@ public enum RootFeature {
 
   @CasePathable
   enum FeatureAction: BindableAction {
-    case preloadIfNeeded
+    case preloadIfNeeded(didRefresh: @Sendable () -> Void)
     case toggleSettingsPresentation
     case didRefreshOnBackground
     case endpointsLoading(EndpointsLoadingFeature.FeatureAction)
