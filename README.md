@@ -1,18 +1,18 @@
 # Rick and Morty iOS demo app
 
-A demo app. See [the assignement](./assignment.md) and [system design](./system_design.md).
+A demo app that fetches, caches and displays "Rick and Morty" episodes metadata from a public API.
 
-## 🧭 Navigation
+## 🧭 Navigation (#navigation)
 - [demo](#demo)
 - [dev setup](#development-environment-setup)
 - [assignement](./assignment.md)
 - [system design](./system_design.md)
 
-## 🚀 Demo
+## 🚀 Demo (#demo)
 
-[![Watch the demo](record_demo_final_thumbnail.png)](record_demo_final_video.mp4)
+![demo](record_demo_final_thumbnail.png)
 
-*TBD include screenshots and screen recordings from the app.*
+[**Download a demo video**](https://github.com/antonvmironov/rick-and-morty-app/raw/refs/heads/main/record_demo_final_video.mp4)
 
 ## 🛠️ Development Environment Setup
 
