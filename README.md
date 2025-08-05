@@ -19,5 +19,5 @@ See the [assignment](./assignment.md) and [system design](./system_design.md).
 ./format.py # to auto-fix all Swift formatting
 ./record_demo.py # to record a demo of app running in simulator
 ./test.py # to run all the tests after generating the project
-./test.py RickAndMortyEpisodesLibTests/CharacterDomainModel_Codable_conformance # to test a specific test
+./test.py RickAndMortyEpisodesLibTests # to narrow down to a specific module
 ```

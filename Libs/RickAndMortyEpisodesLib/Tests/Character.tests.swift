@@ -4,6 +4,17 @@ import Testing
 
 @testable import RickAndMortyEpisodesLib
 
+@Test("CharacterDomainModel decoding fails for completely invalid JSON")
+func CharacterDomainModel_decoding_failure() {
+  let invalidJSON = Data("{\"notACharacter\":true}".utf8)
+  do {
+    _ = try JSONDecoder().decode(CharacterDomainModel.self, from: invalidJSON)
+    #expect(false, "Decoding should have failed for invalid JSON")
+  } catch {
+    #expect(true, "Decoding failed as expected")
+  }
+}
+
 @Test("CharacterDomainModel Codable conformance")
 func CharacterDomainModel_Codable_conformance() throws {
   let character = CharacterDomainModel(

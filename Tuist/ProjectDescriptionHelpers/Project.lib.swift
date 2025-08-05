@@ -29,8 +29,7 @@ extension Project {
         bundleId: testsBundleID(name: "\(name)Tests"),
         infoPlist: .default,
         sources: [
-          "Tests/**",
-          "../../TestsSupport/**",
+          "Tests/**"
         ],
         resources: ["Fixtures/**"],
         dependencies: [.target(name: name)] + testDependencies
