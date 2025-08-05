@@ -47,7 +47,7 @@ def run_all_tests():
     elapsed = time.time() - start
     if result.returncode != 0:
         print(f"\t❌\tTests failed (see {COMPILER_LOG_PATH})")
-        exit(result.returncode)
+        sys.exit(result.returncode)
     else:
         print(f"\t✅\tAll tests passed (took {elapsed:.2f} seconds, see {COMPILER_LOG_PATH})")
 
@@ -70,7 +70,7 @@ def run_specific_test(test_name, scheme=DEFAULT_SCHEME):
     elapsed = time.time() - start
     if result.returncode != 0:
         print(f"\t❌\tTest failed (see {COMPILER_LOG_PATH})")
-        exit(result.returncode)
+        sys.exit(result.returncode)
     else:
         print(f"\t✅\tTest passed (took {elapsed:.2f} seconds, see {COMPILER_LOG_PATH})")
 
@@ -83,7 +83,7 @@ def main():
         run_specific_test(sys.argv[1], scheme=sys.argv[2])
     else:
         print("Usage:\n  ./test.py\n  ./test.py <test_name>\n  ./test.py <test_name> <scheme>")
-        exit(1)
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()

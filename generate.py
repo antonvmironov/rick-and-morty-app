@@ -3,10 +3,11 @@
 Script to generate the Xcode project using Tuist.
 Run with: ./generate.py
 """
+import argparse
 import os
 import subprocess
-from pathlib import Path
 import time
+from pathlib import Path
 
 def tuist_generate_step(no_xcode=False):
     print('⚡\tGenerate project with Tuist')
@@ -22,8 +23,6 @@ def tuist_generate_step(no_xcode=False):
         exit(result.returncode)
     else:
         print(f'\t✅\tStep completed: Tuist generate (took {elapsed:.2f} seconds)')
-
-import argparse
 
 def main():
     parser = argparse.ArgumentParser(description='Generate Xcode project using Tuist.')
