@@ -5,7 +5,7 @@ protocol BackgroundRefresher: Sendable {
   typealias RefreshOperation = @Sendable (NetworkGateway) async throws -> Void
   typealias RefreshOperationID = String
 
-  func register() async
+  nonisolated func register()
   func scheduleRefreshing<Response: Codable & Sendable>(
     operation: NetworkOperation<Response>,
     id: RefreshOperationID

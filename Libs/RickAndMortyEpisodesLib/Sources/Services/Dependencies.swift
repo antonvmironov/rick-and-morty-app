@@ -24,9 +24,9 @@ public final class Dependencies: Sendable {
 
   public static func prod() -> Dependencies {
     let urlCacheFactory = URLCacheFactory()
-    let networkGateway =
-      ProdNetworkGateway
-      .build(urlCacheFactory: urlCacheFactory)
+    let networkGateway = ProdNetworkGateway.build(
+      urlCacheFactory: urlCacheFactory
+    )
     let backgroundRefresher = ProdBackgroundRefresher(
       networkGateway: networkGateway
     )
@@ -36,6 +36,8 @@ public final class Dependencies: Sendable {
       urlCacheFactory: urlCacheFactory,
       backgroundRefresher: backgroundRefresher,
     )
+
+    backgroundRefresher.register()
     return dependencies
   }
 

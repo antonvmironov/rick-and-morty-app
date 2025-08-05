@@ -5,7 +5,7 @@ actor ProdBackgroundRefresher: BackgroundRefresher {
   let networkGateway: NetworkGateway
   var refreshOperationsByID = [RefreshOperationID: RefreshOperation]()
   let backgroundTaskID: String
-  var scheduler: BGTaskScheduler { .shared }
+  nonisolated var scheduler: BGTaskScheduler { .shared }
   static private let refreshtimeInterval: TimeInterval = 30 * 60  // 30 minutes
 
   init(networkGateway: NetworkGateway) {
@@ -32,17 +32,17 @@ actor ProdBackgroundRefresher: BackgroundRefresher {
     #endif
   }
 
-  func register() {
+  nonisolated func register() {
     scheduler.register(
       forTaskWithIdentifier: backgroundTaskID,
       using: nil
-    ) { task in
-      Task {
-        await self.handle(task: task)
-      }
+    ) { [self] task in
+      self.handle(task: task)
     }
 
-    scheduleNextRefresh()
+    Task {
+      await scheduleNextRefresh()
+    }
   }
 
   func scheduleRefreshing<Response: Codable & Sendable>(
@@ -68,19 +68,33 @@ actor ProdBackgroundRefresher: BackgroundRefresher {
     print("Scheduled background task \(backgroundTaskID)")
   }
 
-  private func handle(task: BGTask) async {
-    var success = false
-    defer {
-      task.setTaskCompleted(success: success)
+  nonisolated private func handle(task: BGTask) {
+    let operation = Task {
+      var success = false
+      defer {
+        task.setTaskCompleted(success: success)
+      }
+      guard task.identifier == backgroundTaskID else {
+        return
+      }
+      success = await self.refresh()
     }
-    guard task.identifier == backgroundTaskID else {
-      return
+    task.expirationHandler = {
+      print("[Error] my task has expired")
+      operation.cancel()
     }
+  }
+
+  private func refresh() async -> Bool {
     let refreshOperations = refreshOperationsByID.values
     for refreshOperation in refreshOperations where !Task.isCancelled {
       try? await refreshOperation(networkGateway)
     }
-    success = true
     scheduleNextRefresh()
+    return true
   }
+}
+
+extension BGTask: @unchecked @retroactive Sendable {
+  /* to call completion async */
 }

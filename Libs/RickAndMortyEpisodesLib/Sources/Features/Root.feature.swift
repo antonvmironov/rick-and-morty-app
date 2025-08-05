@@ -67,7 +67,6 @@ public enum RootFeature {
       },
       withDependencies: dependencies.updateDeps
     )
-    store.send(.setupBackgroundRefresh)
     return store
   }
 
@@ -204,10 +203,6 @@ public enum RootFeature {
         case .toggleSettingsPresentation:
           state.isSettingsPresented.toggle()
           return .none
-        case .setupBackgroundRefresh:
-          return .run { [backgroundRefresher] _ in
-            await backgroundRefresher.register()
-          }
         case .endpointsLoading(.finishProcessing(let endpoints)):
           let action: Action = .episodeList(
             .pagination(.setFirstInput(input: endpoints.episodes))
@@ -232,7 +227,6 @@ public enum RootFeature {
   enum FeatureAction: BindableAction {
     case preloadIfNeeded
     case toggleSettingsPresentation
-    case setupBackgroundRefresh
     case endpointsLoading(EndpointsLoadingFeature.FeatureAction)
     case episodeList(EpisodesRootFeature.FeatureAction)
     case settings(SettingsFeature.FeatureAction)
