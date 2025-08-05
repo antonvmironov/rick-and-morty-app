@@ -1,12 +1,12 @@
 # Test Coverage Notes
 
 This is a document for accumulating notes.
-It will be used as an input to make a plan test coverage improvements.
+It will be used as an input to make a plan for test coverage improvements.
 
 ## Patterns Notes
 
 ## Notes Per `*.tests.swift` File
-*Add raw note about each file.**
+*Add raw note about each file.*
 
 ### `NetworkGateway.tests.swift`
 Contains extension for `MockNetworkGateway` to simplify expectation setup for network requests using local JSON fixtures.
@@ -61,7 +61,7 @@ Tests include:
 Relies on presence of JSON fixtures in test bundle for coverage.
 
 ## Notes Per Production Code File
-*Add raw note about each file. Make sure you note missing tests or poor testability**
+*Add raw note about each file. Make sure you note missing tests or poor testability*
 
 ### `Character.entity.swift`
 Defines the domain model for Rick and Morty characters (`CharacterDomainModel`) and a helper struct for location (`CharacterLocation`).
