@@ -50,7 +50,10 @@ extension Project {
         product: .unitTests,
         bundleId: testsBundleID(name: "\(name)Tests"),
         infoPlist: .default,
-        sources: ["Tests/**"],
+        sources: [
+          "Tests/**",
+          "../../TestsSupport/**",
+        ],
         resources: ["Fixtures/**"],
         dependencies: [.target(name: name)] + testDependencies
       )
@@ -64,7 +67,10 @@ extension Project {
         product: .uiTests,
         bundleId: testsBundleID(name: "\(name)UITests"),
         infoPlist: .default,
-        sources: ["UITests/**"],
+        sources: [
+          "UITests/**",
+          "../../TestsSupport/**",
+        ],
         resources: ["Fixtures/**"],
         dependencies: [.target(name: name)] + testDependencies
       )
