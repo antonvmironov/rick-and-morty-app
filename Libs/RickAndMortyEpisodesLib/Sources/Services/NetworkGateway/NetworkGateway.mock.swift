@@ -42,35 +42,45 @@ struct MockNetworkGateway: NetworkGateway {
     )
   }
 
-  func get<Output: Decodable & Sendable>(
-    request: URLRequest,
-    cacheCategory: URLCacheCategory,
-    output: Output.Type,
-  ) async throws(NetworkError) -> (output: Output, cachedSince: Date?) {
-    try getFromFixture(
-      request: request,
-      cacheCategory: cacheCategory,
-      output: output
+  func getCached<Response: Codable & Sendable>(
+    operation: NetworkOperation<Response>
+  ) throws(NetworkError) -> NetworkResponse<Response>? {
+    guard
+      let result = try? getFromFixture(
+        request: operation.urlRequestProvider(),
+        cacheCategory: operation.cacheCategory,
+        output: Response.self
+      )
+    else {
+      return nil
+    }
+    return NetworkResponse(
+      decodedResponse: result.output,
+      cachedSince: result.cachedSince,
     )
   }
 
-  func getCached<Output: Decodable & Sendable>(
-    request: URLRequest,
-    cacheCategory: URLCacheCategory,
-    output: Output.Type,
-  ) throws(NetworkError) -> (output: Output, cachedSince: Date?)? {
-    try getFromFixture(
-      request: request,
-      cacheCategory: cacheCategory,
-      output: output
+  func get<Response: Codable & Sendable>(
+    operation: NetworkOperation<Response>
+  ) async throws(NetworkError) -> NetworkResponse<Response> {
+    let result = try getFromFixture(
+      request: operation.urlRequestProvider(),
+      cacheCategory: operation.cacheCategory,
+      output: Response.self
+    )
+    return NetworkResponse(
+      decodedResponse: result.output,
+      cachedSince: result.cachedSince,
     )
   }
 
   private func getFromFixture<Output: Decodable & Sendable>(
     request: URLRequest,
     cacheCategory: URLCacheCategory,
-    output: Output.Type,
-  ) throws(NetworkError) -> (output: Output, cachedSince: Date?) {
+    output: Output.Type
+  ) throws(NetworkError) -> (
+    output: Output, cachedSince: Date?, response: URLResponse
+  ) {
     // enumerate handlers until one matches the response
     let data: Data
     let response: URLResponse
@@ -107,7 +117,7 @@ struct MockNetworkGateway: NetworkGateway {
     // output
     do {
       let output = try jsonDecoder.decode(Output.self, from: data)
-      return (output, Self.cachedSinceDate)
+      return (output, Self.cachedSinceDate, response)
     } catch {
       throw NetworkError.responseDecodingFailed(error: error, data: data)
     }

@@ -1,179 +1,117 @@
 import Foundation
 
 /// This extension contains rick and morty API access.
-extension NetworkGateway {
-  func getEndpoints(
+extension NetworkOperation {
+
+  static func endpoints(
     apiURL: URL,
-    cachePolicy: URLRequest.CachePolicy = .useProtocolCachePolicy
-  ) async throws(NetworkError) -> (
-    output: EndpointsDomainModel, cachedSince: Date?
-  ) {
-    let request = URLRequest(url: apiURL, cachePolicy: cachePolicy)
-    let output = try await get(
-      request: request,
+  ) -> Self where Response == EndpointsDomainModel {
+    .init(
       cacheCategory: .shared,
-      output: EndpointsDomainModel.self,
+      urlRequestProvider: { URLRequest(url: apiURL) }
     )
-    return output
   }
 
-  func getCachedEndpoints(
-    apiURL: URL,
-    cachePolicy: URLRequest.CachePolicy = .useProtocolCachePolicy
-  ) throws(NetworkError) -> (
-    output: EndpointsDomainModel, cachedSince: Date?
-  )? {
-    let request = URLRequest(url: apiURL, cachePolicy: cachePolicy)
-    let output = try getCached(
-      request: request,
-      cacheCategory: .shared,
-      output: EndpointsDomainModel.self,
-    )
-    return output
-  }
-
-  func getCharacter(
-    endpoints: EndpointsDomainModel,
-    id: CharacterID,
-    cachePolicy: URLRequest.CachePolicy = .useProtocolCachePolicy
-  ) async throws(NetworkError) -> (
-    output: CharacterDomainModel, cachedSince: Date?
-  ) {
-    let url = endpoints.characters.appendingPathComponent("\(id)")
-    return try await getCharacter(url: url, cachePolicy: cachePolicy)
-  }
-
-  func getCharacter(
+  static func character(
     url: URL,
-    cachePolicy: URLRequest.CachePolicy = .useProtocolCachePolicy
-  ) async throws(NetworkError) -> (
-    output: CharacterDomainModel, cachedSince: Date?
-  ) {
-    let request = URLRequest(url: url, cachePolicy: cachePolicy)
-    let output = try await get(
-      request: request,
+  ) -> Self where Response == CharacterDomainModel {
+    .init(
       cacheCategory: .characters,
-      output: CharacterDomainModel.self,
-    )
-    return output
-  }
-
-  func getCachedCharacter(
-    url: URL,
-    cachePolicy: URLRequest.CachePolicy = .useProtocolCachePolicy
-  ) throws(NetworkError) -> (
-    output: CharacterDomainModel, cachedSince: Date?
-  )? {
-    let request = URLRequest(url: url, cachePolicy: cachePolicy)
-    let output = try getCached(
-      request: request,
-      cacheCategory: .characters,
-      output: CharacterDomainModel.self,
-    )
-    return output
-  }
-
-  func getPageOfCharacters(
-    pageURL: URL,
-    cachePolicy: URLRequest.CachePolicy = .useProtocolCachePolicy
-  ) async throws(NetworkError) -> ResponsePageContainer<CharacterDomainModel> {
-    let request = URLRequest(url: pageURL, cachePolicy: cachePolicy)
-    let output = try await get(
-      request: request,
-      cacheCategory: .characters,
-      output: ResponsePagePayload<CharacterDomainModel>.self,
-    )
-    return ResponsePageContainer(
-      payload: output.output,
-      cachedSince: output.cachedSince,
-      pageURL: pageURL,
+      urlRequestProvider: { URLRequest(url: url) },
     )
   }
 
-  func getLocation(
-    endpoints: EndpointsDomainModel,
-    id: LocationID,
-    cachePolicy: URLRequest.CachePolicy = .useProtocolCachePolicy
-  ) async throws(NetworkError) -> (
-    output: LocationDomainModel, cachedSince: Date?
-  ) {
-    let url = endpoints.locations.appendingPathComponent("\(id)")
-    let request = URLRequest(url: url, cachePolicy: cachePolicy)
-    let output = try await get(
-      request: request,
-      cacheCategory: .locations,
-      output: LocationDomainModel.self,
-    )
-    return output
-  }
-
-  func getPageOfLocations(
-    pageURL: URL,
-    cachePolicy: URLRequest.CachePolicy = .useProtocolCachePolicy
-  ) async throws(NetworkError) -> ResponsePageContainer<LocationDomainModel> {
-    let request = URLRequest(url: pageURL, cachePolicy: cachePolicy)
-    let output = try await get(
-      request: request,
-      cacheCategory: .locations,
-      output: ResponsePagePayload<LocationDomainModel>.self,
-    )
-    return ResponsePageContainer(
-      payload: output.output,
-      cachedSince: output.cachedSince,
-      pageURL: pageURL,
-    )
-  }
-
-  func getEpisode(
+  static func character(
     endpoints: EndpointsDomainModel,
     id: EpisodeID,
-    cachePolicy: URLRequest.CachePolicy = .useProtocolCachePolicy
-  ) async throws(NetworkError) -> (
-    output: EpisodeDomainModel, cachedSince: Date?
-  ) {
+  ) -> Self where Response == CharacterDomainModel {
+    let url = endpoints.characters.appendingPathComponent("\(id)")
+    return character(url: url)
+  }
+
+  static func episode(
+    url: URL,
+  ) -> Self where Response == EpisodeDomainModel {
+    .init(
+      cacheCategory: .episodes,
+      urlRequestProvider: { URLRequest(url: url) },
+    )
+  }
+
+  static func episode(
+    endpoints: EndpointsDomainModel,
+    id: EpisodeID,
+  ) -> Self where Response == EpisodeDomainModel {
     let url = endpoints.episodes.appendingPathComponent("\(id)")
-    let request = URLRequest(url: url, cachePolicy: cachePolicy)
-    let output = try await get(
-      request: request,
-      cacheCategory: .episodes,
-      output: EpisodeDomainModel.self,
-    )
-    return output
+    return episode(url: url)
   }
 
-  func getPageOfEpisodes(
-    pageURL: URL,
-    cachePolicy: URLRequest.CachePolicy = .useProtocolCachePolicy
-  ) async throws(NetworkError) -> ResponsePageContainer<EpisodeDomainModel> {
-    let request = URLRequest(url: pageURL, cachePolicy: cachePolicy)
-    let output = try await get(
-      request: request,
-      cacheCategory: .episodes,
-      output: ResponsePagePayload<EpisodeDomainModel>.self,
+  static func location(
+    url: URL,
+  ) -> Self where Response == LocationDomainModel {
+    .init(
+      cacheCategory: .locations,
+      urlRequestProvider: { URLRequest(url: url) },
     )
-    return ResponsePageContainer(
-      payload: output.output,
-      cachedSince: output.cachedSince,
+  }
+
+  static func location(
+    endpoints: EndpointsDomainModel,
+    id: LocationID,
+  ) -> Self where Response == LocationDomainModel {
+    let url = endpoints.episodes.appendingPathComponent("\(id)")
+    return location(url: url)
+  }
+
+  static func pageOfCharacters(
+    pageURL: URL,
+  ) -> Self where Response == ResponsePageContainer<CharacterDomainModel> {
+    page(
+      element: CharacterDomainModel.self,
       pageURL: pageURL,
+      cacheCategory: .characters
     )
   }
 
-  func getPageOfCachedEpisodes(
+  static func pageOfEpisodes(
     pageURL: URL,
-    cachePolicy: URLRequest.CachePolicy = .useProtocolCachePolicy
-  ) throws(NetworkError) -> ResponsePageContainer<EpisodeDomainModel>? {
-    let request = URLRequest(url: pageURL, cachePolicy: cachePolicy)
-    guard
-      let output = try getCached(
-        request: request,
-        cacheCategory: .episodes,
-        output: ResponsePagePayload<EpisodeDomainModel>.self,
+  ) -> Self where Response == ResponsePageContainer<EpisodeDomainModel> {
+    page(
+      element: EpisodeDomainModel.self,
+      pageURL: pageURL,
+      cacheCategory: .episodes
+    )
+  }
+
+  static func pageOfLocations(
+    pageURL: URL,
+  ) -> Self where Response == ResponsePageContainer<LocationDomainModel> {
+    page(
+      element: LocationDomainModel.self,
+      pageURL: pageURL,
+      cacheCategory: .locations
+    )
+  }
+
+  private static func page<Element: Sendable & Codable & Equatable>(
+    element: Element.Type = Element.self,
+    pageURL: URL,
+    cacheCategory: URLCacheCategory
+  ) -> Self where Response == ResponsePageContainer<Element> {
+    .init(
+      cacheCategory: cacheCategory,
+      urlRequestProvider: { URLRequest(url: pageURL) },
+      decodeResponse: Self.convertingDecoder(
+        response: Response.self,
+        intermediateProduct: ResponsePagePayload<Element>.self,
+        convert: { response, _ in
+          ResponsePageContainer(
+            payload: response.decodedResponse,
+            cachedSince: response.cachedSince,
+            pageURL: pageURL,
+          )
+        }
       )
-    else { return nil }
-    return ResponsePageContainer(
-      payload: output.output,
-      cachedSince: output.cachedSince,
-      pageURL: pageURL,
     )
   }
 }

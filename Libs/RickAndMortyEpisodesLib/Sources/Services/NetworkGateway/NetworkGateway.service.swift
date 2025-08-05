@@ -3,17 +3,13 @@ import Foundation
 
 /// Network gateway is an entry point into network.
 protocol NetworkGateway: Sendable {
-  func getCached<Output: Decodable & Sendable>(
-    request: URLRequest,
-    cacheCategory: URLCacheCategory,
-    output: Output.Type,
-  ) throws(NetworkError) -> (output: Output, cachedSince: Date?)?
+  func getCached<Response: Codable & Sendable>(
+    operation: NetworkOperation<Response>
+  ) throws(NetworkError) -> NetworkResponse<Response>?
 
-  func get<Output: Decodable & Sendable>(
-    request: URLRequest,
-    cacheCategory: URLCacheCategory,
-    output: Output.Type,
-  ) async throws(NetworkError) -> (output: Output, cachedSince: Date?)
+  func get<Response: Codable & Sendable>(
+    operation: NetworkOperation<Response>
+  ) async throws(NetworkError) -> NetworkResponse<Response>
 }
 
 /// Errors that ``NetworkGateway`` throws.
@@ -41,4 +37,60 @@ enum NetworkError: Error, CustomDebugStringConvertible {
         "NetworkError.responseDecodingFailed(error: \(error), data: \(dataDesc))"
     }
   }
+}
+
+struct NetworkOperation<Response: Codable & Sendable> {
+  typealias DecoderBlock = @Sendable (
+    NetworkResponse<URLResponse>,
+    Data,
+    JSONDecoder
+  ) throws -> NetworkResponse<Response>
+  var cacheCategory: URLCacheCategory
+  var urlRequestProvider: @Sendable () -> URLRequest
+  var decodeResponse: DecoderBlock = Self.basicDecoder()
+
+  static func basicDecoder(
+    response: Response.Type = Response.self
+  ) -> DecoderBlock {
+    return { response, data, jsonDecoder in
+      let decodedResponse = try jsonDecoder.decode(Response.self, from: data)
+      return NetworkResponse(
+        decodedResponse: decodedResponse,
+        cachedSince: response.cachedSince,
+      )
+    }
+  }
+
+  static func convertingDecoder<
+    IntermediateProduct: Codable & Sendable
+  >(
+    response: Response.Type = Response.self,
+    intermediateProduct: IntermediateProduct.Type = IntermediateProduct.self,
+    convert: @escaping @Sendable (
+      NetworkResponse<IntermediateProduct>,
+      JSONDecoder
+    ) throws -> Response
+  ) -> DecoderBlock {
+    return { response, data, jsonDecoder in
+      let decodedResponse = try jsonDecoder.decode(
+        IntermediateProduct.self,
+        from: data
+      )
+      let intermediateResponse = NetworkResponse<IntermediateProduct>(
+        decodedResponse: decodedResponse,
+        cachedSince: response.cachedSince,
+      )
+
+      let finalResponse = try convert(intermediateResponse, jsonDecoder)
+      return NetworkResponse<Response>(
+        decodedResponse: finalResponse,
+        cachedSince: intermediateResponse.cachedSince,
+      )
+    }
+  }
+}
+
+struct NetworkResponse<Response: Sendable> {
+  var decodedResponse: Response
+  var cachedSince: Date?
 }

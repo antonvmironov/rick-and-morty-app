@@ -31,52 +31,62 @@ final class ProdNetworkGateway: NetworkGateway {
     self.jsonEncoder = Transformers.jsonEncoder()
   }
 
-  func getCached<Output: Decodable & Sendable>(
-    request: URLRequest,
-    cacheCategory: URLCacheCategory,
-    output: Output.Type,
-  ) throws(NetworkError) -> (output: Output, cachedSince: Date?)? {
+  func getCached<Response: Codable & Sendable>(
+    operation: NetworkOperation<Response>
+  ) throws(NetworkError) -> NetworkResponse<Response>? {
+    let urlRequest = operation.urlRequestProvider()
     guard
       let cachedResponse = getCachedResponse(
-        request: request,
-        cacheCategory: cacheCategory,
-        output: output
+        request: urlRequest,
+        cacheCategory: operation.cacheCategory,
+        output: Response.self
       )
     else { return nil }
-    let (_, data, cachedSince) = cachedResponse
-    let output = try decodeResponse(data: data, output: output)
-    return (output, cachedSince)
+    let (urlResponse, data, cachedSince) = cachedResponse
+    let networkResponse = NetworkResponse<URLResponse>(
+      decodedResponse: urlResponse,
+      cachedSince: cachedSince,
+    )
+    let decodedResponse: NetworkResponse<Response> = try Result {
+      return try operation.decodeResponse(networkResponse, data, jsonDecoder)
+    }
+    .mapError { NetworkError.responseDecodingFailed(error: $0, data: data) }
+    .get()
+    return decodedResponse
   }
 
-  func get<Output: Decodable & Sendable>(
-    request: URLRequest,
-    cacheCategory: URLCacheCategory,
-    output: Output.Type,
-  ) async throws(NetworkError) -> (output: Output, cachedSince: Date?) {
-    if let cachedResponse = try getCached(
-      request: request,
-      cacheCategory: cacheCategory,
-      output: output
-    ) {
+  func get<Response: Codable & Sendable>(
+    operation: NetworkOperation<Response>
+  ) async throws(NetworkError) -> NetworkResponse<Response> {
+    if let cachedResponse = try getCached(operation: operation) {
       return cachedResponse
-    } else {
-      let (data, response) = try await Result { [urlSession] in
-        try await urlSession.data(for: request)
-      }
-      .mapError(NetworkError.networkFailure)
-      .get()
-      let cachedSince = getCurrentDate()
-      try checkAndCache(
-        request: request,
-        cacheCategory: cacheCategory,
-        response: response,
-        data: data,
-        cachedSince: cachedSince
-      )
-
-      let output = try decodeResponse(data: data, output: output)
-      return (output, cachedSince)
     }
+
+    let urlRequest = operation.urlRequestProvider()
+    let (data, urlResponse) = try await Result { [urlSession] in
+      try await urlSession.data(for: urlRequest)
+    }
+    .mapError(NetworkError.networkFailure)
+    .get()
+    let cachedSince = getCurrentDate()
+    try checkAndCache(
+      request: urlRequest,
+      cacheCategory: operation.cacheCategory,
+      response: urlResponse,
+      data: data,
+      cachedSince: cachedSince
+    )
+
+    let networkResponse = NetworkResponse<URLResponse>(
+      decodedResponse: urlResponse,
+      cachedSince: cachedSince,
+    )
+    let decodedResponse: NetworkResponse<Response> = try Result {
+      return try operation.decodeResponse(networkResponse, data, jsonDecoder)
+    }
+    .mapError { NetworkError.responseDecodingFailed(error: $0, data: data) }
+    .get()
+    return decodedResponse
   }
 
   private func getCurrentDate() -> Date {
@@ -97,17 +107,6 @@ final class ProdNetworkGateway: NetworkGateway {
     let data = cachedResponse.data
     let response = cachedResponse.response
     return (response, data, cachedSince)
-  }
-
-  private func decodeResponse<Output: Decodable & Sendable>(
-    data: Data,
-    output: Output.Type
-  ) throws(NetworkError) -> Output {
-    do {
-      return try jsonDecoder.decode(output, from: data)
-    } catch {
-      throw NetworkError.responseDecodingFailed(error: error, data: data)
-    }
   }
 
   private func checkAndCache(
