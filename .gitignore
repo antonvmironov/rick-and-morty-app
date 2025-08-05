@@ -76,4 +76,4 @@ record_demo_compiler.log
 record_demo_ffmpeg_convert_video.log
 record_demo_ffmpeg_get_thumbnail.log
 test_compiler.log
-TestResults.log
+TestResults.xcresult
