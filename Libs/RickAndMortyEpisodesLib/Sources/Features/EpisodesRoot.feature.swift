@@ -9,17 +9,13 @@ enum EpisodesRootFeature: Feature {
   typealias PaginationFeature = ContinuousPaginationFeature<URL, Item>
   typealias ListItemFeature = EpisodeBriefFeature
 
-  enum AX {
-
-  }
-
   @MainActor
   static func previewStore(
     dependencies: Dependencies
   ) -> FeatureStore {
     let initialState = FeatureState(
       pagination: .initial(
-        firstInput: MockNetworkGateway.episodeFirstPageAPIURL
+        firstInput: MockNetworkGateway.episodesFirstPageAPIURL
       )
     )
     return FeatureStore(
@@ -48,7 +44,6 @@ enum EpisodesRootFeature: Feature {
             action: \.selectedEpisodeDetails
           ) {
             EpisodeDetailsFeature.FeatureView(store: nestedStore)
-              .storeActions(isEnabled: store.isPresentingEpisodeDetails)
           } else {
             Text("Try again later")
           }

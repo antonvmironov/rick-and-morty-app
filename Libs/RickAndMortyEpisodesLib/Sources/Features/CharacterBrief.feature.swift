@@ -23,9 +23,6 @@ enum CharacterBriefFeature: Feature {
     @Bindable
     var store: FeatureStore
 
-    @Environment(\.canSendActions)
-    var canSendActions: Bool
-
     init(store: FeatureStore) {
       self.store = store
     }
@@ -33,9 +30,7 @@ enum CharacterBriefFeature: Feature {
     var body: some View {
       characterContentView(character: store.displayCharacter)
         .onAppear {
-          if canSendActions {
-            store.send(.preloadIfNeeded)
-          }
+          store.send(.preloadIfNeeded)
         }
     }
 

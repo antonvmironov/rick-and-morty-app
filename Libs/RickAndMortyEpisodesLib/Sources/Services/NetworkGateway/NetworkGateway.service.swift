@@ -32,14 +32,24 @@ enum NetworkError: Error, CustomDebugStringConvertible {
       return "NetworkError.networkFailure: \(error)"
     case .unprocessedStatusCode(let statusCode, let data):
       let dataDesc = String(data: data, encoding: .utf8) ?? "<binary data>"
-      return
-        "NetworkError.unprocessedStatusCode(statusCode: \(statusCode), data: \(dataDesc))"
+      return """
+          NetworkError.unprocessedStatusCode
+          StatusCode:
+            \(statusCode)
+          Data:
+            \(dataDesc)
+        """
     case .responseDecodingFailed(let error, let data):
       let dataDesc =
         data.map { String(data: $0, encoding: .utf8) ?? "<binary data>" }
         ?? "nil"
-      return
-        "NetworkError.responseDecodingFailed(error: \(error), data: \(dataDesc))"
+      return """
+          NetworkError.responseDecodingFailed
+          Error:
+            \(error)
+          Data:
+            \(dataDesc)
+        """
     }
   }
 }

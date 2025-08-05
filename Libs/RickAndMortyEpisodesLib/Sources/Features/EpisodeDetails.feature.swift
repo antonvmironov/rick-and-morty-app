@@ -35,9 +35,6 @@ enum EpisodeDetailsFeature: Feature {
     @Bindable
     var store: FeatureStore
 
-    @Environment(\.canSendActions)
-    var canSendActions: Bool
-
     init(store: FeatureStore) {
       self.store = store
     }
@@ -57,9 +54,7 @@ enum EpisodeDetailsFeature: Feature {
       .listStyle(.plain)
       .navigationTitle(store.episode.name)
       .onAppear {
-        if canSendActions {
-          store.send(.preloadIfNeeded)
-        }
+        store.send(.preloadIfNeeded)
       }
       .navigationDestination(
         isPresented: $store.isCharacterDetailsPresented

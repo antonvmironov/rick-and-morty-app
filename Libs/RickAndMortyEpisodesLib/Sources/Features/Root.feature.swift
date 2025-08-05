@@ -257,10 +257,12 @@ public enum RootFeature {
 
 #Preview {
   @Previewable let dependencies = Dependencies.preview()
-  RootFeature
-    .rootView(
-      apiURL: MockNetworkGateway.exampleAPIURL,
-      dependencies: dependencies
-    )
-    .navigationTitle("Test Episode List")
+  NavigationStack {
+    RootFeature
+      .rootView(
+        apiURL: MockNetworkGateway.exampleAPIURL,
+        dependencies: dependencies
+      )
+      .navigationTitle("Test Episode List")
+  }
 }
