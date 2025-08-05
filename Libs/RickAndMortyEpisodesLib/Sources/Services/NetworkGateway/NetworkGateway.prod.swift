@@ -65,7 +65,9 @@ final class ProdNetworkGateway: NetworkGateway {
     operation: NetworkOperation<Response>,
     validateCachedResponse: (NetworkResponse<Response>) -> Bool
   ) async throws(NetworkError) -> NetworkResponse<Response> {
-    if let cachedResponse = try getCached(operation: operation) {
+    if let cachedResponse = try getCached(operation: operation),
+      validateCachedResponse(cachedResponse)
+    {
       return cachedResponse
     }
 
