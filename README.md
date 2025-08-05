@@ -2,11 +2,7 @@
 
 A demo app that fetches, caches and displays "Rick and Morty" episodes metadata from a public API.
 
-## 🧭 Navigation
-- [demo](#demo)
-- [dev setup](#development-environment-setup)
-- [assignement](./assignment.md)
-- [system design](./system_design.md)
+See the [assignement](./assignment.md) and [system design](./system_design.md).
 
 ## 🚀 Demo
 
