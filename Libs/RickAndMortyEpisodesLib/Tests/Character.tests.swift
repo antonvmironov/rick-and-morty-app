@@ -275,5 +275,3 @@ func CharacterDomainModel_dummy_basic_test() {
     "Dummy character should have at least one episode"
   )
 }
-
-// MARK: - fixtures

@@ -16,7 +16,7 @@
 2. [x] Add test for invalid URL in `Character`
 3. [x] Add property-based/fuzz test for `Character`
 4. [x] Add test for `CharacterLocation` initializer
-5. [ ] Add basic test for static `.dummy` property of `Character`
+5. [x] Add basic test for static `.dummy` property of `Character`
 
 ## CharacterSpecies.tests.swift
 6. [ ] Add decoding failure test for invalid species string
