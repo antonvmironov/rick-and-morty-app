@@ -3,6 +3,7 @@
 
 > Use this numbered checklist to prompt GitHub Copilot or any AI assistant step-by-step.
 > Mark each item as `[x]` when completed.
+> **After performing each step, run the tests and make sure all tests are green before proceeding to the next item.**
 
 ---
 
