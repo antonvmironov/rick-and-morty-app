@@ -251,6 +251,22 @@ func CharacterDomainModel_decodes_fixture_correctly() throws {
   )
 }
 
+@Test("CharacterDomainModel .dummy loads and exposes basic fields")
+func CharacterDomainModel_dummy_basic_test() {
+  let dummy = CharacterDomainModel.dummy
+  // Just check basic fields are non-empty and types are correct
+  #expect(!dummy.name.isEmpty, "Dummy character name should not be empty")
+  #expect(type(of: dummy) == CharacterDomainModel.self)
+  #expect(
+    dummy.image.absoluteString.count > 0,
+    "Dummy character image URL should not be empty"
+  )
+  #expect(
+    dummy.episode.count > 0,
+    "Dummy character should have at least one episode"
+  )
+}
+
 // MARK: - fixtures
 
 private let rickID = 1

@@ -14,8 +14,8 @@
 ## Character.tests.swift
 1. [x] Add decoding failure test to `Character`
 2. [x] Add test for invalid URL in `Character`
-3. [ ] Add property-based/fuzz test for `Character`
-4. [ ] Add test for `CharacterLocation` initializer
+3. [x] Add property-based/fuzz test for `Character`
+4. [x] Add test for `CharacterLocation` initializer
 5. [ ] Add basic test for static `.dummy` property of `Character`
 
 ## CharacterSpecies.tests.swift
