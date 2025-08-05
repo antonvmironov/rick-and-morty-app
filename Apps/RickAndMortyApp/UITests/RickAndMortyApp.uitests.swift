@@ -12,9 +12,8 @@ import XCUIAutomation
 
 @MainActor
 final class RickAndMortyAppUITests: XCTestCase {
-  let app = XCUIApplication()
-
   func testDemo() async {
+    let app = XCUIApplication()
     app.launch()
 
     app.waitForScreen(title: "Episode List")
@@ -38,6 +37,7 @@ final class RickAndMortyAppUITests: XCTestCase {
   }
 
   func testToSettingsAndBack() async {
+    let app = XCUIApplication()
     app.launch()
 
     app.waitForScreen(title: "Episode List")

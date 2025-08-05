@@ -27,7 +27,7 @@ public final class Dependencies: Sendable {
     let networkGateway =
       ProdNetworkGateway
       .build(urlCacheFactory: urlCacheFactory)
-    let backgroundRefresher = BackgroundRefresher(
+    let backgroundRefresher = ProdBackgroundRefresher(
       networkGateway: networkGateway
     )
     let dependencies = Dependencies(
@@ -46,7 +46,7 @@ public final class Dependencies: Sendable {
       networkGateway: networkGateway,
       imageManager: .shared,
       urlCacheFactory: URLCacheFactory(),
-      backgroundRefresher: BackgroundRefresher(networkGateway: networkGateway)
+      backgroundRefresher: MockBackgroundRefresher()
     )
   }
 
@@ -70,7 +70,7 @@ extension URLCacheFactory: DependencyKey {
   static var liveValue: URLCacheFactory { fatalError("unavailable") }
 }
 
-extension BackgroundRefresher: DependencyKey {
+enum BackgroundRefresherKey: DependencyKey {
   static var liveValue: BackgroundRefresher { fatalError("unavailable") }
 }
 
@@ -88,7 +88,7 @@ extension DependencyValues {
     set { self[URLCacheFactory.self] = newValue }
   }
   var backgroundRefresher: BackgroundRefresher {
-    get { self[BackgroundRefresher.self] }
-    set { self[BackgroundRefresher.self] = newValue }
+    get { self[BackgroundRefresherKey.self] }
+    set { self[BackgroundRefresherKey.self] = newValue }
   }
 }

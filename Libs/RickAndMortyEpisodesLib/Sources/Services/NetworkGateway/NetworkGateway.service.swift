@@ -10,6 +10,11 @@ protocol NetworkGateway: Sendable {
   func get<Response: Codable & Sendable>(
     operation: NetworkOperation<Response>
   ) async throws(NetworkError) -> NetworkResponse<Response>
+
+  @discardableResult
+  func refresh<Response: Codable & Sendable>(
+    operation: NetworkOperation<Response>
+  ) async throws(NetworkError) -> NetworkResponse<Response>
 }
 
 /// Errors that ``NetworkGateway`` throws.
