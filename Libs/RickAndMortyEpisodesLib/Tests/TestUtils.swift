@@ -1,4 +1,5 @@
 import Foundation
+import SharedLib
 import Testing
 
 @testable import RickAndMortyEpisodesLib
@@ -8,9 +9,9 @@ enum TestUtils {
     _ value: T,
     sourceLocation: SourceLocation = #_sourceLocation,
   ) throws {
-    let encoder = JSONEncoder()
+    let encoder = Transformers.jsonEncoder()
     let data = try encoder.encode(value)
-    let decoder = JSONDecoder()
+    let decoder = Transformers.jsonDecoder()
     let decoded = try decoder.decode(T.self, from: data)
     #expect(
       decoded == value,
@@ -34,4 +35,8 @@ enum TestUtils {
       )
     }
   }
+}
+
+extension StringProtocol {
+  var utf8Data: Data { Data(utf8) }
 }
