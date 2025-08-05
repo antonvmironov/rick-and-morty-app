@@ -59,7 +59,7 @@ extension NetworkOperation {
     endpoints: EndpointsDomainModel,
     id: LocationID,
   ) -> Self where Response == LocationDomainModel {
-    let url = endpoints.episodes.appendingPathComponent("\(id)")
+    let url = endpoints.locations.appendingPathComponent("\(id)")
     return location(url: url)
   }
 
