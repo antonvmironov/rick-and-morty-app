@@ -19,7 +19,10 @@ TEST_TARGET = "RickAndMortyAppUITests"
 TEST_NAME = "RickAndMortyAppUITests/testDemo"
 RAW_VIDEO_PATH = "record_demo_raw_video.mp4"
 FINAL_VIDEO_PATH = "record_demo_final_video.mp4"
-LOG_PATH = "record_demo_compiler.log"
+FINAL_THUMBNAIL_PATH = "record_demo_final_thumbnail.png"
+COMPILER_LOG_PATH = "record_demo_compiler.log"
+FFMPEG_CONVERT_VIDEO_LOG_PATH = "record_demo_ffmpeg_convert_video.log"
+FFMPEG_GET_THUMBNAIL_LOG_PATH = "record_demo_ffmpeg_get_thumbnail.log"
 SIMCTL = "xcrun simctl"
 XCODEBUILD = "xcodebuild"
 
@@ -72,8 +75,8 @@ def start_recording_step():
 
 def run_ui_test_step():
     # Redirect xcodebuild output to record_demo_compiler.log
-    log_file = open(LOG_PATH, "w")
-    print(f"🧪\tRun UI Test (output redirected to {LOG_PATH})")
+    log_file = open(COMPILER_LOG_PATH, "w")
+    print(f"🧪\tRun UI Test (output redirected to {COMPILER_LOG_PATH})")
     cmd = [
         XCODEBUILD,
         "test",
@@ -87,10 +90,10 @@ def run_ui_test_step():
     elapsed = time.time() - start
     log_file.close()
     if result.returncode != 0:
-        print(f"\t❌\tStep failed: Run UI Test (see {LOG_PATH})")
+        print(f"\t❌\tStep failed: Run UI Test (see {COMPILER_LOG_PATH})")
         exit(result.returncode)
     else:
-        print(f"\t✅\tStep completed: Run UI Test (took {elapsed:.2f} seconds, see {LOG_PATH})")
+        print(f"\t✅\tStep completed: Run UI Test (took {elapsed:.2f} seconds, see {COMPILER_LOG_PATH})")
 
 def stop_recording_step(proc):
     print("🛑\tStopping screen recording...")
@@ -101,6 +104,7 @@ def stop_recording_step(proc):
     print(f"\t✅\tScreen recording stopped (took {elapsed:.2f} seconds)")
 
 def convert_and_trim_video_step():
+
     print("🎬\tConverting and trimming video with ffmpeg...")
     # Get video duration
     probe_cmd = [
@@ -114,37 +118,66 @@ def convert_and_trim_video_step():
         print(f"⚠️\tCould not get video duration: {e}")
     if duration is None or duration < 8:
         print(f"⚠️\tVideo duration too short to trim. Skipping trim.")
-        trim_args = []
+        trim_args = [
+            "-i", RAW_VIDEO_PATH,
+        ]
     else:
         # Trim first 7 seconds and last 1 second
         start_trim = 7
         end_trim = duration - 1 - start_trim
-        trim_args = ["-ss", str(start_trim), "-t", str(end_trim)]
+        trim_args = [
+            "-ss", str(start_trim),
+            "-i", RAW_VIDEO_PATH,
+            "-t", str(end_trim)
+        ]
+
     ffmpeg_cmd = [
         "ffmpeg",
         "-y",
         *trim_args,
-        "-i", RAW_VIDEO_PATH,
         "-an",  # Remove audio
         "-vf", "scale=-2:1024",
         "-c:v", "libx264",  # Explicitly use H.264
         "-preset", "fast",
         "-crf", "23",
+        "-avoid_negative_ts", "make_zero",
         FINAL_VIDEO_PATH
     ]
     print(f"🎬\tRunning: {' '.join(ffmpeg_cmd)}")
-    start = time.time()
-    result = subprocess.run(ffmpeg_cmd)
-    elapsed = time.time() - start
+    with open(FFMPEG_CONVERT_VIDEO_LOG_PATH, "w") as ffmpeg_log_file:
+        start = time.time()
+        result = subprocess.run(ffmpeg_cmd, stdout=ffmpeg_log_file, stderr=subprocess.STDOUT)
+        elapsed = time.time() - start
     if result.returncode != 0:
-        print(f"\t❌\tStep failed: ffmpeg convert/trim")
+        print(f"\t❌\tStep failed: ffmpeg convert/trim (see {FFMPEG_CONVERT_VIDEO_LOG_PATH})")
         exit(result.returncode)
     else:
-        print(f"\t✅\tStep completed: ffmpeg convert/trim (took {elapsed:.2f} seconds)")
+        print(f"\t✅\tStep completed: ffmpeg convert/trim (took {elapsed:.2f} seconds, see {FFMPEG_CONVERT_VIDEO_LOG_PATH})")
+
+    # Extract thumbnail at 14th second
+    print("🖼️\tExtracting thumbnail at 14th second...")
+    thumbnail_cmd = [
+        "ffmpeg",
+        "-y",
+        "-ss", "13",
+        "-i", FINAL_VIDEO_PATH,
+        "-vframes", "1",
+        FINAL_THUMBNAIL_PATH
+    ]
+    print(f"🖼️\tRunning: {' '.join(thumbnail_cmd)}")
+    with open(FFMPEG_GET_THUMBNAIL_LOG_PATH, "w") as thumbnail_log_file:
+        start = time.time()
+        result = subprocess.run(thumbnail_cmd, stdout=thumbnail_log_file, stderr=subprocess.STDOUT)
+        elapsed = time.time() - start
+    if result.returncode != 0:
+        print(f"\t❌\tStep failed: ffmpeg thumbnail extract (see {FFMPEG_GET_THUMBNAIL_LOG_PATH})")
+        exit(result.returncode)
+    else:
+        print(f"\t✅\tStep completed: ffmpeg thumbnail extract (took {elapsed:.2f} seconds, see {FFMPEG_GET_THUMBNAIL_LOG_PATH})")
 
 def main():
     # Cleanup previous outputs
-    for path in [RAW_VIDEO_PATH, FINAL_VIDEO_PATH, LOG_PATH]:
+    for path in [RAW_VIDEO_PATH, FINAL_VIDEO_PATH, COMPILER_LOG_PATH, FFMPEG_CONVERT_VIDEO_LOG_PATH, FFMPEG_GET_THUMBNAIL_LOG_PATH]:
         if os.path.exists(path):
             try:
                 os.remove(path)

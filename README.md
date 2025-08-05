@@ -10,6 +10,8 @@ A demo app. See [the assignement](./assignment.md) and [system design](./system_
 
 ## 🚀 Demo
 
+[![Watch the demo](record_demo_final_thumbnail.png)](record_demo_final_video.mp4)
+
 *TBD include screenshots and screen recordings from the app.*
 
 ## 🛠️ Development Environment Setup
