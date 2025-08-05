@@ -61,11 +61,15 @@ actor ProdBackgroundRefresher: BackgroundRefresher {
     )
     do {
       try scheduler.submit(taskRequest)
+      print("Scheduled background task \(backgroundTaskID)")
     } catch {
-      print("[ERROR] failed to schedule a task \(error)")
+      print(
+        """
+          [ERROR] failed to schedule a task \(backgroundTaskID).
+          Error: \(error)
+        """
+      )
     }
-
-    print("Scheduled background task \(backgroundTaskID)")
   }
 
   nonisolated private func handle(task: BGTask) {

@@ -102,9 +102,8 @@ final class ProdNetworkGateway: NetworkGateway {
     operation: NetworkOperation<Response>
   ) async throws(NetworkError) -> NetworkResponse<Response> {
     try await get(operation: operation) {
-      let timeIntervalAgo = ($0.cachedSince ?? .distantPast).timeIntervalSince(
-        getCurrentDate()
-      )
+      let timeIntervalAgo = getCurrentDate()
+        .timeIntervalSince($0.cachedSince ?? .distantPast)
       return timeIntervalAgo < Self.minRefreshInterval
     }
   }
