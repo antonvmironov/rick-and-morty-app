@@ -88,7 +88,7 @@ def run_ui_test_step():
         "-only-testing:" + f"{TEST_TARGET}/{TEST_NAME}"
     ]
     start = time.time()
-    result = subprocess.run(cmd, cwd=os.getcwd(), stdout=log_file, stderr=subprocess.STDOUT)
+    result = subprocess.run(cmd, stdout=log_file, stderr=subprocess.STDOUT)
     elapsed = time.time() - start
     log_file.close()
     if result.returncode != 0:

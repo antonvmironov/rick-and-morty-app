@@ -7,12 +7,9 @@ import os
 import subprocess
 from pathlib import Path
 
-
 EXCLUDE_DIRS = ['build', '.build']
 SWIFT_FORMAT_CMD = 'swift-format'
 LINT_ARGS = ['format', '--in-place']
-
-
 
 def find_swift_files_step(root_dir):
     import time
