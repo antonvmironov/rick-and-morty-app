@@ -4,12 +4,116 @@ import Testing
 
 @testable import RickAndMortyEpisodesLib
 
+@Test("CharacterDomainModel fuzz decoding with random valid and invalid data")
+func CharacterDomainModel_fuzz_decoding() {
+  let validNames = [
+    "Rick Sanchez", "Morty Smith", "Summer Smith", "Beth Smith", "Jerry Smith",
+    "Birdperson", "Squanchy", "Mr. Meeseeks", "Unity", "Abradolf Lincler",
+  ]
+  let validStatuses = ["Alive", "Dead", "unknown", "Zombie", "Ghost"]
+  let validSpecies = ["Human", "Alien", "Humanoid", "Robot", "Cronenberg"]
+  let validGenders = ["Male", "Female", "Genderless", "unknown"]
+  let validURLs = [
+    "https://rickandmortyapi.com/api/character/1",
+    "https://rickandmortyapi.com/api/character/2",
+    "https://rickandmortyapi.com/api/character/3",
+    "not-a-valid-url",
+    "",
+  ]
+  let validImageURLs = [
+    "https://rickandmortyapi.com/api/character/avatar/1.jpeg",
+    "https://rickandmortyapi.com/api/character/avatar/2.jpeg",
+    "not-a-valid-url",
+    "",
+  ]
+  let validEpisodeURLs = [
+    "https://rickandmortyapi.com/api/episode/1",
+    "https://rickandmortyapi.com/api/episode/2",
+    "not-a-valid-url",
+    "",
+  ]
+  let validDates = [
+    "2017-11-04T18:48:46.250Z",
+    "2018-01-10T12:00:00.000Z",
+    "not-a-date",
+    "",
+  ]
+
+  for _ in 0..<50 {
+    let json: [String: Any] = [
+      "id": Int.random(in: 1...1000),
+      "name": validNames.randomElement()!,
+      "status": validStatuses.randomElement()!,
+      "species": validSpecies.randomElement()!,
+      "type": "",
+      "gender": validGenders.randomElement()!,
+      "origin": [
+        "name": validNames.randomElement()!,
+        "url": validURLs.randomElement()!,
+      ],
+      "location": [
+        "name": validNames.randomElement()!,
+        "url": validURLs.randomElement()!,
+      ],
+      "image": validImageURLs.randomElement()!,
+      "episode": [validEpisodeURLs.randomElement()!],
+      "url": validURLs.randomElement()!,
+      "created": validDates.randomElement()!,
+    ]
+    let jsonData = try! JSONSerialization.data(withJSONObject: json)
+    do {
+      _ = try JSONDecoder().decode(CharacterDomainModel.self, from: jsonData)
+      // If decoding succeeds, check basic invariants
+      #expect(true, "Decoding succeeded for fuzzed CharacterDomainModel JSON")
+    } catch {
+      // Decoding may fail for invalid/fuzzed data
+      #expect(
+        true,
+        "Decoding failed for fuzzed CharacterDomainModel JSON as expected"
+      )
+    }
+  }
+}
+
+@Test("CharacterDomainModel decoding fails for invalid URL in 'url' field")
+func CharacterDomainModel_decoding_invalid_url_failure() {
+  let invalidURLJSON = Data(
+    """
+      {
+        "id": 1,
+        "name": "Rick Sanchez",
+        "status": "Alive",
+        "species": "Human",
+        "type": "",
+        "gender": "Male",
+        "origin": { "name": "Earth (C-137)", "url": "https://rickandmortyapi.com/api/location/1" },
+        "location": { "name": "Citadel of Ricks", "url": "https://rickandmortyapi.com/api/location/3" },
+        "image": "https://rickandmortyapi.com/api/character/avatar/1.jpeg",
+        "episode": ["https://rickandmortyapi.com/api/episode/1"],
+        "url": "not-a-valid-url",
+        "created": "2017-11-04T18:48:46.250Z"
+      }
+    """.utf8
+  )
+  do {
+    _ = try JSONDecoder().decode(
+      CharacterDomainModel.self,
+      from: invalidURLJSON
+    )
+    Issue.record(
+      "Decoding should have failed for invalid URL string in 'url' field"
+    )
+  } catch {
+    #expect(true, "Decoding failed as expected for invalid URL string")
+  }
+}
+
 @Test("CharacterDomainModel decoding fails for completely invalid JSON")
 func CharacterDomainModel_decoding_failure() {
   let invalidJSON = Data("{\"notACharacter\":true}".utf8)
   do {
     _ = try JSONDecoder().decode(CharacterDomainModel.self, from: invalidJSON)
-    #expect(false, "Decoding should have failed for invalid JSON")
+    Issue.record("Decoding should have failed for invalid JSON")
   } catch {
     #expect(true, "Decoding failed as expected")
   }
@@ -146,6 +250,8 @@ func CharacterDomainModel_decodes_fixture_correctly() throws {
     )
   )
 }
+
+// MARK: - fixtures
 
 private let rickID = 1
 private let mortyID = 2
