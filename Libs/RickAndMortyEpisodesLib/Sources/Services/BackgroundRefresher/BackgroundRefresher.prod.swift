@@ -16,6 +16,22 @@ actor ProdBackgroundRefresher: BackgroundRefresher {
     self.backgroundTaskID = "\(bundleID).refresh"
   }
 
+  func simulateSending() {
+    #if DEBUG
+      let selector = NSSelectorFromString(
+        "_simulateLaunchForTaskWithIdentifier:"
+      )
+      let schedulerObj = scheduler as AnyObject
+      if schedulerObj.responds(to: selector) {
+        _ = schedulerObj.perform(selector, with: backgroundTaskID)
+      } else {
+        print(
+          "[ERROR] BGTaskScheduler does not respond to _simulateLaunchForTaskWithIdentifier:"
+        )
+      }
+    #endif
+  }
+
   func register() {
     scheduler.register(
       forTaskWithIdentifier: backgroundTaskID,

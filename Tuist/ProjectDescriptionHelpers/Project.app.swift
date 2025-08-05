@@ -11,6 +11,7 @@ extension Project {
     var targets = [Target]()
 
     do {  // app target declaration
+      let bundleId = appBundleID(name: name)
       let infoPlist: [String: Plist.Value] = [
         "CFBundleShortVersionString": "2025.08.05",
         "CFBundleVersion": "1",
@@ -19,6 +20,9 @@ extension Project {
           "UIInterfaceOrientationPortrait"
         ],
         "UIBackgroundModes": ["fetch"],
+        "BGTaskSchedulerPermittedIdentifiers": [
+          "\(bundleId).refresh"
+        ],
         "UILaunchScreen": [
           "UIColorName": "Background",
           "UIImageName": "logo.png",
@@ -30,7 +34,7 @@ extension Project {
         name: name,
         destinations: destinations,
         product: .app,
-        bundleId: appBundleID(name: name),
+        bundleId: bundleId,
         infoPlist: .extendingDefault(with: infoPlist),
         sources: ["Sources/**"],
         resources: ["Resources/**"],

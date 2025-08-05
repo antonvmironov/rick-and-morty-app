@@ -10,4 +10,5 @@ protocol BackgroundRefresher: Sendable {
     operation: NetworkOperation<Response>,
     id: RefreshOperationID
   ) async
+  func simulateSending() async
 }
