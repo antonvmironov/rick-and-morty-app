@@ -71,3 +71,7 @@ Tuist/.build
 
 ### Additional
 .ci_workdir
+record_demo_raw_video.mp4
+record_demo_compiler.log
+record_demo_ffmpeg_convert_video.log
+record_demo_ffmpeg_get_thumbnail.log

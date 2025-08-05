@@ -23,6 +23,8 @@ final class RickAndMortyAppUITests: XCTestCase {
       .waitToAppear()
       .tap()
     app.waitForScreen(title: "Anatomy Park")
+    // wait a bit to make a nice screenshot
+    try? await ContinuousClock().sleep(for: .seconds(5))
     app.buttons[EpisodeDetailsFeature.A11yIDs.characterRow(id: "38")]
       .waitToAppear()
       .tap()
