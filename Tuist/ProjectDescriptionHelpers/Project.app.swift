@@ -18,6 +18,7 @@ extension Project {
         "UISupportedInterfaceOrientations": [
           "UIInterfaceOrientationPortrait"
         ],
+        "UIBackgroundModes": ["fetch"],
         "UILaunchScreen": [
           "UIColorName": "Background",
           "UIImageName": "logo.png",
