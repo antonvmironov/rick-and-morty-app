@@ -11,10 +11,10 @@ func NetworkGateway_episodeList() async throws {
     requestURL: apiURL,
     jsonFixtureNamed: "endpoints"
   )
-  let (endpoints, cachedSince) = try await networkGateway.getEndpoints(
-    apiURL: apiURL,
-    cachePolicy: .useProtocolCachePolicy
-  )
+  let response =
+    try await networkGateway
+    .get(operation: NetworkOperation.endpoints(apiURL: apiURL))
+  let endpoints = response.decodedResponse
   #expect(
     endpoints.characters == apiURL.appendingPathComponent("character")
   )
@@ -24,7 +24,7 @@ func NetworkGateway_episodeList() async throws {
   #expect(
     endpoints.episodes == apiURL.appendingPathComponent("episode")
   )
-  #expect(cachedSince == MockNetworkGateway.cachedSinceDate)
+  #expect(response.cachedSince == MockNetworkGateway.cachedSinceDate)
 }
 
 // MARK: - character
@@ -45,14 +45,16 @@ func NetworkGateway_getCharacter() async throws {
     requestURL: characterURL,
     jsonFixtureNamed: "character_rick"
   )
-  let (character, cachedSince) = try await networkGateway.getCharacter(
-    endpoints: endpoints,
-    id: characterID,
-    cachePolicy: .useProtocolCachePolicy
+  let response = try await networkGateway.get(
+    operation: NetworkOperation.character(
+      endpoints: endpoints,
+      id: characterID
+    )
   )
+  let character = response.decodedResponse
   #expect(character.id == characterID)
   #expect(character.name == "Rick Sanchez")
-  #expect(cachedSince == MockNetworkGateway.cachedSinceDate)
+  #expect(response.cachedSince == MockNetworkGateway.cachedSinceDate)
 }
 
 @Test("NetworkGateway test getPageOfCharacters")
@@ -63,16 +65,16 @@ func NetworkGateway_getPageOfCharacters() async throws {
     requestURL: pageURL,
     jsonFixtureNamed: "characters_first_page"
   )
-  let page = try await networkGateway.getPageOfCharacters(
-    pageURL: pageURL,
-    cachePolicy: .useProtocolCachePolicy
+  let response = try await networkGateway.get(
+    operation: NetworkOperation.pageOfCharacters(pageURL: pageURL)
   )
-  #expect(page.payload.results.count > 0)
-  #expect(page.payload.info.pages >= 1)
-  let result = page.payload.results[0]
+  let page = response.decodedResponse.payload
+  #expect(page.results.count > 0)
+  #expect(page.info.pages >= 1)
+  let result = page.results[0]
   #expect(result.id == 1)
   #expect(result.name == "Rick Sanchez")
-  #expect(page.cachedSince == MockNetworkGateway.cachedSinceDate)
+  #expect(response.cachedSince == MockNetworkGateway.cachedSinceDate)
 }
 
 // MARK: - location
@@ -91,17 +93,16 @@ func NetworkGateway_getLocation() async throws {
     requestURL: locationURL,
     jsonFixtureNamed: "location_earth1"
   )
-  let (location, cachedSince) = try await networkGateway.getLocation(
-    endpoints: endpoints,
-    id: locationID,
-    cachePolicy: .useProtocolCachePolicy
+  let response = try await networkGateway.get(
+    operation: NetworkOperation.location(endpoints: endpoints, id: locationID)
   )
+  let location = response.decodedResponse
   #expect(location.id == locationID)
   #expect(location.name == "Earth (C-137)")
   #expect(location.type == "Planet")
   #expect(location.dimension == "Dimension C-137")
   #expect(location.residents.count == 27)
-  #expect(cachedSince == MockNetworkGateway.cachedSinceDate)
+  #expect(response.cachedSince == MockNetworkGateway.cachedSinceDate)
 }
 
 @Test("NetworkGateway test getPageOfLocations")
@@ -112,19 +113,19 @@ func NetworkGateway_getPageOfLocations() async throws {
     requestURL: pageURL,
     jsonFixtureNamed: "locations_first_page"
   )
-  let page = try await networkGateway.getPageOfLocations(
-    pageURL: pageURL,
-    cachePolicy: .useProtocolCachePolicy
+  let response = try await networkGateway.get(
+    operation: NetworkOperation.pageOfLocations(pageURL: pageURL)
   )
-  #expect(page.payload.results.count == 20)
-  #expect(page.payload.info.pages == 7)
-  var result = page.payload.results[0]
+  let page = response.decodedResponse.payload
+  #expect(page.results.count == 20)
+  #expect(page.info.pages == 7)
+  var result = page.results[0]
   #expect(result.id == 1)
   #expect(result.name == "Earth (C-137)")
-  result = page.payload.results[19]
+  result = page.results[19]
   #expect(result.id == 20)
   #expect(result.name == "Earth (Replacement Dimension)")
-  #expect(page.cachedSince == MockNetworkGateway.cachedSinceDate)
+  #expect(response.cachedSince == MockNetworkGateway.cachedSinceDate)
 }
 
 // MARK: - episode
@@ -144,16 +145,15 @@ func NetworkGateway_getEpisode() async throws {
     requestURL: episodeURL,
     jsonFixtureNamed: "episode_pilot"
   )
-  let (episode, cachedSince) = try await networkGateway.getEpisode(
-    endpoints: endpoints,
-    id: episodeID,
-    cachePolicy: .useProtocolCachePolicy
+  let response = try await networkGateway.get(
+    operation: NetworkOperation.episode(endpoints: endpoints, id: episodeID),
   )
+  let episode = response.decodedResponse
   #expect(episode.id == episodeID)
   #expect(episode.name == "Pilot")
   #expect(episode.episode == "S01E01")
   #expect(episode.characters.count == 19)
-  #expect(cachedSince == MockNetworkGateway.cachedSinceDate)
+  #expect(response.cachedSince == MockNetworkGateway.cachedSinceDate)
 }
 
 @Test("NetworkGateway test getPageOfEpisodes")
@@ -164,17 +164,17 @@ func NetworkGateway_getPageOfEpisodes() async throws {
     requestURL: pageURL,
     jsonFixtureNamed: "episodes_first_page"
   )
-  let page = try await networkGateway.getPageOfEpisodes(
-    pageURL: pageURL,
-    cachePolicy: .useProtocolCachePolicy
+  let response = try await networkGateway.get(
+    operation: NetworkOperation.pageOfEpisodes(pageURL: pageURL)
   )
-  #expect(page.payload.results.count == 20)
-  #expect(page.payload.info.pages == 3)
-  var result = page.payload.results[0]
+  let page = response.decodedResponse.payload
+  #expect(page.results.count == 20)
+  #expect(page.info.pages == 3)
+  var result = page.results[0]
   #expect(result.id == 1)
   #expect(result.name == "Pilot")
-  result = page.payload.results[19]
+  result = page.results[19]
   #expect(result.id == 20)
   #expect(result.name == "Look Who's Purging Now")
-  #expect(page.cachedSince == MockNetworkGateway.cachedSinceDate)
+  #expect(response.cachedSince == MockNetworkGateway.cachedSinceDate)
 }

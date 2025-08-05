@@ -49,11 +49,11 @@ To improve code organization and clarity, the project uses special file naming c
 
 #### Features
 - `MySubjectFeature`: A namespace for shared functionality across types in this feature, and a central point for navigation.
-- `MySubjectView`: The `SwiftUI` view representing this feature.
-- `MySubjectStore`: A typealias for a swift-composable-architecture store specialized with `MySubjectReducer`.
-- `MySubjectReducer`: The implementation of a swift-composable-architecture reducer, specialized with `MySubjectState` and `MySubjectAction`.
-- `MySubjectState`: The main actor-isolated state for this feature, including UI, navigation, and business logic. Business state should focus on validation and UX process control, while complex tasks such as computation, I/O, and persistence should be delegated to a service layer.
-- `MySubjectAction`: (To be defined) Actions associated with this feature.
+- `MySubjectFeature.FeatureView`: The `SwiftUI` view representing this feature.
+- `MySubjectFeature.FeatureStore`: A typealias for a swift-composable-architecture store specialized with `FeatureReducer`.
+- `MySubjectFeature.FeatureReducer`: The implementation of a swift-composable-architecture reducer, specialized with `FeatureState` and `FeatureAction`.
+- `MySubjectFeature.FeatureState`: The main actor-isolated state for this feature, including UI, navigation, and business logic. Business state should focus on validation and UX process control, while complex tasks such as computation, I/O, and persistence should be delegated to a service layer.
+- `MySubjectFeature.FeatureAction`: Actions associated with this feature. Each action is sent to reducer to produce state mutations and effects.
 
 #### Entity Representation Variants
 - `MySubjectDomainModel`: A sendable representation of the "MySubject" entity. Designed for unrestricted use in UI, *asynchronous* computation, and I/O.
@@ -67,11 +67,11 @@ The `SwiftUI` app (`struct RickAndMortyApp: App`) is the entry point to the appl
 
 SwiftUI and Swift Composable Architecture are used to implement, coordinate, and compose features.
 Features consist of:
-- **A view** declared as `struct MyFeatureView: SwiftUI.View`, responsible for declaring the UI hierarchy, observing state changes, and sending actions on user input
-- **A store** declared as `typealias MyFeatureStore = StoreOf<MyFeatureReducer>`, responsible for state management, action processing, and effect scheduling. It is part of a hierarchy of stores, with the root store owned by the `SwiftUI` app, and is responsible for delegating responsibilities to nested stores.
-- **A reducer** declared as `@Reducer struct MyFeatureReducer`. This is a declaration of the store's behavior. It reacts to actions by reading and mutating state and scheduling effects. Dependencies are injected into reducers.
-- **A state** declared as `struct MyFeatureState`. This represents the state of the UI and main actor business logic.
-- **An action** declared as `enum MyFeatureAction`. Each action sent to a store is processed through the reducer.
+- **A view** declared as `struct FeatureView: SwiftUI.View`, responsible for declaring the UI hierarchy, observing state changes, and sending actions on user input
+- **A store** declared as `typealias FeatureStore = StoreOf<MyFeatureReducer>`, responsible for state management, action processing, and effect scheduling. It is part of a hierarchy of stores, with the root store owned by the `SwiftUI` app, and is responsible for delegating responsibilities to nested stores.
+- **A reducer** declared as `@Reducer struct FeatureReducer`. This is a declaration of the store's behavior. It reacts to actions by reading and mutating state and scheduling effects. Dependencies are injected into reducers.
+- **A state** declared as `struct FeatureState`. This represents the state of the UI and main actor business logic.
+- **An action** declared as `enum FeatureAction`. Each action sent to a store is processed through the reducer.
 
 ### On Composable Architecture
 [swift-composable-architecture](https://github.com/pointfreeco/swift-composable-architecture) is subject to valid criticisms.

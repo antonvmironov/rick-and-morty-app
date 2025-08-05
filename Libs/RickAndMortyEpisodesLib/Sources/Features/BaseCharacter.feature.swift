@@ -86,16 +86,14 @@ enum BaseCharacterFeature: Feature {
           return .none
         }
       }
-      Scope(state: \.characterLoading, action: \.characterLoading) {
-        [networkGateway] in
+      Scope(
+        state: \.characterLoading,
+        action: \.characterLoading
+      ) { [networkGateway] in
         CharacterLoadingFeature.FeatureReducer { characterURL in
-          let response =
-            try await networkGateway
-            .getCharacter(
-              url: characterURL,
-              cachePolicy: .returnCacheDataElseLoad
-            )
-          return response.output
+          let operation = NetworkOperation.character(url: characterURL)
+          let response = try await networkGateway.get(operation: operation)
+          return response.decodedResponse
         }
       }
     }

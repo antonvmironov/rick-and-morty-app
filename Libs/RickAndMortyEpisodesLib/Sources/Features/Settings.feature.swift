@@ -52,7 +52,7 @@ enum SettingsFeature: Feature {
         },
         header: {
           HStack {
-            Text("Cache")
+            Text("Cache Settings")
             Spacer()
             Button(
               action: {
@@ -80,7 +80,7 @@ enum SettingsFeature: Feature {
     private func cacheReportView(report: URLCacheReport) -> some View {
       Group {
         HStack {
-          Text("`\(report.category)` cache")
+          Text("\(report.category) cache")
           Spacer(minLength: UIConstants.space)
           Button(
             action: {

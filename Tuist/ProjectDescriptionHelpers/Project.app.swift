@@ -12,7 +12,7 @@ extension Project {
 
     do {  // app target declaration
       let infoPlist: [String: Plist.Value] = [
-        "CFBundleShortVersionString": "2025.08.04",
+        "CFBundleShortVersionString": "2025.08.05",
         "CFBundleVersion": "1",
         "CFBundleDisplayName": "R&M Demo",
         "UISupportedInterfaceOrientations": [

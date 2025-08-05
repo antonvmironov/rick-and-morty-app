@@ -124,7 +124,9 @@ enum EpisodesRootFeature: Feature {
       let state = EpisodeDetailsFeature.FeatureState.initial(
         episode: episode,
         getCachedCharacter: {
-          try? networkGateway.getCachedCharacter(url: $0)?.output
+          try? networkGateway
+            .getCached(operation: NetworkOperation.character(url: $0))?
+            .decodedResponse
         }
       )
       await UISelectionFeedbackGenerator().selectionChanged()
@@ -136,10 +138,8 @@ enum EpisodesRootFeature: Feature {
         PaginationFeature.FeatureReducer(
           getPage: { pageURL in
             try await networkGateway
-              .getPageOfEpisodes(
-                pageURL: pageURL,
-                cachePolicy: .returnCacheDataElseLoad
-              )
+              .get(operation: NetworkOperation.pageOfEpisodes(pageURL: pageURL))
+              .decodedResponse
           },
           getNextInput: \.payload.info.next,
           isPageFirst: { $0.payload.info.prev == nil },

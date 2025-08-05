@@ -31,16 +31,21 @@ public enum RootFeature {
     dependencies: Dependencies
   ) -> FeatureStore {
     let cachedEndpoints = try? dependencies.networkGateway
-      .getCachedEndpoints(apiURL: apiURL)?.output
+      .getCached(operation: NetworkOperation.endpoints(apiURL: apiURL))?
+      .decodedResponse
     let endpointsLoading = EndpointsLoadingFeature.FeatureState
       .initial(cachedSuccess: cachedEndpoints)
+
     let episodeList: EpisodesRootFeature.FeatureState = {
       guard let firstPageURL = cachedEndpoints?.episodes else {
         return EpisodesRootFeature.FeatureState
           .initial(firstPageURL: cachedEndpoints?.episodes)
       }
       let cachedFirstPage = try? dependencies.networkGateway
-        .getPageOfCachedEpisodes(pageURL: firstPageURL)
+        .getCached(
+          operation: NetworkOperation.pageOfEpisodes(pageURL: firstPageURL)
+        )?
+        .decodedResponse
       guard let cachedFirstPage else {
         return EpisodesRootFeature.FeatureState
           .initial(firstPageURL: cachedEndpoints?.episodes)
@@ -154,10 +159,10 @@ public enum RootFeature {
       Scope(state: \.endpointsLoading, action: \.endpointsLoading) {
         [networkGateway] in
         EndpointsLoadingFeature.FeatureReducer { apiURL in
-          let response = try await networkGateway.getEndpoints(
-            apiURL: apiURL
-          )
-          return response.output
+          let response =
+            try await networkGateway
+            .get(operation: NetworkOperation.endpoints(apiURL: apiURL))
+          return response.decodedResponse
         }
       }
       Scope(state: \.episodeList, action: \.episodeList) {
