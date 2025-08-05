@@ -27,9 +27,6 @@ enum EpisodeListFeature {
     @Bindable
     var store: FeatureStore
 
-    @Environment(\.canSendActions)
-    var canSendActions: Bool
-
     init(store: FeatureStore) {
       self.store = store
     }
@@ -68,9 +65,7 @@ enum EpisodeListFeature {
       .accessibilityElement(children: .contain)
       .accessibilityLabel("Episodes list")
       .onAppear {
-        if canSendActions {
-          store.send(.preloadIfNeeded)
-        }
+        store.send(.preloadIfNeeded)
       }
       .refreshable {
         do {
@@ -164,7 +159,11 @@ enum EpisodeListFeature {
 
     private func failureView(failureMessage: String) -> some View {
       Text("⚠️ \(failureMessage)")
-        .lineLimit(3)
+        #if DEBUG
+          .lineLimit(10)
+        #else
+          .lineLimit(2)
+        #endif
         .truncationMode(.middle)
         .font(.caption)
     }

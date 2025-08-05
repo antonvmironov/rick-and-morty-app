@@ -76,9 +76,6 @@ enum CharacterDetailsFeature: Feature {
     @Bindable
     var store: FeatureStore
 
-    @Environment(\.canSendActions)
-    var canSendActions: Bool
-
     init(store: FeatureStore) {
       self.store = store
     }
@@ -116,9 +113,7 @@ enum CharacterDetailsFeature: Feature {
       .listStyle(.plain)
       .navigationTitle(store.character.displayCharacter.name)
       .onAppear {
-        if canSendActions {
-          store.send(.preloadIfNeeded)
-        }
+        store.send(.preloadIfNeeded)
       }
     }
 

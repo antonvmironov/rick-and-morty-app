@@ -6,7 +6,7 @@ extension MockNetworkGateway {
   static let episodesFirstPageAPIURL = exampleAPIURL.appendingPathComponent(
     "episode"
   )
-  static let episodeFirstPageAPIURL = exampleAPIURL.appendingPathComponent(
+  static let episodeFirstAPIURL = exampleAPIURL.appendingPathComponent(
     "episode/1"
   )
   static let charactersFirstPageAPIURL = exampleAPIURL.appendingPathComponent(
@@ -43,7 +43,7 @@ extension MockNetworkGateway {
         jsonFixtureNamed: "episodes_first_page"
       )
       try result.expect(
-        requestURL: episodeFirstPageAPIURL,
+        requestURL: episodeFirstAPIURL,
         jsonFixtureNamed: "episode_pilot"
       )
       try result.expect(
