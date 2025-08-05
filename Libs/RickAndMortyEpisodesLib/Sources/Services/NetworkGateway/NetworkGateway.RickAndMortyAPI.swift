@@ -23,7 +23,7 @@ extension NetworkOperation {
 
   static func character(
     endpoints: EndpointsDomainModel,
-    id: EpisodeID,
+    id: CharacterID,
   ) -> Self where Response == CharacterDomainModel {
     let url = endpoints.characters.appendingPathComponent("\(id)")
     return character(url: url)

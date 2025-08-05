@@ -45,55 +45,33 @@ struct MockNetworkGateway: NetworkGateway {
   func getCached<Response: Codable & Sendable>(
     operation: NetworkOperation<Response>
   ) throws(NetworkError) -> NetworkResponse<Response>? {
-    guard
-      let result = try? getFromFixture(
-        request: operation.urlRequestProvider(),
-        cacheCategory: operation.cacheCategory,
-        output: Response.self
-      )
-    else {
-      return nil
-    }
-    return NetworkResponse(
-      decodedResponse: result.output,
-      cachedSince: result.cachedSince,
-    )
+    try getFromFixture(operation: operation)
   }
 
   func get<Response: Codable & Sendable>(
     operation: NetworkOperation<Response>
   ) async throws(NetworkError) -> NetworkResponse<Response> {
-    let result = try getFromFixture(
-      request: operation.urlRequestProvider(),
-      cacheCategory: operation.cacheCategory,
-      output: Response.self
-    )
-    return NetworkResponse(
-      decodedResponse: result.output,
-      cachedSince: result.cachedSince,
-    )
+    let response = try getFromFixture(operation: operation)
+    return response
   }
 
-  private func getFromFixture<Output: Decodable & Sendable>(
-    request: URLRequest,
-    cacheCategory: URLCacheCategory,
-    output: Output.Type
-  ) throws(NetworkError) -> (
-    output: Output, cachedSince: Date?, response: URLResponse
-  ) {
+  private func getFromFixture<Response: Codable & Sendable>(
+    operation: NetworkOperation<Response>
+  ) throws(NetworkError) -> NetworkResponse<Response> {
     // enumerate handlers until one matches the response
     let data: Data
-    let response: URLResponse
+    let urlRequest = operation.urlRequestProvider()
+    let urlResponse: URLResponse
     do {
       var completion: (Data, URLResponse)?
       for handler in handlers {
-        completion = try handler(request)
+        completion = try handler(urlRequest)
         if completion != nil {
           break
         }
       }
       if let completion = completion {
-        (data, response) = completion
+        (data, urlResponse) = completion
       } else {
         throw NetworkError.nonHTTPResponse
       }
@@ -102,7 +80,7 @@ struct MockNetworkGateway: NetworkGateway {
     }
 
     // cast to HTTP response
-    guard let httpURLResponse = response as? HTTPURLResponse else {
+    guard let httpURLResponse = urlResponse as? HTTPURLResponse else {
       throw NetworkError.nonHTTPResponse
     }
 
@@ -116,8 +94,15 @@ struct MockNetworkGateway: NetworkGateway {
 
     // output
     do {
-      let output = try jsonDecoder.decode(Output.self, from: data)
-      return (output, Self.cachedSinceDate, response)
+      let finalResponse = try operation.decodeResponse(
+        NetworkResponse(
+          decodedResponse: urlResponse,
+          cachedSince: Self.cachedSinceDate
+        ),
+        data,
+        jsonDecoder
+      )
+      return finalResponse
     } catch {
       throw NetworkError.responseDecodingFailed(error: error, data: data)
     }
