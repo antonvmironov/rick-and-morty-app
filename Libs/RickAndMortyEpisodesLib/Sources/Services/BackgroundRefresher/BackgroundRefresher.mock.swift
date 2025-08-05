@@ -6,7 +6,10 @@ struct MockBackgroundRefresher: BackgroundRefresher {
   func register() { /* no-op */  }
   func scheduleRefreshing<Response: Codable & Sendable>(
     operation: NetworkOperation<Response>,
-    id: RefreshOperationID
-  ) { /* no-op */  }
+    id: RefreshOperationID,
+    didRefresh: @escaping @Sendable () async -> Void
+  ) async {
+    await didRefresh()  // for testing purposes
+  }
   func simulateSending() { /* no-op */  }
 }

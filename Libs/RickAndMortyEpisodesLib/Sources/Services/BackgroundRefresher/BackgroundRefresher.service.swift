@@ -8,7 +8,8 @@ protocol BackgroundRefresher: Sendable {
   nonisolated func register()
   func scheduleRefreshing<Response: Codable & Sendable>(
     operation: NetworkOperation<Response>,
-    id: RefreshOperationID
+    id: RefreshOperationID,
+    didRefresh: @escaping @Sendable () async -> Void
   ) async
   func simulateSending() async
 }

@@ -39,22 +39,21 @@ actor ProdBackgroundRefresher: BackgroundRefresher {
     ) { [self] task in
       self.handle(task: task)
     }
-
-    Task {
-      await scheduleNextRefresh()
-    }
+    scheduleNextRefresh()
   }
 
   func scheduleRefreshing<Response: Codable & Sendable>(
     operation: NetworkOperation<Response>,
-    id: RefreshOperationID
+    id: RefreshOperationID,
+    didRefresh: @escaping @Sendable () async -> Void
   ) {
     refreshOperationsByID[id] = { networkGateway in
       try await networkGateway.refresh(operation: operation)
+      await didRefresh()
     }
   }
 
-  private func scheduleNextRefresh() {
+  nonisolated private func scheduleNextRefresh() {
     let taskRequest = BGAppRefreshTaskRequest(identifier: backgroundTaskID)
     taskRequest.earliestBeginDate = Date().addingTimeInterval(
       Self.refreshtimeInterval
@@ -77,6 +76,7 @@ actor ProdBackgroundRefresher: BackgroundRefresher {
       var success = false
       defer {
         task.setTaskCompleted(success: success)
+        scheduleNextRefresh()
       }
       guard task.identifier == backgroundTaskID else {
         return
@@ -94,7 +94,6 @@ actor ProdBackgroundRefresher: BackgroundRefresher {
     for refreshOperation in refreshOperations where !Task.isCancelled {
       try? await refreshOperation(networkGateway)
     }
-    scheduleNextRefresh()
     return true
   }
 }

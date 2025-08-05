@@ -192,9 +192,13 @@ public enum RootFeature {
             )
             return .merge(
               .send(action),
-              .run { [backgroundRefresher] _ in
-                await backgroundRefresher
-                  .scheduleRefreshing(operation: operation, id: "episodes-page")
+              .run { [backgroundRefresher] send in
+                await backgroundRefresher.scheduleRefreshing(
+                  operation: operation,
+                  id: "episodes-page"
+                ) {
+                  await send(.didRefreshOnBackground)
+                }
               }
             )
           } else {
@@ -203,6 +207,15 @@ public enum RootFeature {
         case .toggleSettingsPresentation:
           state.isSettingsPresented.toggle()
           return .none
+        case .didRefreshOnBackground:
+          return .send(
+            .episodeList(
+              .reload(
+                invalidateCache: false,
+                continuation: nil
+              )
+            )
+          )
         case .endpointsLoading(.finishProcessing(let endpoints)):
           let action: Action = .episodeList(
             .pagination(.setFirstInput(input: endpoints.episodes))
@@ -227,6 +240,7 @@ public enum RootFeature {
   enum FeatureAction: BindableAction {
     case preloadIfNeeded
     case toggleSettingsPresentation
+    case didRefreshOnBackground
     case endpointsLoading(EndpointsLoadingFeature.FeatureAction)
     case episodeList(EpisodesRootFeature.FeatureAction)
     case settings(SettingsFeature.FeatureAction)
