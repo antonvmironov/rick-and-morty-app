@@ -69,3 +69,12 @@ This plan is based on the analysis in `test_coverage_notes.md` and aims to syste
 - [ ] All checklist items completed
 - [ ] All new tests passing
 - [ ] Coverage report updated
+
+### Clarifications and Exclusions
+
+- Static `.dummy` and `.preview` values must be tested to ensure they load without crashing, but only a few fields (e.g., `id`, `name`) should be asserted. Do not deeply test their contents.
+- `dummy`/`preview` values used only for debugging or SwiftUI previews are not considered production-relevant and should not receive full test coverage.
+- Decoding failure coverage must include a basic "invalid JSON" test for each domain model, but do not exhaustively test missing fields or malformed enums.
+- Code coverage percentage is not the goal; focus is on critical logic paths.
+- No UI or snapshot tests are in scope.
+- All tests must be implemented using `swift-testing` only. No other libraries should be introduced for property-based or unit testing.
