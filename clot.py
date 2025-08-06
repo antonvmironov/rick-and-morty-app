@@ -26,7 +26,7 @@ def is_exempt_from_token_counting(file):
     ext = file.rsplit(".", 1)[-1].lower() if "." in file else ""
     return ext in allowed_extensions
 
-def count_for_branch():
+def count_for_branch(limit=None, is_hard_limit=False):
     # Get current branch name
     try:
         current_branch = subprocess.check_output([
@@ -64,22 +64,52 @@ def count_for_branch():
 
     exempt_files = ()
     missing_files = ()
+    files_over_limit = ()
     for f in changed_files:
         if not is_exempt_from_token_counting(f):
             exempt_files += (f,)
         elif os.path.exists(f):
             count = count_tokens(f)
-            print(f"  - {f} - {count} token(s)")
+            if limit:
+                percent = (count / limit) * 100
+                if percent >= 100:
+                    print(f"\t⚠️\t{f} - {count} token(s) - {percent:.0f}% of limit")
+                    files_over_limit += (f,)
+                else:
+                    print(f"\t✅\t{f} - {count} token(s) - {percent:.0f}% of limit")
+            else:
+                print(f"\t- {f} - {count} token(s)")
         else:
             missing_files += (f,)
 
     exempt_files = sorted(exempt_files)
     missing_files = sorted(missing_files)
     if exempt_files:
-        print("⚠️\tExempt files:")
-        print("  " + ", ".join(exempt_files))
+        print("\t⚠️\tExempt files: " + ", ".join(exempt_files))
+
+    if is_hard_limit and files_over_limit:
+        print("❌\tFiles over limit: " + ", ".join(files_over_limit))
+        sys.exit(1)
 
     return
+
+def pass_optional_argument(arg_name, num_following_args):
+    """
+    Returns a list of arguments following arg_name in sys.argv, or None if not present.
+    If num_following_args == 1, returns the single value, else returns a list.
+    """
+    if arg_name in sys.argv:
+        idx = sys.argv.index(arg_name)
+        try:
+            args = sys.argv[idx + 1: idx + 1 + num_following_args]
+            if len(args) < num_following_args:
+                return None
+            if num_following_args == 1:
+                return args[0]
+            return args
+        except Exception:
+            return None
+    return None
 
 def main():
     if len(sys.argv) < 2:
@@ -108,7 +138,16 @@ def main():
             print(f"❌\tError: {e}")
             sys.exit(1)
     elif sub_command == "branch":
-        count_for_branch()
+        limit_arg = pass_optional_argument("--limit", 1)
+        limit = None
+        hard_limit_arg = pass_optional_argument("--hard_limit", 0)
+        if limit_arg is not None:
+            try:
+                limit = int(limit_arg)
+            except Exception:
+                print("❌\tInvalid or missing value for --limit argument.")
+                sys.exit(1)
+        count_for_branch(limit=limit,is_hard_limit=hard_limit_arg is not None)
         elapsed = time.time() - start
         print(f"✅\tCompleted in {elapsed:.2f} seconds.")
     else:
