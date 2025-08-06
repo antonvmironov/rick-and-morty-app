@@ -88,6 +88,7 @@ def main():
         sys.exit(1)
 
     sub_command = sys.argv[1]
+    start = time.time()
     if sub_command == "file":
         if len(sys.argv) != 3:
             print("❌\tMissing filename argument for 'file' sub-command.")
@@ -98,7 +99,6 @@ def main():
             print(f"❌\tFile not found: {filename}")
             sys.exit(1)
         print(f"📄\tCounting tokens in: {filename}")
-        start = time.time()
         try:
             token_count = count_tokens(filename)
             elapsed = time.time() - start
@@ -109,6 +109,8 @@ def main():
             sys.exit(1)
     elif sub_command == "branch":
         count_for_branch()
+        elapsed = time.time() - start
+        print(f"✅\tCompleted in {elapsed:.2f} seconds.")
     else:
         print(f"❌\tUnknown sub-command: {sub_command}")
         print_usage()
