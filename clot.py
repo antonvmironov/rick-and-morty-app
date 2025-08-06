@@ -62,25 +62,25 @@ def count_for_branch(limit=None, is_hard_limit=False):
         print("  (No files changed)")
         return
 
-    exempt_files = ()
-    missing_files = ()
-    files_over_limit = ()
+    exempt_files = []
+    missing_files = []
+    files_over_limit = []
     for f in changed_files:
         if not is_exempt_from_token_counting(f):
-            exempt_files += (f,)
+            exempt_files.append(f)
         elif os.path.exists(f):
             count = count_tokens(f)
             if limit:
                 percent = (count / limit) * 100
                 if percent >= 100:
                     print(f"\t⚠️\t{f} - {count} token(s) - {percent:.0f}% of limit")
-                    files_over_limit += (f,)
+                    files_over_limit.append(f)
                 else:
                     print(f"\t✅\t{f} - {count} token(s) - {percent:.0f}% of limit")
             else:
                 print(f"\t- {f} - {count} token(s)")
         else:
-            missing_files += (f,)
+            missing_files.append(f)
 
     exempt_files = sorted(exempt_files)
     missing_files = sorted(missing_files)
@@ -147,7 +147,7 @@ def main():
             except Exception:
                 print("❌\tInvalid or missing value for --limit argument.")
                 sys.exit(1)
-        count_for_branch(limit=limit,is_hard_limit=hard_limit_arg is not None)
+        count_for_branch(limit=limit, is_hard_limit=hard_limit_arg is not None)
         elapsed = time.time() - start
         print(f"✅\tCompleted in {elapsed:.2f} seconds.")
     else:
