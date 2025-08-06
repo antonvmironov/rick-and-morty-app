@@ -61,6 +61,8 @@ def count_for_branch():
             if should_count_tokens(f):
                 count = count_tokens(f)
                 print(f"  - {f} - {count} token(s)")
+            else:
+                pass # file is not interesting
     else:
         print("  (No files changed)")
 
