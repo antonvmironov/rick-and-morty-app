@@ -21,7 +21,7 @@ def count_tokens(file):
     tokens = encoding.encode(text)
     return len(tokens)
 
-def should_count_tokens(file):
+def is_exempt_from_token_counting(file):
     allowed_extensions = {"py", "swift", "json", "md"}
     ext = file.rsplit(".", 1)[-1].lower() if "." in file else ""
     return ext in allowed_extensions
@@ -50,21 +50,36 @@ def count_for_branch():
         changed_files = subprocess.check_output([
             "git", "diff", "--name-only", f"{merge_base}..{current_branch}"
         ], encoding="utf-8").strip().splitlines()
+        # Remove empty strings to avoid false positives when git diff returns an empty string
+        changed_files = [f for f in changed_files if f]
     except Exception as e:
         print(f"❌\tError getting changed files: {e}")
         sys.exit(1)
 
     print(f"🔀\tCurrent branch: {current_branch}")
     print(f"🔄\tChanged files since diverging from 'main':")
-    if changed_files:
-        for f in changed_files:
-            if should_count_tokens(f):
-                count = count_tokens(f)
-                print(f"  - {f} - {count} token(s)")
-            else:
-                pass # file is not interesting
-    else:
+    if not changed_files:
         print("  (No files changed)")
+        return
+
+    exempt_files = ()
+    missing_files = ()
+    for f in changed_files:
+        if not is_exempt_from_token_counting(f):
+            exempt_files += (f,)
+        elif os.path.exists(f):
+            count = count_tokens(f)
+            print(f"  - {f} - {count} token(s)")
+        else:
+            missing_files += (f,)
+
+    exempt_files = sorted(exempt_files)
+    missing_files = sorted(missing_files)
+    if exempt_files:
+        print("⚠️\tExempt files:")
+        print("  " + ", ".join(exempt_files))
+
+    return
 
 def main():
     if len(sys.argv) < 2:

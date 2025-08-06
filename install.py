@@ -23,6 +23,17 @@ def _run_install_step(*, name, emoji, cmd):
 def brew_bundle_step():
     _run_install_step(name='Install dependencies with Homebrew', emoji='🍺', cmd=['brew', 'bundle'])
 
+def create_venv_step():
+    venv_python = Path('.venv/bin/python')
+    if not venv_python.exists():
+        _run_install_step(
+            name='Create Python virtual environment',
+            emoji='🧪',
+            cmd=['python3', '-m', 'venv', '.venv']
+        )
+    else:
+        print('\t✅\tVirtual environment already exists at .venv/bin/python')
+
 def pip_install_requirements_step():
     venv_python = Path('.venv/bin/python')
     if venv_python.exists():
@@ -43,6 +54,7 @@ def main():
     print("🔧\tStarting installation process...")
     start = time.time()
     brew_bundle_step()
+    create_venv_step()
     pip_install_requirements_step()
     tuist_install_step()
     elapsed = time.time() - start
