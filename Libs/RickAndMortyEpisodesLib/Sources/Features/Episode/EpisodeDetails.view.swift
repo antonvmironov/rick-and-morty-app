@@ -4,13 +4,13 @@ import SwiftUI
 
 extension EpisodeDetailsFeature {
   @MainActor protocol FeatureViewModel: AnyObject, Observable {
-    associatedtype CharacterViewModel: CharacterBriefFeature.FeatureViewModel
+    associatedtype CharacterViewModel: Deps.CharacterBrief.FeatureViewModel
     associatedtype
-      CharacterDetailsViewModel: CharacterDetailsFeature.FeatureViewModel
+      CharacterDetailsViewModel: Deps.CharacterDetails.FeatureViewModel
 
     var characterViewModels: [CharacterViewModel] { get }
     var selectedCharacterViewModel: CharacterDetailsViewModel? { get }
-    var episode: EpisodeDomainModel { get }
+    var episode: Deps.Episode { get }
     var isCharacterDetailsPresented: Bool { get set }
     func present(characterURL: URL)
     func preloadIfNeeded()

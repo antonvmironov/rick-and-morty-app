@@ -43,14 +43,11 @@ extension EpisodeBriefFeature {
   }
 }
 
+private typealias Subject = EpisodeBriefFeature
 #Preview {
   VStack {
-    EpisodeBriefFeature.FeatureView(
-      state: .preview(isPlaceholder: true)
-    )
-    EpisodeBriefFeature.FeatureView(
-      state: .preview(isPlaceholder: false)
-    )
+    Subject.FeatureView(state: .preview(isPlaceholder: true))
+    Subject.FeatureView(state: .preview(isPlaceholder: false))
   }
   .frame(maxWidth: .infinity)
 }

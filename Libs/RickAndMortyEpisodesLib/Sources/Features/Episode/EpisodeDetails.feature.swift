@@ -5,6 +5,12 @@ import SwiftUI
 
 /// Namespace for the EpisodeDetails feature. Serves as an anchor for project navigation.
 enum EpisodeDetailsFeature {
-  typealias CharacterState = BaseCharacterFeature.FeatureState
-  typealias CharacterStatesArray = IdentifiedArrayOf<CharacterState>
+  enum Deps {
+    typealias Episode = EpisodeDomainModel
+    typealias Character = CharacterDomainModel
+    typealias CharacterState = BaseCharacterFeature.FeatureState
+    typealias CharacterStatesArray = IdentifiedArrayOf<CharacterState>
+    typealias CharacterBrief = CharacterBriefFeature
+    typealias CharacterDetails = CharacterDetailsFeature
+  }
 }

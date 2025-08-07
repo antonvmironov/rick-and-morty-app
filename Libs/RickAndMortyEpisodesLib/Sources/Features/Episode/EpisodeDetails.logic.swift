@@ -22,7 +22,7 @@ extension EpisodeDetailsFeature {
         CharacterDetailsViewModel(store: $0)
       }
     }
-    var episode: EpisodeDomainModel { store.episode }
+    var episode: Deps.Episode { store.episode }
     var isCharacterDetailsPresented: Bool {
       get { store.isCharacterDetailsPresented }
       set { store.isCharacterDetailsPresented = newValue }
@@ -69,7 +69,7 @@ extension EpisodeDetailsFeature {
           guard state.selectedCharacter?.characterBrief.id != characterID else {
             return .none
           }
-          state.selectedCharacter = CharacterDetailsFeature.FeatureState(
+          state.selectedCharacter = Deps.CharacterDetails.FeatureState(
             characterBrief: state.characters[characterIndex]
           )
           return .run { _ in
@@ -98,10 +98,10 @@ extension EpisodeDetailsFeature {
 
   @ObservableState
   struct FeatureState: Equatable {
-    var episode: EpisodeDomainModel
-    var characters: CharacterStatesArray
+    var episode: Deps.Episode
+    var characters: Deps.CharacterStatesArray
     var route: FeatureRoute
-    var selectedCharacter: CharacterDetailsFeature.FeatureState?
+    var selectedCharacter: Deps.CharacterDetails.FeatureState?
 
     var isCharacterDetailsPresented: Bool {
       get { .characterDetails == route }
@@ -109,13 +109,13 @@ extension EpisodeDetailsFeature {
     }
 
     static func initial(
-      episode: EpisodeDomainModel,
-      getCachedCharacter: (URL) -> CharacterDomainModel?
+      episode: Deps.Episode,
+      getCachedCharacter: (URL) -> Deps.Character?
     ) -> Self {
-      let characters = CharacterStatesArray(
+      let characters = Deps.CharacterStatesArray(
         uniqueElements: episode.characters.map { url in
           let cachedCharacter = getCachedCharacter(url)
-          let state = CharacterState.initial(
+          let state = Deps.CharacterState.initial(
             characterURL: url,
             cachedCharacter: cachedCharacter
           )
@@ -126,8 +126,8 @@ extension EpisodeDetailsFeature {
     }
 
     static func initial(
-      episode: EpisodeDomainModel,
-      characters: CharacterStatesArray,
+      episode: Deps.Episode,
+      characters: Deps.CharacterStatesArray,
     ) -> Self {
       .init(
         episode: episode,
@@ -144,10 +144,10 @@ extension EpisodeDetailsFeature {
 
   @CasePathable
   enum FeatureAction: Equatable, BindableAction {
-    case selectedCharacter(CharacterDetailsFeature.FeatureAction)
+    case selectedCharacter(Deps.CharacterDetails.FeatureAction)
     case characters(IdentifiedActionOf<BaseCharacterFeature.FeatureReducer>)
     case preloadIfNeeded
-    case presentCharacter(CharacterState.ID?)
+    case presentCharacter(Deps.CharacterState.ID?)
     case binding(BindingAction<FeatureState>)
   }
 }
