@@ -35,7 +35,8 @@ enum EpisodesRootFeature {
     }
 
     var body: some View {
-      EpisodeListFeature.FeatureView(store: store)
+      EpisodeListFeature
+        .FeatureView(viewModel: EpisodeListFeature.ProdViewModel(store: store))
         .navigationTitle("Episode List")
         .navigationDestination(
           isPresented: $store.isPresentingEpisodeDetails
