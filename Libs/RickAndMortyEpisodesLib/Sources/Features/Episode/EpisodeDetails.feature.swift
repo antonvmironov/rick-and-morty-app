@@ -5,7 +5,7 @@ import SwiftUI
 
 /// Namespace for the EpisodeDetails feature. Serves as an anchor for project navigation.
 enum EpisodeDetailsFeature: Feature {
-  typealias CharacterState = CharacterBriefFeature.FeatureState
+  typealias CharacterState = BaseCharacterFeature.FeatureState
   typealias CharacterStatesArray = IdentifiedArrayOf<CharacterState>
 
   enum A11yIDs: A11yIDProvider {
@@ -71,7 +71,7 @@ enum EpisodeDetailsFeature: Feature {
     }
 
     private func row(
-      characterStore: CharacterBriefFeature.FeatureStore
+      characterStore: BaseCharacterFeature.FeatureStore
     ) -> some View {
       Button(
         action: {
@@ -79,7 +79,11 @@ enum EpisodeDetailsFeature: Feature {
         },
         label: {
           HStack {
-            CharacterBriefFeature.FeatureView(store: characterStore)
+            CharacterBriefFeature.FeatureView(
+              viewModel: CharacterBriefFeature.ProdViewModel(
+                store: characterStore
+              )
+            )
             Image(systemName: "chevron.right")
           }
         }
@@ -163,7 +167,7 @@ enum EpisodeDetailsFeature: Feature {
     var charactersReducer: some ReducerOf<Self> {
       EmptyReducer()
         .forEach(\.characters, action: \.characters) {
-          CharacterBriefFeature.FeatureReducer()
+          BaseCharacterFeature.FeatureReducer()
         }
     }
 
@@ -224,7 +228,7 @@ enum EpisodeDetailsFeature: Feature {
   @CasePathable
   enum FeatureAction: Equatable, BindableAction {
     case selectedCharacter(CharacterDetailsFeature.FeatureAction)
-    case characters(IdentifiedActionOf<CharacterBriefFeature.FeatureReducer>)
+    case characters(IdentifiedActionOf<BaseCharacterFeature.FeatureReducer>)
     case preloadIfNeeded
     case presentCharacter(CharacterState.ID?)
     case binding(BindingAction<FeatureState>)
