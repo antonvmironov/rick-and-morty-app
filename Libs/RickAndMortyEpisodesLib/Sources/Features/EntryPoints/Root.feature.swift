@@ -83,7 +83,9 @@ public enum RootFeature {
 
     public var body: some View {
       EpisodesRootFeature.FeatureView(
-        store: store.scope(state: \.episodeList, action: \.episodeList)
+        viewModel: EpisodesRootFeature.ProdViewModel(
+          store: store.scope(state: \.episodeList, action: \.episodeList)
+        )
       )
       .a11yID(A11yIDs.navTitle)
       .onAppear {

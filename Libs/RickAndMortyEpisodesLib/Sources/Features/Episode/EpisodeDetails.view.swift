@@ -110,6 +110,11 @@ extension EpisodeDetailsFeature {
     typealias CharacterViewModel = CharacterBriefFeature.MockViewModel
     typealias CharacterDetailsViewModel = CharacterDetailsFeature.MockViewModel
 
+    static func preview() -> Self {
+      .init(characterViewModels: [
+        CharacterViewModel.success()
+      ])
+    }
     init(
       episode: EpisodeDomainModel = .dummy,
       isCharacterDetailsPresented: Bool = false,
@@ -131,12 +136,8 @@ extension EpisodeDetailsFeature {
 
 private typealias Subject = EpisodeDetailsFeature
 #Preview {
+  @Previewable @State var viewModel = Subject.MockViewModel.preview()
   NavigationStack {
-    Subject.FeatureView(
-      viewModel: Subject.MockViewModel(
-        characterViewModels: [
-          .success()
-        ])
-    )
+    Subject.FeatureView(viewModel: viewModel)
   }
 }

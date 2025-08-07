@@ -4,13 +4,14 @@ import SharedLib
 import SwiftUI
 
 extension EpisodeListFeature {
+  typealias FeatureStore = EpisodesRootFeature.FeatureStore
   final class ProdViewModel: FeatureViewModel {
     private let store: FeatureStore
     init(store: FeatureStore) {
       self.store = store
     }
 
-    var episodes: IdentifiedArrayOf<Item> { store.pagination.items }
+    var episodes: IdentifiedArrayOf<Deps.Episode> { store.pagination.items }
     var failureMessage: String? {
       store.pagination.pageLoading.status.failureMessage
     }

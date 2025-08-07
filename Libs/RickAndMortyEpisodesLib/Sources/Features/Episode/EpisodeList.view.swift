@@ -16,14 +16,14 @@ extension EpisodeListFeature {
   }
 
   @MainActor protocol FeatureViewModel: AnyObject, Observable {
-    var episodes: IdentifiedArrayOf<Item> { get }
+    var episodes: IdentifiedArrayOf<Deps.Episode> { get }
     var failureMessage: String? { get }
     var cachedSince: Date? { get }
     var hasNextPage: Bool { get }
     var isLoadingNextPage: Bool { get }
     func preloadIfNeeded()
     func refresh() async
-    func presentEpisode(_ episode: EpisodeDomainModel)
+    func presentEpisode(_ episode: Deps.Episode)
     func loadNextPage()
   }
 
@@ -81,7 +81,7 @@ extension EpisodeListFeature {
       isPlaceholder: Bool
     ) -> some View {
       HStack(spacing: UIConstants.space) {
-        ListItemFeature.FeatureView(
+        Deps.ListItem.FeatureView(
           state: .init(episode: episode, isPlaceholder: isPlaceholder)
         )
         Image(systemName: "chevron.right")
@@ -163,7 +163,7 @@ extension EpisodeListFeature {
 
   final class MockViewModel: FeatureViewModel {
     init(
-      episodes: [Item] = [],
+      episodes: [Deps.Episode] = [],
       failureMessage: String? = nil,
       cachedSince: Date? = nil,
       hasNextPage: Bool,
@@ -176,7 +176,7 @@ extension EpisodeListFeature {
       self.isLoadingNextPage = isLoadingNextPage
     }
 
-    var episodes: IdentifiedArrayOf<Item>
+    var episodes: IdentifiedArrayOf<Deps.Episode>
     var failureMessage: String?
     var cachedSince: Date?
     var hasNextPage: Bool
@@ -185,17 +185,19 @@ extension EpisodeListFeature {
     func refresh() { /* no-op */  }
     func presentEpisode(_ episode: EpisodeDomainModel) { /* no-op */  }
     func loadNextPage() { /* no-op */  }
+
+    static func preview() -> Self {
+      .init(
+        episodes: [.dummy],
+        hasNextPage: false,
+        isLoadingNextPage: false
+      )
+    }
   }
 }
 
 private typealias Subject = EpisodeListFeature
 #Preview {
-  Subject
-    .FeatureView(
-      viewModel: Subject.MockViewModel(
-        episodes: [.dummy],
-        hasNextPage: false,
-        isLoadingNextPage: false
-      )
-    )
+  @Previewable @State var viewModel = Subject.MockViewModel.preview()
+  Subject.FeatureView(viewModel: viewModel)
 }
