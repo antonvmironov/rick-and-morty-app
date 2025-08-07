@@ -5,52 +5,6 @@ import SwiftUI
 
 extension BaseCharacterFeature {
   typealias FeatureStore = StoreOf<FeatureReducer>
-  typealias TestStore = TestStoreOf<FeatureReducer>
-
-  @MainActor
-  static func previewPlaceholderStore(
-    dependencies: Dependencies
-  ) -> FeatureStore {
-    let initialState = FeatureState.preview(
-      characterURL: MockNetworkGateway.characterFirstAPIURL,
-      characterLoading: .initial(cachedSuccess: nil)
-    )
-    return previewStore(initialState: initialState, dependencies: dependencies)
-  }
-
-  @MainActor
-  static func previewSuccessStore(
-    dependencies: Dependencies
-  ) -> FeatureStore {
-    let initialState = FeatureState.preview(
-      characterURL: MockNetworkGateway.characterFirstAPIURL,
-      characterLoading: .success(.dummy)
-    )
-    return previewStore(initialState: initialState, dependencies: dependencies)
-  }
-
-  @MainActor
-  static func previewFailureStore(
-    dependencies: Dependencies
-  ) -> FeatureStore {
-    let initialState = FeatureState.preview(
-      characterURL: MockNetworkGateway.characterFirstAPIURL,
-      characterLoading: .failure("test failure")
-    )
-    return previewStore(initialState: initialState, dependencies: dependencies)
-  }
-
-  @MainActor
-  static func previewStore(
-    initialState: FeatureState,
-    dependencies: Dependencies,
-  ) -> FeatureStore {
-    return FeatureStore(
-      initialState: initialState,
-      reducer: { FeatureReducer() },
-      withDependencies: dependencies.updateDeps
-    )
-  }
 
   @Reducer
   struct FeatureReducer {
