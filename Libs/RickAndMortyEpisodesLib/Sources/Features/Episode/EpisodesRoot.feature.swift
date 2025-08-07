@@ -44,7 +44,11 @@ enum EpisodesRootFeature {
             state: \.selectedEpisodeDetails,
             action: \.selectedEpisodeDetails
           ) {
-            EpisodeDetailsFeature.FeatureView(store: nestedStore)
+            EpisodeDetailsFeature.FeatureView(
+              viewModel: EpisodeDetailsFeature.ProdViewModel(
+                store: nestedStore
+              )
+            )
           } else {
             Text("Try again later")
           }

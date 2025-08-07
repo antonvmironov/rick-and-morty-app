@@ -7,10 +7,12 @@ import Shimmer
 import SwiftUI
 
 extension CharacterBriefFeature {
-  @MainActor protocol FeatureViewModel: Observable, AnyObject {
+  @MainActor protocol FeatureViewModel: Observable, AnyObject, Identifiable
+  where ID == String {
     var displayCharacter: CharacterDomainModel { get }
     var isPlaceholder: Bool { get }
     var isShimmering: Bool { get }
+    var characterURL: URL { get }
     var characterIDString: String { get }
     var characterLoadingSuccess: CharacterDomainModel? { get }
     var characterLoadingFailureMessage: String? { get }
@@ -149,26 +151,49 @@ extension CharacterBriefFeature {
   }
 
   final class MockViewModel: FeatureViewModel {
+    static func placeholder() -> Self {
+      Self(
+        isPlaceholder: true,
+        isShimmering: true,
+      )
+    }
+    static func success() -> Self {
+      Self(
+        isPlaceholder: false,
+        isShimmering: false,
+        characterLoadingSuccess: .dummy,
+      )
+    }
+    static func failure() -> Self {
+      Self(
+        isPlaceholder: false,
+        isShimmering: false,
+        characterLoadingFailureMessage: "something went wrong",
+      )
+    }
+
     init(
-      displayCharacter: CharacterDomainModel,
+      displayCharacter: CharacterDomainModel = .dummy,
       isPlaceholder: Bool,
       isShimmering: Bool,
-      characterIDString: String,
+      characterURL: URL = MockNetworkGateway.characterFirstAPIURL,
       characterLoadingSuccess: CharacterDomainModel? = nil,
       characterLoadingFailureMessage: String? = nil
     ) {
       self.displayCharacter = displayCharacter
       self.isPlaceholder = isPlaceholder
       self.isShimmering = isShimmering
-      self.characterIDString = characterIDString
+      self.characterURL = characterURL
       self.characterLoadingSuccess = characterLoadingSuccess
       self.characterLoadingFailureMessage = characterLoadingFailureMessage
     }
 
+    nonisolated var id: ID { characterIDString }
     let displayCharacter: CharacterDomainModel
     let isPlaceholder: Bool
     let isShimmering: Bool
-    let characterIDString: String
+    let characterURL: URL
+    nonisolated var characterIDString: String { characterURL.lastPathComponent }
     let characterLoadingSuccess: CharacterDomainModel?
     let characterLoadingFailureMessage: String?
     func preloadIfNeeded() { /* no-op */  }
@@ -181,38 +206,15 @@ private typealias Subject = CharacterBriefFeature
   List {
     VStack(alignment: .leading) {
       Text("placeholder")
-      Subject.FeatureView(
-        viewModel: Subject.MockViewModel(
-          displayCharacter: .dummy,
-          isPlaceholder: true,
-          isShimmering: true,
-          characterIDString: "123"
-        )
-      )
+      Subject.FeatureView(viewModel: Subject.MockViewModel.placeholder())
     }
     VStack(alignment: .leading) {
       Text("success")
-      Subject.FeatureView(
-        viewModel: Subject.MockViewModel(
-          displayCharacter: .dummy,
-          isPlaceholder: false,
-          isShimmering: false,
-          characterIDString: "123",
-          characterLoadingSuccess: .dummy,
-        )
-      )
+      Subject.FeatureView(viewModel: Subject.MockViewModel.success())
     }
     VStack(alignment: .leading) {
       Text("failure")
-      Subject.FeatureView(
-        viewModel: Subject.MockViewModel(
-          displayCharacter: .dummy,
-          isPlaceholder: false,
-          isShimmering: false,
-          characterIDString: "123",
-          characterLoadingFailureMessage: "something went wrong",
-        )
-      )
+      Subject.FeatureView(viewModel: Subject.MockViewModel.failure())
     }
   }
   .listStyle(.plain)

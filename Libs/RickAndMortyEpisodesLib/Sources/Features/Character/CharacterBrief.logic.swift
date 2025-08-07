@@ -3,9 +3,11 @@ import Foundation
 
 extension CharacterBriefFeature {
   @Observable final class ProdViewModel: FeatureViewModel {
+    let id: ID
     private let store: BaseCharacterFeature.FeatureStore
 
     init(store: BaseCharacterFeature.FeatureStore) {
+      self.id = store.characterIDString
       self.store = store
     }
 
@@ -18,8 +20,11 @@ extension CharacterBriefFeature {
     var isShimmering: Bool {
       store.characterLoading.status.isProcessing
     }
+    var characterURL: URL {
+      store.characterURL
+    }
     var characterIDString: String {
-      store.characterURL.lastPathComponent
+      characterURL.lastPathComponent
     }
     var characterLoadingSuccess: CharacterDomainModel? {
       store.characterLoading.status.success
