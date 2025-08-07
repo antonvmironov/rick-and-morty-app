@@ -7,14 +7,15 @@ import SwiftUI
   )!
 
   @State
-  var dependencies = RickAndMortyEpisodesLib.Dependencies.prod()
+  var opaqueState = RickAndMortyEpisodesLib.RootFeature.OpaqueState.initial(
+    apiURL: prodAPIURL
+  )
 
   var body: some Scene {
     WindowGroup {
       NavigationStack {
         RickAndMortyEpisodesLib.RootFeature.rootView(
-          apiURL: Self.prodAPIURL,
-          dependencies: dependencies
+          opaqueState: opaqueState
         )
       }
     }

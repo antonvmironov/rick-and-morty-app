@@ -4,7 +4,7 @@ import Foundation
 import Kingfisher
 import SwiftUI
 
-public final class Dependencies: Sendable {
+final class Dependencies: Sendable {
   let networkGateway: NetworkGateway
   let imageManager: KingfisherManager
   let urlCacheFactory: URLCacheFactory
@@ -22,7 +22,7 @@ public final class Dependencies: Sendable {
     self.backgroundRefresher = backgroundRefresher
   }
 
-  public static func prod() -> Dependencies {
+  static func prod() -> Dependencies {
     let urlCacheFactory = URLCacheFactory()
     let networkGateway = ProdNetworkGateway.build(
       urlCacheFactory: urlCacheFactory
@@ -41,7 +41,7 @@ public final class Dependencies: Sendable {
     return dependencies
   }
 
-  public static func preview() -> Dependencies {
+  static func preview() -> Dependencies {
     // keep this force unwrap. its only for SwiftUI preview
     let networkGateway = try! MockNetworkGateway.preview()
     return .init(
