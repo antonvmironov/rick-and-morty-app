@@ -169,7 +169,7 @@ extension EpisodeListFeature {
       hasNextPage: Bool,
       isLoadingNextPage: Bool
     ) {
-      self.episodes = IdentifiedArray(episodes)
+      self.episodes = IdentifiedArray(uniqueElements: episodes)
       self.failureMessage = failureMessage
       self.cachedSince = cachedSince
       self.hasNextPage = hasNextPage
@@ -188,11 +188,14 @@ extension EpisodeListFeature {
   }
 }
 
-//#Preview {
-//  @Previewable @State var isPlaceholder = false
-//  @Previewable @State var store = EpisodesRootFeature.previewStore(
-//    dependencies: Dependencies.preview()
-//  )
-//
-//  EpisodeListFeature.FeatureView(store: store)
-//}
+private typealias Subject = EpisodeListFeature
+#Preview {
+  Subject
+    .FeatureView(
+      viewModel: Subject.MockViewModel(
+        episodes: [.dummy],
+        hasNextPage: false,
+        isLoadingNextPage: false
+      )
+    )
+}
