@@ -109,9 +109,11 @@ public enum RootFeature {
       .sheet(isPresented: $store.isSettingsPresented) {
         NavigationStack {
           SettingsFeature.FeatureView(
-            store: store.scope(
-              state: \.settings,
-              action: \.settings
+            viewModel: SettingsFeature.ProdViewModel(
+              store: store.scope(
+                state: \.settings,
+                action: \.settings,
+              )
             )
           )
         }

@@ -1,23 +1,22 @@
-import ComposableArchitecture
 import Foundation
 import SharedLib
 import SwiftUI
 
-enum SettingsFeature: Feature {
-  @MainActor
-  static func previewStore() -> FeatureStore {
-    FeatureStore(
-      initialState: .init(),
-      reducer: { FeatureReducer() }
-    )
+extension SettingsFeature {
+  @MainActor protocol FeatureViewModel: AnyObject, Observable {
+    var version: String { get }
+    var cacheReports: [URLCacheReport] { get }
+    func simulateBackgroundRefresh()
+    func updateCacheReports()
+    func clearCache(category: URLCacheCategory)
   }
 
-  struct FeatureView: View {
-    @Bindable var store: FeatureStore
+  struct FeatureView<ViewModel: FeatureViewModel>: View {
+    @Bindable var viewModel: ViewModel
 
     var body: some View {
       List {
-        LabeledContent("Version", value: store.version)
+        LabeledContent("Version", value: viewModel.version)
         aboutSection
         debugSection
         cacheSection
@@ -50,7 +49,7 @@ enum SettingsFeature: Feature {
           LabeledContent("Background Fetch") {
             Button(
               action: {
-                store.send(.simulateBackgroundRefresh)
+                viewModel.simulateBackgroundRefresh()
               },
               label: {
                 Label(
@@ -73,7 +72,7 @@ enum SettingsFeature: Feature {
     private var cacheSection: some View {
       Section(
         content: {
-          ForEach(store.cacheReports) { report in
+          ForEach(viewModel.cacheReports) { report in
             cacheReportView(report: report)
           }
         },
@@ -83,7 +82,7 @@ enum SettingsFeature: Feature {
             Spacer()
             Button(
               action: {
-                store.send(.updateCacheReports)
+                viewModel.updateCacheReports()
               },
               label: {
                 Label(
@@ -111,7 +110,7 @@ enum SettingsFeature: Feature {
           Spacer(minLength: UIConstants.space)
           Button(
             action: {
-              store.send(.clearCache(report.category))
+              viewModel.clearCache(category: report.category)
             },
             label: {
               Label(
@@ -149,54 +148,30 @@ enum SettingsFeature: Feature {
     }
   }
 
-  @Reducer
-  struct FeatureReducer {
-    typealias State = FeatureState
-    typealias Action = FeatureAction
-
-    @Dependency(\.urlCacheFactory)
-    var urlCacheFactory: URLCacheFactory
-
-    @Dependency(\.backgroundRefresher)
-    var backgroundRefresher: BackgroundRefresher
-
-    var body: some ReducerOf<Self> {
-      Reduce { state, action in
-        switch action {
-        case .updateCacheReports:
-          state.cacheReports = urlCacheFactory.allReports()
-          return .none
-        case .simulateBackgroundRefresh:
-          return .run { _ in
-            await backgroundRefresher.simulateSending()
-          }
-        case .clearCache(let category):
-          urlCacheFactory.clearCache(category: category)
-          return .none
-        }
-      }
+  @Observable final class MockViewModel: FeatureViewModel {
+    init(
+      version: String = "preview-version",
+      cacheReports: [URLCacheReport] = [],
+    ) {
+      self.version = version
+      self.cacheReports = cacheReports
     }
+
+    // MARK: - FeatureViewModel
+    let version: String
+    let cacheReports: [URLCacheReport]
+    func simulateBackgroundRefresh() { /* no-op */  }
+    func updateCacheReports() { /* no-op */  }
+    func clearCache(category: URLCacheCategory) { /* no-op */  }
   }
 
-  @ObservableState
-  struct FeatureState: Equatable {
-    var version: String =
-      (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String)
-      ?? "unknown"
-
-    var cacheReports = [URLCacheReport]()
-  }
-
-  @CasePathable
-  enum FeatureAction: Equatable {
-    case updateCacheReports
-    case simulateBackgroundRefresh
-    case clearCache(URLCacheCategory)
+  @MainActor static func previewViewModel() -> MockViewModel {
+    MockViewModel()
   }
 }
 
 #Preview {
   NavigationStack {
-    SettingsFeature.FeatureView(store: SettingsFeature.previewStore())
+    SettingsFeature.FeatureView(viewModel: SettingsFeature.previewViewModel())
   }
 }

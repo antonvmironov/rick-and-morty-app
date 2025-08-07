@@ -3,7 +3,6 @@ import Foundation
 import SwiftUI
 
 public protocol Feature {
-  associatedtype FeatureView: View
   associatedtype FeatureReducer: Reducer<FeatureState, FeatureAction>
   associatedtype FeatureState: Equatable
   associatedtype FeatureAction

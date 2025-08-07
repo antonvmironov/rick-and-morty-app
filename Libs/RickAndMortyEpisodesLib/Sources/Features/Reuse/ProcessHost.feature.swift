@@ -4,8 +4,10 @@ import SharedLib
 import SwiftUI
 
 /// Namespace for the ProcessHost feature. Serves as an anchor for project navigation.
-enum ProcessHostFeature<Input: Equatable & Sendable, Output: Equatable>: Feature
-{
+enum ProcessHostFeature<
+  Input: Equatable & Sendable,
+  Output: Equatable & Sendable
+>: Feature {
   typealias FeatureView = Never
 
   static func processEffect(
@@ -114,7 +116,7 @@ enum ProcessHostFeature<Input: Equatable & Sendable, Output: Equatable>: Feature
   }
 
   @CasePathable
-  enum FeatureAction: Equatable {
+  enum FeatureAction: Equatable, Sendable {
     case process(Input)
     case finishProcessing(Output)
     case failedProcessing(message: String)
