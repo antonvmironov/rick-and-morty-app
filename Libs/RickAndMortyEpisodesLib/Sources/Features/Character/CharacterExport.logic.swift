@@ -8,11 +8,11 @@ extension CharacterExportFeature {
   static func transferrable(
     character: CharacterDomainModel,
     imageManager: KingfisherManager = .shared
-  ) -> FeatureState {
-    FeatureState(character: character, imageManager: imageManager)
+  ) -> TransferableCharacter {
+    TransferableCharacter(character: character, imageManager: imageManager)
   }
 
-  struct FeatureState: Transferable, Equatable {
+  struct TransferableCharacter: Transferable, Equatable {
     var character: CharacterDomainModel
     @ExcludedFromEquality
     var imageManager: KingfisherManager

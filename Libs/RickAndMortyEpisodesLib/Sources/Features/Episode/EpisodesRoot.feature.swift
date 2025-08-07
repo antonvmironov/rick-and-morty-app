@@ -4,7 +4,8 @@ import SharedLib
 import SwiftUI
 
 /// Namespace for the EpisodesRoot feature. Serves as an anchor for project navigation.
-enum EpisodesRootFeature: Feature {
+enum EpisodesRootFeature {
+  typealias FeatureStore = StoreOf<FeatureReducer>
   typealias Item = EpisodeDomainModel
   typealias PaginationFeature = ContinuousPaginationFeature<URL, Item>
   typealias ListItemFeature = EpisodeBriefFeature

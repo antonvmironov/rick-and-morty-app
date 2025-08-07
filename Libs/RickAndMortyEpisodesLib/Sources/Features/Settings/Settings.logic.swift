@@ -3,6 +3,7 @@ import Foundation
 import SharedLib
 
 extension SettingsFeature {
+  typealias FeatureStore = StoreOf<FeatureReducer>
   @Observable final class ProdViewModel: FeatureViewModel {
     private let store: FeatureStore
 

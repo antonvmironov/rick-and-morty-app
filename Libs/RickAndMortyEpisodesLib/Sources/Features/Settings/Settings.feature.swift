@@ -1,6 +1,6 @@
 import Foundation
 import SharedLib
 
-enum SettingsFeature: Feature {
+enum SettingsFeature {
   // Settings feature description
 }

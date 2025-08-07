@@ -98,22 +98,14 @@ extension BaseCharacterFeature {
     let characterURL: URL
     let placeholderCharacter: CharacterDomainModel = .dummy
     var characterLoading: Deps.CharacterLoading.FeatureState
-    var characterIDString: String { characterURL.lastPathComponent }
-
+    var characterIDString: String {
+      characterURL.lastPathComponent
+    }
     var actualCharacter: CharacterDomainModel? {
       characterLoading.status.success
     }
-
     var displayCharacter: CharacterDomainModel {
       actualCharacter ?? placeholderCharacter
-    }
-
-    var isPlaceholder: Bool {
-      characterLoading.status.success == nil
-    }
-
-    var isShimmering: Bool {
-      characterLoading.status.isProcessing
     }
 
     static func preview(

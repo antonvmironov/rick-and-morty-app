@@ -4,7 +4,8 @@ import SharedLib
 import SwiftUI
 
 /// Namespace for the EpisodeDetails feature. Serves as an anchor for project navigation.
-enum EpisodeDetailsFeature: Feature {
+enum EpisodeDetailsFeature {
+  typealias FeatureStore = StoreOf<FeatureReducer>
   typealias CharacterState = BaseCharacterFeature.FeatureState
   typealias CharacterStatesArray = IdentifiedArrayOf<CharacterState>
 
@@ -63,7 +64,9 @@ enum EpisodeDetailsFeature: Feature {
           state: \.selectedCharacter,
           action: \.selectedCharacter
         ) {
-          CharacterDetailsFeature.FeatureView(store: store)
+          CharacterDetailsFeature.FeatureView(
+            viewModel: CharacterDetailsFeature.ProdViewModel(store: store)
+          )
         } else {
           Text("Unable to load character details. Please try again later.")
         }
@@ -149,11 +152,11 @@ enum EpisodeDetailsFeature: Feature {
             return .none
           }
           state.route = .characterDetails
-          guard state.selectedCharacter?.character.id != characterID else {
+          guard state.selectedCharacter?.characterBrief.id != characterID else {
             return .none
           }
           state.selectedCharacter = CharacterDetailsFeature.FeatureState(
-            character: state.characters[characterIndex]
+            characterBrief: state.characters[characterIndex]
           )
           return .run { _ in
             await UISelectionFeedbackGenerator().selectionChanged()
