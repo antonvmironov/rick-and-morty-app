@@ -28,7 +28,6 @@ extension View {
 
 #Preview {
   VStack {
-    Text("Hello, world!")
-      .tagDecoration()
+    Text("Hello, world!").tagDecoration()
   }
 }

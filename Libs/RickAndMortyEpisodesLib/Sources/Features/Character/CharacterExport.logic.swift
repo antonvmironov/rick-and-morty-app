@@ -6,14 +6,14 @@ import SwiftUI
 
 extension CharacterExportFeature {
   static func transferrable(
-    character: CharacterDomainModel,
+    character: Deps.Character,
     imageManager: KingfisherManager = .shared
   ) -> TransferableCharacter {
     TransferableCharacter(character: character, imageManager: imageManager)
   }
 
   struct TransferableCharacter: Transferable, Equatable {
-    var character: CharacterDomainModel
+    var character: Deps.Character
     @ExcludedFromEquality
     var imageManager: KingfisherManager
 
@@ -34,9 +34,9 @@ extension CharacterExportFeature {
 
     @MainActor
     func exportPDFData() async throws -> Data {
-      let retrievalResult = try await imageManager.retrieveImage(
-        with: character.image
-      )
+      let retrievalResult =
+        try await imageManager
+        .retrieveImage(with: character.image)
       let imageOverride = Image(uiImage: retrievalResult.image)
 
       let fileManager = FileManager.default
@@ -58,9 +58,7 @@ extension CharacterExportFeature {
       )
       .padding(padding)
 
-      let renderer = ImageRenderer(content: view)
-
-      renderer.render { size, context in
+      ImageRenderer(content: view).render { size, context in
         // 4: Tell SwiftUI our PDF should be the same size as the views we're rendering
         var box = CGRect(x: 0, y: 0, width: size.width, height: size.height)
 

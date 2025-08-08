@@ -10,9 +10,9 @@ extension CharacterProfileFeature {
   }
 
   struct FeatureView: View {
-    var actualCharacter: CharacterDomainModel?
-    var placeholderCharacter: CharacterDomainModel = .dummy
-    private var displayCharacter: CharacterDomainModel {
+    var actualCharacter: Deps.Character?
+    var placeholderCharacter: Deps.Character = .dummy
+    private var displayCharacter: Deps.Character {
       actualCharacter ?? placeholderCharacter
     }
     var mode: FeatureMode
@@ -48,7 +48,10 @@ extension CharacterProfileFeature {
             label: "species",
             value: displayCharacter.species.rawValue
           )
-          info(label: "origin", value: displayCharacter.origin.name)
+          info(
+            label: "origin",
+            value: displayCharacter.origin.name
+          )
           info(
             label: "episodes",
             value: "\(displayCharacter.episode.count)"
@@ -71,12 +74,12 @@ extension CharacterProfileFeature {
     private var loadableContentModifier: some ViewModifier {
       switch mode {
       case .uiRendering(let isPlaceholder, let isShimmering):
-        SkeletonDecorationFeature.FeatureViewModifier(
+        Deps.SkeletonDecoration.FeatureViewModifier(
           isEnabled: isPlaceholder,
           isShimmering: isShimmering,
         )
       case .snapshotRendering:
-        SkeletonDecorationFeature.FeatureViewModifier(
+        Deps.SkeletonDecoration.FeatureViewModifier(
           isEnabled: false,
           isShimmering: false,
         )
@@ -85,47 +88,46 @@ extension CharacterProfileFeature {
 
     private func characterImagePlaceholder() -> some View {
       RoundedRectangle(cornerRadius: UIConstants.cornerRadius)
-        .fill(
-          UIConstants.inPreview ? .gray : Color("SecondaryBackground")
-        )
+        .fill(UIConstants.inPreview ? .gray : Color("SecondaryBackground"))
         .modifier(loadableContentModifier)
     }
   }
 }
 
+private typealias Subject = CharacterProfileFeature
 #Preview {
   List {
     VStack(alignment: .leading) {
       Text("baseline")
-      CharacterProfileFeature.FeatureView(
+      Subject.FeatureView(
         actualCharacter: .dummy,
         mode: .uiRendering(isPlaceholder: false, isShimmering: false),
       )
     }
     VStack(alignment: .leading) {
       Text("placeholder")
-      CharacterProfileFeature.FeatureView(
+      Subject.FeatureView(
         actualCharacter: .dummy,
         mode: .uiRendering(isPlaceholder: true, isShimmering: false),
       )
     }
     VStack(alignment: .leading) {
       Text("shimmer")
-      CharacterProfileFeature.FeatureView(
+      Subject.FeatureView(
         actualCharacter: .dummy,
         mode: .uiRendering(isPlaceholder: false, isShimmering: true),
       )
     }
     VStack(alignment: .leading) {
       Text("placeholder & shimmer")
-      CharacterProfileFeature.FeatureView(
+      Subject.FeatureView(
         actualCharacter: .dummy,
         mode: .uiRendering(isPlaceholder: true, isShimmering: true),
       )
     }
     VStack(alignment: .leading) {
       Text("snapshot")
-      CharacterProfileFeature.FeatureView(
+      Subject.FeatureView(
         actualCharacter: .dummy,
         mode: .snapshotRendering(
           imageOverride: Image(systemName: "person.circle")
