@@ -52,7 +52,7 @@ extension CharacterExportFeature {
         .appendingPathComponent("\(character.name).pdf", conformingTo: .pdf)
 
       let padding = UIConstants.space * 4
-      let view = CharacterProfileFeature.FeatureView(
+      let view = Deps.Profile.FeatureView(
         actualCharacter: character,
         mode: .snapshotRendering(imageOverride: imageOverride)
       )

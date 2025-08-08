@@ -2,7 +2,6 @@ import Foundation
 import SharedLib
 import SwiftUI
 
-/// Namespace for the RootFeature feature. Serves as an anchor for project navigation.
 extension RootFeature {
   @MainActor protocol FeatureViewModel: AnyObject, Observable {
     associatedtype EpisodesRootViewModel: Deps.EpisodesRoot.FeatureViewModel
@@ -33,7 +32,7 @@ extension RootFeature {
     }
 
     var body: some View {
-      EpisodesRootFeature.FeatureView(viewModel: viewModel.episodesRoot)
+      Deps.EpisodesRoot.FeatureView(viewModel: viewModel.episodesRoot)
         .a11yID(A11yIDs.navTitle)
         .onAppear {
           viewModel.preloadIfNeeded { [weak viewModel] in
@@ -52,7 +51,7 @@ extension RootFeature {
         }
         .sheet(isPresented: $viewModel.isSettingsPresented) {
           NavigationStack {
-            SettingsFeature.FeatureView(viewModel: viewModel.settingsViewModel)
+            Deps.Settings.FeatureView(viewModel: viewModel.settingsViewModel)
           }
           .overlay(alignment: .topTrailing) {
             toggleSettingsPresentedButton(

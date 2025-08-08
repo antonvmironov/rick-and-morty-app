@@ -16,7 +16,7 @@ extension RootFeature {
 
     let episodeList: Deps.EpisodesRoot.FeatureState = {
       guard let firstPageURL = cachedEndpoints?.episodes else {
-        return EpisodesRootFeature.FeatureState
+        return Deps.EpisodesRoot.FeatureState
           .initial(firstPageURL: cachedEndpoints?.episodes)
       }
       let cachedFirstPage = try? dependencies.networkGateway
@@ -25,11 +25,11 @@ extension RootFeature {
         )?
         .decodedResponse
       guard let cachedFirstPage else {
-        return EpisodesRootFeature.FeatureState
+        return Deps.EpisodesRoot.FeatureState
           .initial(firstPageURL: cachedEndpoints?.episodes)
       }
 
-      return EpisodesRootFeature.FeatureState
+      return Deps.EpisodesRoot.FeatureState
         .initialFromCache(firstPageURL: firstPageURL, pages: [cachedFirstPage])
     }()
 
@@ -58,10 +58,10 @@ extension RootFeature {
       self.store = store
     }
 
-    var episodesRoot: RootFeature.Deps.EpisodesRoot.ProdViewModel {
+    var episodesRoot: Deps.EpisodesRoot.ProdViewModel {
       .init(store: store.scope(state: \.episodeList, action: \.episodeList))
     }
-    var settingsViewModel: RootFeature.Deps.Settings.ProdViewModel {
+    var settingsViewModel: Deps.Settings.ProdViewModel {
       .init(store: store.scope(state: \.settings, action: \.settings))
     }
     var isSettingsPresented: Bool {
@@ -93,8 +93,8 @@ extension RootFeature {
     case toggleSettingsPresentation
     case didRefreshOnBackground
     case endpointsLoading(Deps.EndpointsLoading.FeatureAction)
-    case episodeList(EpisodesRootFeature.FeatureAction)
-    case settings(SettingsFeature.FeatureAction)
+    case episodeList(Deps.EpisodesRoot.FeatureAction)
+    case settings(Deps.Settings.FeatureAction)
     case binding(BindingAction<FeatureState>)
   }
 
@@ -125,10 +125,10 @@ extension RootFeature {
         }
       }
       Scope(state: \.episodeList, action: \.episodeList) {
-        EpisodesRootFeature.FeatureReducer()
+        Deps.EpisodesRoot.FeatureReducer()
       }
       Scope(state: \.settings, action: \.settings) {
-        SettingsFeature.FeatureReducer()
+        Deps.Settings.FeatureReducer()
       }
       BindingReducer()
     }
