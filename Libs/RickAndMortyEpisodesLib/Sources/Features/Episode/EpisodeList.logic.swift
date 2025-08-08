@@ -4,7 +4,7 @@ import SharedLib
 import SwiftUI
 
 extension EpisodeListFeature {
-  typealias FeatureStore = EpisodesRootFeature.FeatureStore
+  typealias FeatureStore = Deps.Base.FeatureStore
   final class ProdViewModel: FeatureViewModel {
     private let store: FeatureStore
     init(store: FeatureStore) {

@@ -123,7 +123,7 @@ extension EpisodesRootFeature {
       episode: EpisodeDomainModel,
       send: Send<Action>
     ) async {
-      let state = EpisodeDetailsFeature.FeatureState.initial(
+      let state = Deps.EpisodeDetails.FeatureState.initial(
         episode: episode,
         getCachedCharacter: {
           try? networkGateway

@@ -11,6 +11,7 @@ extension EpisodeDetailsFeature {
     var characterViewModels: [CharacterViewModel] { get }
     var selectedCharacterViewModel: CharacterDetailsViewModel? { get }
     var episode: Deps.Episode { get }
+    var airedOnString: String { get }
     var isCharacterDetailsPresented: Bool { get set }
     func present(characterURL: URL)
     func preloadIfNeeded()
@@ -52,7 +53,7 @@ extension EpisodeDetailsFeature {
         isPresented: $viewModel.isCharacterDetailsPresented
       ) {
         if let nestedViewModel = viewModel.selectedCharacterViewModel {
-          CharacterDetailsFeature.FeatureView(viewModel: nestedViewModel)
+          Deps.CharacterDetails.FeatureView(viewModel: nestedViewModel)
         } else {
           Text("Unable to load character details. Please try again later.")
         }
@@ -68,7 +69,7 @@ extension EpisodeDetailsFeature {
         },
         label: {
           HStack {
-            CharacterBriefFeature.FeatureView(viewModel: characterViewModel)
+            Deps.CharacterBrief.FeatureView(viewModel: characterViewModel)
             Image(systemName: "chevron.right")
           }
         }
@@ -93,7 +94,7 @@ extension EpisodeDetailsFeature {
             .font(.caption)
             .tagDecoration()
           Text(
-            "Aired on \(BaseEpisodeFeature.formatAirDate(episode: viewModel.episode))"
+            "Aired on \(viewModel.airedOnString))"
           )
           .font(.caption)
           .fontDesign(.monospaced)
@@ -107,8 +108,8 @@ extension EpisodeDetailsFeature {
   }
 
   final class MockViewModel: FeatureViewModel {
-    typealias CharacterViewModel = CharacterBriefFeature.MockViewModel
-    typealias CharacterDetailsViewModel = CharacterDetailsFeature.MockViewModel
+    typealias CharacterViewModel = Deps.CharacterBrief.MockViewModel
+    typealias CharacterDetailsViewModel = Deps.CharacterDetails.MockViewModel
 
     static func preview() -> Self {
       .init(characterViewModels: [
@@ -118,15 +119,18 @@ extension EpisodeDetailsFeature {
     init(
       episode: EpisodeDomainModel = .dummy,
       isCharacterDetailsPresented: Bool = false,
+      airedOnString: String = "11/22/33",
       characterViewModels: [CharacterViewModel]
     ) {
       self.episode = episode
       self.isCharacterDetailsPresented = isCharacterDetailsPresented
       self.characterViewModels = characterViewModels
+      self.airedOnString = airedOnString
     }
 
     let episode: EpisodeDomainModel
     var isCharacterDetailsPresented: Bool
+    let airedOnString: String
     let characterViewModels: [CharacterViewModel]
     var selectedCharacterViewModel: CharacterDetailsViewModel? { nil }
     func present(characterURL: URL) { /* no-op */  }

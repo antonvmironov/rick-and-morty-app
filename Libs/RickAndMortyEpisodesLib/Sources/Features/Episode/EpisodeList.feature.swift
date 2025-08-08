@@ -9,5 +9,6 @@ enum EpisodeListFeature {
     typealias Episode = EpisodeDomainModel
     typealias Pagination = ContinuousPaginationFeature<URL, Episode>
     typealias ListItem = EpisodeBriefFeature
+    typealias Base = EpisodesRootFeature
   }
 }
