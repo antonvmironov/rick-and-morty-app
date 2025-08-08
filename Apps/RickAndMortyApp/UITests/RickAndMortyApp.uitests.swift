@@ -31,9 +31,6 @@ final class RickAndMortyAppUITests: XCTestCase {
     app.buttons[CharacterDetailsFeature.A11yIDs.exportToPDF]
       .waitToAppear()
       .tap()
-    app.buttons["header.closeButton"]  // an id for a system share sheet
-      .waitToAppear(timeout: 10)
-      .tap()
   }
 
   func testToSettingsAndBack() async {

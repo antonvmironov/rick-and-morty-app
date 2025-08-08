@@ -48,7 +48,7 @@ extension EpisodesRootFeature {
     case preloadIfNeeded
     case reload(
       invalidateCache: Bool,
-      continuation: Deps.Pagination.PageLoadingContinuation?
+      continuation: Deps.Pagination.Deps.PageLoadingContinuation?
     )
 
     case pagination(Deps.Pagination.FeatureAction)
@@ -123,7 +123,7 @@ extension EpisodesRootFeature {
       episode: EpisodeDomainModel,
       send: Send<Action>
     ) async {
-      let state = EpisodeDetailsFeature.FeatureState.initial(
+      let state = Deps.EpisodeDetails.FeatureState.initial(
         episode: episode,
         getCachedCharacter: {
           try? networkGateway
@@ -179,7 +179,7 @@ extension EpisodesRootFeature {
 
     static func initialFromCache(
       firstPageURL: URL,
-      pages: [Deps.Pagination.Page],
+      pages: [Deps.Pagination.Deps.Page],
     ) -> Self {
       FeatureState(
         pagination: .initialFromCache(

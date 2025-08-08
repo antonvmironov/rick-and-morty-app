@@ -3,15 +3,14 @@ import Foundation
 import SharedLib
 import SwiftUI
 
-/// Namespace for the ContinuousPagination feature. Serves as an anchor for project navigation.
 extension ContinuousPaginationFeature {
   @Reducer
   struct FeatureReducer {
     typealias State = FeatureState
     typealias Action = FeatureAction
-    let getPage: GetPage
-    let getNextInput: GetNextInput
-    let isPageFirst: IsPageFirst
+    let getPage: Deps.GetPage
+    let getNextInput: Deps.GetNextInput
+    let isPageFirst: Deps.IsPageFirst
 
     var body: some ReducerOf<Self> {
       paginationReducer
@@ -76,7 +75,7 @@ extension ContinuousPaginationFeature {
 
     private var pageLoadingReducer: some ReducerOf<Self> {
       Scope(state: \.pageLoading, action: \.pageLoading) {
-        PageLoadingFeature.FeatureReducer(operation: getPage)
+        Deps.PageLoading.FeatureReducer(operation: getPage)
       }
     }
   }
@@ -94,7 +93,7 @@ extension ContinuousPaginationFeature {
 
     static func initialFromCache(
       firstInput: Input,
-      pages: [Page],
+      pages: [Deps.Page],
       nextInput: Input?,
     ) -> Self {
       .init(
@@ -109,12 +108,12 @@ extension ContinuousPaginationFeature {
 
     var firstInput: Input?
     var items = IdentifiedArray<Item.ID, Item>()
-    var pages = [Page]()
+    var pages = [Deps.Page]()
     var nextInput: Input?
-    var pageLoading: PageLoadingFeature.FeatureState = .initial(
+    var pageLoading: Deps.PageLoading.FeatureState = .initial(
       cachedSuccess: nil
     )
-    var finishedLoadingPageContinuations = [PageLoadingContinuation]()
+    var finishedLoadingPageContinuations = [Deps.PageLoadingContinuation]()
     var cachedSince: Date? { pages.first?.cachedSince }
 
     var needsToLoadFirstPage: Bool {
@@ -142,9 +141,9 @@ extension ContinuousPaginationFeature {
   @CasePathable
   enum FeatureAction {
     case setFirstInput(input: Input)
-    case loadNextPage(continuation: PageLoadingContinuation? = nil)
+    case loadNextPage(continuation: Deps.PageLoadingContinuation? = nil)
     case loadFirstPageIfNeeded
-    case reload(continuation: PageLoadingContinuation? = nil)
-    case pageLoading(PageLoadingFeature.FeatureAction)
+    case reload(continuation: Deps.PageLoadingContinuation? = nil)
+    case pageLoading(Deps.PageLoading.FeatureAction)
   }
 }

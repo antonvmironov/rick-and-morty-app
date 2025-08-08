@@ -23,7 +23,7 @@ extension EpisodeBriefFeature {
             .font(.caption)
             .fontDesign(.monospaced)
             .skeletonDecoration(isEnabled: state.isPlaceholder)
-          Text("\(BaseEpisodeFeature.formatAirDate(episode: state.episode))")
+          Text("\(Deps.Base.formatAirDate(episode: state.episode))")
             .font(.caption)
             .fontDesign(.monospaced)
             .skeletonDecoration(isEnabled: state.isPlaceholder)

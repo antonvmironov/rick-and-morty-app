@@ -8,7 +8,9 @@ enum EpisodeDetailsFeature {
   enum Deps {
     typealias Episode = EpisodeDomainModel
     typealias Character = CharacterDomainModel
-    typealias CharacterState = BaseCharacterFeature.FeatureState
+    typealias BaseEpisode = BaseEpisodeFeature
+    typealias BaseCharacter = BaseCharacterFeature
+    typealias CharacterState = BaseCharacter.FeatureState
     typealias CharacterStatesArray = IdentifiedArrayOf<CharacterState>
     typealias CharacterBrief = CharacterBriefFeature
     typealias CharacterDetails = CharacterDetailsFeature

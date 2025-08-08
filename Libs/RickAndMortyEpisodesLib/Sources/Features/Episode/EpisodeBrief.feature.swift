@@ -5,4 +5,7 @@ import SwiftUI
 
 /// Namespace for the EpisodeBrief feature. Serves as an anchor for project navigation.
 enum EpisodeBriefFeature {
+  enum Deps {
+    typealias Base = BaseEpisodeFeature
+  }
 }

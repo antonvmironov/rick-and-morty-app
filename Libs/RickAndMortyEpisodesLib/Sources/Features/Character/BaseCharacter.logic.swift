@@ -6,6 +6,40 @@ import SwiftUI
 extension BaseCharacterFeature {
   typealias FeatureStore = StoreOf<FeatureReducer>
 
+  @ObservableState
+  struct FeatureState: Equatable, Identifiable {
+    var id: URL { characterURL }
+    let characterURL: URL
+    let placeholderCharacter: Deps.Character = .dummy
+    var characterLoading: Deps.CharacterLoading.FeatureState
+    var characterIDString: String {
+      characterURL.lastPathComponent
+    }
+    var actualCharacter: Deps.Character? {
+      characterLoading.status.success
+    }
+    var displayCharacter: Deps.Character {
+      actualCharacter ?? placeholderCharacter
+    }
+
+    static func initial(
+      characterURL: URL,
+      cachedCharacter: Deps.Character?
+    ) -> Self {
+      .init(
+        characterURL: characterURL,
+        characterLoading: .initial(cachedSuccess: cachedCharacter)
+      )
+    }
+  }
+
+  @CasePathable
+  enum FeatureAction: Equatable {
+    case characterLoading(Deps.CharacterLoading.FeatureAction)
+    case preloadIfNeeded
+    case reloadOnFailure
+  }
+
   @Reducer
   struct FeatureReducer {
     typealias State = FeatureState
@@ -44,46 +78,5 @@ extension BaseCharacterFeature {
         }
       }
     }
-  }
-
-  @ObservableState
-  struct FeatureState: Equatable, Identifiable {
-    var id: URL { characterURL }
-    let characterURL: URL
-    let placeholderCharacter: CharacterDomainModel = .dummy
-    var characterLoading: Deps.CharacterLoading.FeatureState
-    var characterIDString: String {
-      characterURL.lastPathComponent
-    }
-    var actualCharacter: CharacterDomainModel? {
-      characterLoading.status.success
-    }
-    var displayCharacter: CharacterDomainModel {
-      actualCharacter ?? placeholderCharacter
-    }
-
-    static func preview(
-      characterURL: URL,
-      characterLoading: Deps.CharacterLoading.FeatureState
-    ) -> Self {
-      .init(characterURL: characterURL, characterLoading: characterLoading)
-    }
-
-    static func initial(
-      characterURL: URL,
-      cachedCharacter: CharacterDomainModel?
-    ) -> Self {
-      .init(
-        characterURL: characterURL,
-        characterLoading: .initial(cachedSuccess: cachedCharacter)
-      )
-    }
-  }
-
-  @CasePathable
-  enum FeatureAction: Equatable {
-    case characterLoading(Deps.CharacterLoading.FeatureAction)
-    case preloadIfNeeded
-    case reloadOnFailure
   }
 }

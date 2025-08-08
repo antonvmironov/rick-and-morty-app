@@ -5,10 +5,12 @@ enum ContinuousPaginationFeature<
   Input: Equatable & Sendable,
   Item: Equatable & Sendable & Codable & Identifiable
 > {
-  typealias Page = ResponsePageContainer<Item>
-  typealias PageLoadingFeature = ProcessHostFeature<Input, Page>
-  typealias PageLoadingContinuation = CheckedContinuation<Page, Error>
-  typealias GetPage = @Sendable (Input) async throws -> Page
-  typealias GetNextInput = @Sendable (Page) -> Input?
-  typealias IsPageFirst = @Sendable (Page) -> Bool
+  enum Deps {
+    typealias Page = ResponsePageContainer<Item>
+    typealias PageLoading = ProcessHostFeature<Input, Page>
+    typealias PageLoadingContinuation = CheckedContinuation<Page, Error>
+    typealias GetPage = @Sendable (Input) async throws -> Page
+    typealias GetNextInput = @Sendable (Page) -> Input?
+    typealias IsPageFirst = @Sendable (Page) -> Bool
+  }
 }

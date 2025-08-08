@@ -37,9 +37,12 @@ def format_files_step(swift_files):
     if not swift_files:
         print('⚠️\tNo Swift files to format.')
         return
-    cmd = [SWIFT_FORMAT_CMD] + LINT_ARGS + swift_files
+    cmd = [SWIFT_FORMAT_CMD] + LINT_ARGS
+    mock_command = ' '.join(cmd)
+    mock_command = f'{mock_command} <{len(swift_files)} eligible files>'
+    cmd += swift_files
     print('🧹\tFormatting Swift files...')
-    print('🧹\tRunning:', ' '.join(cmd))
+    print(f'🧹\tRunning: {mock_command}')
     start = time.time()
     result = subprocess.run(cmd, cwd=os.getcwd())
     elapsed = time.time() - start

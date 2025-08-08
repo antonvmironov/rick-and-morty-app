@@ -4,7 +4,6 @@ import SharedLib
 import Shimmer
 import SwiftUI
 
-/// Namespace for the CharacterDetails feature. Serves as an anchor for project navigation.
 extension CharacterDetailsFeature {
   @MainActor protocol FeatureViewModel: AnyObject, Observable {
     var actualCharacter: Deps.Character? { get }
@@ -71,7 +70,7 @@ extension CharacterDetailsFeature {
       character: CharacterDomainModel
     ) -> some View {
       ShareLink(
-        item: CharacterExportFeature.transferrable(
+        item: Deps.Export.transferrable(
           character: character,
           imageManager: .shared
         ),

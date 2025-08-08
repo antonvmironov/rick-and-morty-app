@@ -7,12 +7,12 @@ import SwiftUI
 extension CharacterBriefFeature {
   @MainActor protocol FeatureViewModel: Observable, AnyObject, Identifiable
   where ID == String {
-    var displayCharacter: CharacterDomainModel { get }
+    var displayCharacter: Deps.Character { get }
     var isPlaceholder: Bool { get }
     var isShimmering: Bool { get }
     var characterURL: URL { get }
     var characterIDString: String { get }
-    var characterLoadingSuccess: CharacterDomainModel? { get }
+    var characterLoadingSuccess: Deps.Character? { get }
     var characterLoadingFailureMessage: String? { get }
     func preloadIfNeeded()
     func reloadOnFailure()
@@ -28,21 +28,15 @@ extension CharacterBriefFeature {
 
     var body: some View {
       characterContentView(character: viewModel.displayCharacter)
-        .onAppear {
-          viewModel.preloadIfNeeded()
-        }
+        .onAppear { viewModel.preloadIfNeeded() }
     }
 
     private func reloadView() -> some View {
       return Button(
-        action: {
-          viewModel.reloadOnFailure()
-        },
+        action: { viewModel.reloadOnFailure() },
         label: {
           Label(
-            title: {
-              Text("Retry")
-            },
+            title: { Text("Retry") },
             icon: {
               Image(
                 systemName:
@@ -57,14 +51,14 @@ extension CharacterBriefFeature {
     }
 
     private var loadableContentModifier: some ViewModifier {
-      SkeletonDecorationFeature.FeatureViewModifier(
+      Deps.SkeletonDecoration.FeatureViewModifier(
         isEnabled: viewModel.isPlaceholder,
         isShimmering: viewModel.isShimmering,
       )
     }
 
     private func characterContentView(
-      character: CharacterDomainModel
+      character: Deps.Character
     ) -> some View {
       HStack(spacing: UIConstants.space) {
         VStack(alignment: .leading) {
@@ -121,9 +115,7 @@ extension CharacterBriefFeature {
 
     private func characterImagePlaceholder() -> some View {
       RoundedRectangle(cornerRadius: UIConstants.cornerRadius)
-        .fill(
-          UIConstants.inPreview ? .gray : Color("SecondaryBackground")
-        )
+        .fill(UIConstants.inPreview ? .gray : Color("SecondaryBackground"))
         .modifier(loadableContentModifier)
     }
 
@@ -171,11 +163,11 @@ extension CharacterBriefFeature {
     }
 
     init(
-      displayCharacter: CharacterDomainModel = .dummy,
+      displayCharacter: Deps.Character = .dummy,
       isPlaceholder: Bool,
       isShimmering: Bool,
       characterURL: URL = MockNetworkGateway.characterFirstAPIURL,
-      characterLoadingSuccess: CharacterDomainModel? = nil,
+      characterLoadingSuccess: Deps.Character? = nil,
       characterLoadingFailureMessage: String? = nil
     ) {
       self.displayCharacter = displayCharacter
@@ -187,12 +179,12 @@ extension CharacterBriefFeature {
     }
 
     nonisolated var id: ID { characterIDString }
-    let displayCharacter: CharacterDomainModel
+    let displayCharacter: Deps.Character
     let isPlaceholder: Bool
     let isShimmering: Bool
     let characterURL: URL
     nonisolated var characterIDString: String { characterURL.lastPathComponent }
-    let characterLoadingSuccess: CharacterDomainModel?
+    let characterLoadingSuccess: Deps.Character?
     let characterLoadingFailureMessage: String?
     func preloadIfNeeded() { /* no-op */  }
     func reloadOnFailure() { /* no-op */  }

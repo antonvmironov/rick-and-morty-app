@@ -4,14 +4,14 @@ import Foundation
 extension CharacterBriefFeature {
   @Observable final class ProdViewModel: FeatureViewModel {
     let id: ID
-    private let store: BaseCharacterFeature.FeatureStore
+    private let store: Deps.Base.FeatureStore
 
-    init(store: BaseCharacterFeature.FeatureStore) {
+    init(store: Deps.Base.FeatureStore) {
       self.id = store.characterIDString
       self.store = store
     }
 
-    var displayCharacter: CharacterDomainModel {
+    var displayCharacter: Deps.Character {
       store.actualCharacter ?? store.placeholderCharacter
     }
     var isPlaceholder: Bool {
@@ -26,7 +26,7 @@ extension CharacterBriefFeature {
     var characterIDString: String {
       characterURL.lastPathComponent
     }
-    var characterLoadingSuccess: CharacterDomainModel? {
+    var characterLoadingSuccess: Deps.Character? {
       store.characterLoading.status.success
     }
     var characterLoadingFailureMessage: String? {

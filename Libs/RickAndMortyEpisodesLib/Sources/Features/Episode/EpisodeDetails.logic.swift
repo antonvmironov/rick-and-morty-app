@@ -5,8 +5,8 @@ import SwiftUI
 
 extension EpisodeDetailsFeature {
   final class ProdViewModel: FeatureViewModel {
-    typealias CharacterViewModel = CharacterBriefFeature.ProdViewModel
-    typealias CharacterDetailsViewModel = CharacterDetailsFeature.ProdViewModel
+    typealias CharacterViewModel = Deps.CharacterBrief.ProdViewModel
+    typealias CharacterDetailsViewModel = Deps.CharacterDetails.ProdViewModel
     private let store: FeatureStore
     init(store: FeatureStore) {
       self.store = store
@@ -21,6 +21,9 @@ extension EpisodeDetailsFeature {
       store.scope(state: \.selectedCharacter, action: \.selectedCharacter).map {
         CharacterDetailsViewModel(store: $0)
       }
+    }
+    var airedOnString: String {
+      Deps.BaseEpisode.formatAirDate(episode: episode)
     }
     var episode: Deps.Episode { store.episode }
     var isCharacterDetailsPresented: Bool {
@@ -84,14 +87,14 @@ extension EpisodeDetailsFeature {
     var charactersReducer: some ReducerOf<Self> {
       EmptyReducer()
         .forEach(\.characters, action: \.characters) {
-          BaseCharacterFeature.FeatureReducer()
+          Deps.BaseCharacter.FeatureReducer()
         }
     }
 
     var selectedCharacterReducer: some ReducerOf<Self> {
       EmptyReducer()
         .ifLet(\.selectedCharacter, action: \.selectedCharacter) {
-          CharacterDetailsFeature.FeatureReducer()
+          Deps.CharacterDetails.FeatureReducer()
         }
     }
   }
@@ -145,7 +148,7 @@ extension EpisodeDetailsFeature {
   @CasePathable
   enum FeatureAction: Equatable, BindableAction {
     case selectedCharacter(Deps.CharacterDetails.FeatureAction)
-    case characters(IdentifiedActionOf<BaseCharacterFeature.FeatureReducer>)
+    case characters(IdentifiedActionOf<Deps.BaseCharacter.FeatureReducer>)
     case preloadIfNeeded
     case presentCharacter(Deps.CharacterState.ID?)
     case binding(BindingAction<FeatureState>)
