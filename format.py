@@ -38,7 +38,8 @@ def format_files_step(swift_files):
         print('⚠️\tNo Swift files to format.')
         return
     cmd = [SWIFT_FORMAT_CMD] + LINT_ARGS
-    mock_command = f'{' '.join(cmd)} <{len(swift_files)} eligible files>'
+    mock_command = ' '.join(cmd)
+    mock_command = f'{mock_command} <{len(swift_files)} eligible files>'
     cmd += swift_files
     print('🧹\tFormatting Swift files...')
     print(f'🧹\tRunning: {mock_command}')
