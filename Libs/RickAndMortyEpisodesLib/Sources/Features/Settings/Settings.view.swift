@@ -170,8 +170,9 @@ extension SettingsFeature {
   }
 }
 
+private typealias Subject = SettingsFeature
 #Preview {
   NavigationStack {
-    SettingsFeature.FeatureView(viewModel: SettingsFeature.previewViewModel())
+    Subject.FeatureView(viewModel: Subject.previewViewModel())
   }
 }

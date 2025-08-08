@@ -48,7 +48,7 @@ extension EpisodesRootFeature {
     case preloadIfNeeded
     case reload(
       invalidateCache: Bool,
-      continuation: Deps.Pagination.PageLoadingContinuation?
+      continuation: Deps.Pagination.Deps.PageLoadingContinuation?
     )
 
     case pagination(Deps.Pagination.FeatureAction)
@@ -179,7 +179,7 @@ extension EpisodesRootFeature {
 
     static func initialFromCache(
       firstPageURL: URL,
-      pages: [Deps.Pagination.Page],
+      pages: [Deps.Pagination.Deps.Page],
     ) -> Self {
       FeatureState(
         pagination: .initialFromCache(
