@@ -3,52 +3,57 @@ import Foundation
 import SharedLib
 import SwiftUI
 
-/// Namespace for the EpisodesRoot feature. Serves as an anchor for project navigation.
-enum EpisodesRootFeature: Feature {
-  typealias Item = EpisodeDomainModel
-  typealias PaginationFeature = ContinuousPaginationFeature<URL, Item>
-  typealias ListItemFeature = EpisodeBriefFeature
+extension EpisodesRootFeature {
+  typealias FeatureStore = StoreOf<FeatureReducer>
+  final class ProdViewModel: FeatureViewModel {
+    typealias EpisodeListViewModel = Deps.EpisodeList.ProdViewModel
+    typealias EpisodeDetailsViewModel = Deps.EpisodeDetails.ProdViewModel
 
-  @MainActor
-  static func previewStore(
-    dependencies: Dependencies
-  ) -> FeatureStore {
-    let initialState = FeatureState(
-      pagination: .initial(
-        firstInput: MockNetworkGateway.episodesFirstPageAPIURL
-      )
-    )
-    return FeatureStore(
-      initialState: initialState,
-      reducer: { FeatureReducer() },
-      withDependencies: dependencies.updateDeps
-    )
-  }
-
-  struct FeatureView: View {
-    @Bindable
-    var store: FeatureStore
+    private let store: FeatureStore
 
     init(store: FeatureStore) {
       self.store = store
     }
 
-    var body: some View {
-      EpisodeListFeature.FeatureView(store: store)
-        .navigationTitle("Episode List")
-        .navigationDestination(
-          isPresented: $store.isPresentingEpisodeDetails
-        ) {
-          if let nestedStore = store.scope(
-            state: \.selectedEpisodeDetails,
-            action: \.selectedEpisodeDetails
-          ) {
-            EpisodeDetailsFeature.FeatureView(store: nestedStore)
-          } else {
-            Text("Try again later")
-          }
-        }
+    var episodeList: Deps.EpisodeList.ProdViewModel {
+      .init(store: store)
     }
+
+    var selectedEpisodeDetails: Deps.EpisodeDetails.ProdViewModel? {
+      guard
+        let nestedStore = store.scope(
+          state: \.selectedEpisodeDetails,
+          action: \.selectedEpisodeDetails
+        )
+      else { return nil }
+      return .init(store: nestedStore)
+    }
+    var isPresentingEpisodeDetails: Bool {
+      get { store.isPresentingEpisodeDetails }
+      set { store.isPresentingEpisodeDetails = newValue }
+    }
+  }
+
+  @CasePathable
+  enum FeatureRoute: Sendable, Hashable {
+    case root
+    case episodeDetails
+  }
+
+  @CasePathable
+  enum FeatureAction: BindableAction {
+    case presetEpisode(Deps.Episode)
+    case didPrepareEpisodeForPresentation(Deps.EpisodeDetails.FeatureState)
+    case loadNextPage
+    case preloadIfNeeded
+    case reload(
+      invalidateCache: Bool,
+      continuation: Deps.Pagination.PageLoadingContinuation?
+    )
+
+    case pagination(Deps.Pagination.FeatureAction)
+    case selectedEpisodeDetails(Deps.EpisodeDetails.FeatureAction)
+    case binding(BindingAction<FeatureState>)
   }
 
   @Reducer
@@ -89,7 +94,7 @@ enum EpisodesRootFeature: Feature {
     private var episodeDetailsReducer: some ReducerOf<Self> {
       EmptyReducer()
         .ifLet(\.selectedEpisodeDetails, action: \.selectedEpisodeDetails) {
-          EpisodeDetailsFeature.FeatureReducer()
+          Deps.EpisodeDetails.FeatureReducer()
         }
     }
 
@@ -126,13 +131,13 @@ enum EpisodesRootFeature: Feature {
             .decodedResponse
         }
       )
-      await UISelectionFeedbackGenerator().selectionChanged()
+      async let _ = UISelectionFeedbackGenerator().selectionChanged()
       await send(.didPrepareEpisodeForPresentation(state))
     }
 
     private var paginationReducer: some ReducerOf<Self> {
       Scope(state: \.pagination, action: \.pagination) {
-        PaginationFeature.FeatureReducer(
+        Deps.Pagination.FeatureReducer(
           getPage: { pageURL in
             try await networkGateway
               .get(operation: NetworkOperation.pageOfEpisodes(pageURL: pageURL))
@@ -147,8 +152,8 @@ enum EpisodesRootFeature: Feature {
 
   @ObservableState
   struct FeatureState: Equatable {
-    var pagination: PaginationFeature.FeatureState
-    var selectedEpisodeDetails: EpisodeDetailsFeature.FeatureState?
+    var pagination: Deps.Pagination.FeatureState
+    var selectedEpisodeDetails: Deps.EpisodeDetails.FeatureState?
     var route: FeatureRoute = .root
     var isPresentingEpisodeDetails: Bool {
       get {
@@ -174,7 +179,7 @@ enum EpisodesRootFeature: Feature {
 
     static func initialFromCache(
       firstPageURL: URL,
-      pages: [PaginationFeature.Page],
+      pages: [Deps.Pagination.Page],
     ) -> Self {
       FeatureState(
         pagination: .initialFromCache(
@@ -183,42 +188,6 @@ enum EpisodesRootFeature: Feature {
           nextInput: pages.last?.payload.info.next,
         ),
       )
-    }
-  }
-
-  @CasePathable
-  enum FeatureRoute: Sendable, Hashable {
-    case root
-    case episodeDetails
-  }
-
-  @CasePathable
-  enum FeatureAction: BindableAction {
-    case presetEpisode(EpisodeDomainModel)
-    case didPrepareEpisodeForPresentation(EpisodeDetailsFeature.FeatureState)
-    case loadNextPage
-    case preloadIfNeeded
-    case reload(
-      invalidateCache: Bool,
-      continuation: PaginationFeature.PageLoadingContinuation?
-    )
-
-    case pagination(PaginationFeature.FeatureAction)
-    case selectedEpisodeDetails(EpisodeDetailsFeature.FeatureAction)
-    case binding(BindingAction<FeatureState>)
-  }
-}
-
-#Preview {
-  @Previewable @State var isPlaceholder = false
-  @Previewable @State var store = EpisodesRootFeature.previewStore(
-    dependencies: Dependencies.preview()
-  )
-
-  VStack {
-    NavigationStack {
-      EpisodesRootFeature.FeatureView(store: store)
-        .navigationTitle("Test Episode List")
     }
   }
 }

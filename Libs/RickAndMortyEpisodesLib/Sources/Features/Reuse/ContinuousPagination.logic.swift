@@ -4,40 +4,7 @@ import SharedLib
 import SwiftUI
 
 /// Namespace for the ContinuousPagination feature. Serves as an anchor for project navigation.
-enum ContinuousPaginationFeature<
-  Input: Equatable & Sendable,
-  Item: Equatable & Sendable & Codable & Identifiable
->: Feature {
-  typealias FeatureView = Never
-
-  typealias Page = ResponsePageContainer<Item>
-  typealias PageLoadingFeature = ProcessHostFeature<Input, Page>
-  typealias PageLoadingContinuation = CheckedContinuation<Page, Error>
-  typealias GetPage = @Sendable (Input) async throws -> Page
-  typealias GetNextInput = @Sendable (Page) -> Input?
-  typealias IsPageFirst = @Sendable (Page) -> Bool
-
-  @MainActor
-  static func previewStore(
-    firstInput: Input,
-    getPage: @escaping GetPage,
-    getNextInput: @escaping GetNextInput,
-    isPageFirst: @escaping IsPageFirst,
-    dependencies: Dependencies
-  ) -> FeatureStore {
-    return FeatureStore(
-      initialState: .initial(firstInput: firstInput),
-      reducer: {
-        FeatureReducer(
-          getPage: getPage,
-          getNextInput: getNextInput,
-          isPageFirst: isPageFirst
-        )
-      },
-      withDependencies: dependencies.updateDeps,
-    )
-  }
-
+extension ContinuousPaginationFeature {
   @Reducer
   struct FeatureReducer {
     typealias State = FeatureState

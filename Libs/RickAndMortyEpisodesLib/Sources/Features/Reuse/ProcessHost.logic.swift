@@ -3,44 +3,7 @@ import Foundation
 import SharedLib
 import SwiftUI
 
-/// Namespace for the ProcessHost feature. Serves as an anchor for project navigation.
-enum ProcessHostFeature<Input: Equatable & Sendable, Output: Equatable>: Feature
-{
-  typealias FeatureView = Never
-
-  static func processEffect(
-    input: Input,
-    operation: @escaping @Sendable (Input) async throws -> Output,
-    send: Send<FeatureAction>
-  ) async {
-    do {
-      let result = try await operation(input)
-      await send(.finishProcessing(result))
-    } catch {
-      await send(.failedProcessing(message: "\(error)"))
-    }
-  }
-
-  @MainActor
-  static func previewStore(
-    operation: @escaping @Sendable (Input) async throws -> Output
-  ) -> FeatureStore {
-    return initialStore(cachedSuccess: nil, operation: operation)
-  }
-
-  @MainActor
-  static func initialStore(
-    cachedSuccess: Output?,
-    operation: @escaping @Sendable (Input) async throws -> Output
-  ) -> FeatureStore {
-    return FeatureStore(
-      initialState: FeatureState.initial(cachedSuccess: cachedSuccess),
-      reducer: {
-        FeatureReducer(operation: operation)
-      }
-    )
-  }
-
+extension ProcessHostFeature {
   @Reducer
   struct FeatureReducer {
     typealias State = FeatureState
@@ -61,11 +24,12 @@ enum ProcessHostFeature<Input: Equatable & Sendable, Output: Equatable>: Feature
             input: input
           )
           return .run { [operation] send in
-            await ProcessHostFeature.processEffect(
-              input: input,
-              operation: operation,
-              send: send
-            )
+            do {
+              let result = try await operation(input)
+              await send(.finishProcessing(result))
+            } catch {
+              await send(.failedProcessing(message: "\(error)"))
+            }
           }.cancellable(id: "process-operation")
         case (.processing, .finishProcessing(let result)):
           state.status = .idle(previousSuccess: result, previousFailure: nil)
@@ -114,7 +78,7 @@ enum ProcessHostFeature<Input: Equatable & Sendable, Output: Equatable>: Feature
   }
 
   @CasePathable
-  enum FeatureAction: Equatable {
+  enum FeatureAction: Equatable, Sendable {
     case process(Input)
     case finishProcessing(Output)
     case failedProcessing(message: String)

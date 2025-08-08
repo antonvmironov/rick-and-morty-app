@@ -3,15 +3,7 @@ import Foundation
 import SharedLib
 import SwiftUI
 
-/// Namespace for the EpisodeList feature. Serves as an anchor for project navigation.
-enum EpisodeListFeature {
-  typealias PaginationFeature = ContinuousPaginationFeature<
-    URL, EpisodeDomainModel
-  >
-  typealias ListItemFeature = EpisodeBriefFeature
-  typealias FeatureStore = EpisodesRootFeature.FeatureStore
-  typealias Item = EpisodesRootFeature.Item
-
+extension EpisodeListFeature {
   enum A11yIDs: A11yIDProvider {
     case cachedSince
     case episodeRow(id: String)
@@ -23,19 +15,31 @@ enum EpisodeListFeature {
     }
   }
 
-  struct FeatureView: View {
-    @Bindable
-    var store: FeatureStore
+  @MainActor protocol FeatureViewModel: AnyObject, Observable {
+    var episodes: IdentifiedArrayOf<Deps.Episode> { get }
+    var failureMessage: String? { get }
+    var cachedSince: Date? { get }
+    var hasNextPage: Bool { get }
+    var isLoadingNextPage: Bool { get }
+    func preloadIfNeeded()
+    func refresh() async
+    func presentEpisode(_ episode: Deps.Episode)
+    func loadNextPage()
+  }
 
-    init(store: FeatureStore) {
-      self.store = store
+  struct FeatureView<ViewModel: FeatureViewModel>: View {
+    @Bindable
+    var viewModel: ViewModel
+
+    init(viewModel: ViewModel) {
+      self.viewModel = viewModel
     }
 
     var body: some View {
       List {
         Section(
           content: {
-            if store.pagination.items.isEmpty {
+            if viewModel.episodes.isEmpty {
               skeletonListItems()
             } else {
               episodeListItems()
@@ -43,10 +47,10 @@ enum EpisodeListFeature {
             lastItem()
           },
           header: {
-            if let failureMessage = store.failureMessage {
+            if let failureMessage = viewModel.failureMessage {
               failureView(failureMessage: failureMessage)
-            } else if let date = store.cachedSince,
-              let dateString = Self.cachedSinceFormatter.string(for: date)
+            } else if let date = viewModel.cachedSince,
+              let dateString = cachedSinceFormatter.string(for: date)
             {
               HStack {
                 Spacer()
@@ -65,22 +69,10 @@ enum EpisodeListFeature {
       .accessibilityElement(children: .contain)
       .accessibilityLabel("Episodes list")
       .onAppear {
-        store.send(.preloadIfNeeded)
+        viewModel.preloadIfNeeded()
       }
       .refreshable {
-        do {
-          _ = try await withCheckedThrowingContinuation { continuation in
-            store.send(
-              .reload(
-                invalidateCache: true,
-                continuation: continuation
-              )
-            )
-          }
-        } catch {
-          // TODO: handle this error
-          print(error)
-        }
+        await viewModel.refresh()
       }
     }
 
@@ -89,29 +81,29 @@ enum EpisodeListFeature {
       isPlaceholder: Bool
     ) -> some View {
       HStack(spacing: UIConstants.space) {
-        ListItemFeature.FeatureView(
+        Deps.ListItem.FeatureView(
           state: .init(episode: episode, isPlaceholder: isPlaceholder)
         )
         Image(systemName: "chevron.right")
       }
     }
 
-    private static let cachedSinceFormatter: ISO8601DateFormatter = {
+    private let cachedSinceFormatter: ISO8601DateFormatter = {
       let formatter = ISO8601DateFormatter()
       return formatter
     }()
 
     private func episodeListItems() -> some View {
-      ForEach(store.pagination.items) { episode in
+      ForEach(viewModel.episodes) { episode in
         Button(
-          action: { store.send(.presetEpisode(episode)) },
+          action: { viewModel.presentEpisode(episode) },
           label: { episodeRow(episode: episode, isPlaceholder: false) }
         )
         .listRowSeparator(.hidden)
         .tag(episode.id)
         .a11yID(A11yIDs.episodeRow(id: "\(episode.id)"))
         .accessibilityElement(children: .ignore)
-        .accessibilityAction { store.send(.presetEpisode(episode)) }
+        .accessibilityAction { viewModel.presentEpisode(episode) }
         .accessibilityLabel("Episode \"\(episode.name)\" \(episode.episode)")
         .accessibilityAddTraits(.isButton)
       }
@@ -131,9 +123,9 @@ enum EpisodeListFeature {
 
     private func lastItem() -> some View {
       Group {
-        if store.pagination.nextInput != nil {
+        if viewModel.hasNextPage {
           HStack {
-            if store.pagination.pageLoading.status.isProcessing {
+            if viewModel.isLoadingNextPage {
               ProgressView()
               Text("Loading the next page...")
             } else {
@@ -141,7 +133,7 @@ enum EpisodeListFeature {
             }
           }
           .onAppear {
-            store.send(.loadNextPage)
+            viewModel.loadNextPage()
           }
           .frame(maxWidth: .infinity, alignment: .center)
           .listRowSeparator(.hidden)
@@ -168,13 +160,44 @@ enum EpisodeListFeature {
         .font(.caption)
     }
   }
+
+  final class MockViewModel: FeatureViewModel {
+    init(
+      episodes: [Deps.Episode] = [],
+      failureMessage: String? = nil,
+      cachedSince: Date? = nil,
+      hasNextPage: Bool,
+      isLoadingNextPage: Bool
+    ) {
+      self.episodes = IdentifiedArray(uniqueElements: episodes)
+      self.failureMessage = failureMessage
+      self.cachedSince = cachedSince
+      self.hasNextPage = hasNextPage
+      self.isLoadingNextPage = isLoadingNextPage
+    }
+
+    var episodes: IdentifiedArrayOf<Deps.Episode>
+    var failureMessage: String?
+    var cachedSince: Date?
+    var hasNextPage: Bool
+    var isLoadingNextPage: Bool
+    func preloadIfNeeded() { /* no-op */  }
+    func refresh() { /* no-op */  }
+    func presentEpisode(_ episode: EpisodeDomainModel) { /* no-op */  }
+    func loadNextPage() { /* no-op */  }
+
+    static func preview() -> Self {
+      .init(
+        episodes: [.dummy],
+        hasNextPage: false,
+        isLoadingNextPage: false
+      )
+    }
+  }
 }
 
+private typealias Subject = EpisodeListFeature
 #Preview {
-  @Previewable @State var isPlaceholder = false
-  @Previewable @State var store = EpisodesRootFeature.previewStore(
-    dependencies: Dependencies.preview()
-  )
-
-  EpisodeListFeature.FeatureView(store: store)
+  @Previewable @State var viewModel = Subject.MockViewModel.preview()
+  Subject.FeatureView(viewModel: viewModel)
 }

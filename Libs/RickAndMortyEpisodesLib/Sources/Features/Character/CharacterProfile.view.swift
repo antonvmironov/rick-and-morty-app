@@ -1,11 +1,9 @@
-import ComposableArchitecture
 import Foundation
 import Kingfisher
 import SharedLib
 import SwiftUI
 
-/// Namespace for the BaseCharacter feature. Serves as an anchor for project navigation.
-enum CharacterProfileFeature {
+extension CharacterProfileFeature {
   enum FeatureMode {
     case uiRendering(isPlaceholder: Bool, isShimmering: Bool)
     case snapshotRendering(imageOverride: Image)

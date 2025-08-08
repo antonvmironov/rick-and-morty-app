@@ -1,43 +1,42 @@
-import ComposableArchitecture
-import Flow
 import Foundation
 import Kingfisher
 import SharedLib
 import Shimmer
 import SwiftUI
 
-/// Namespace for the CharacterBrief feature. Serves as an anchor for project navigation.
-enum CharacterBriefFeature: Feature {
-  typealias CharacterLoadingFeature = ProcessHostFeature<
-    URL, CharacterDomainModel
-  >
-  typealias FeatureStore = BaseCharacterFeature.FeatureStore
-  typealias TestStore = BaseCharacterFeature.TestStore
-  typealias FeatureReducer = BaseCharacterFeature.FeatureReducer
-  typealias FeatureState = BaseCharacterFeature.FeatureState
-  typealias FeatureAction = BaseCharacterFeature.FeatureAction
+extension CharacterBriefFeature {
+  @MainActor protocol FeatureViewModel: Observable, AnyObject, Identifiable
+  where ID == String {
+    var displayCharacter: CharacterDomainModel { get }
+    var isPlaceholder: Bool { get }
+    var isShimmering: Bool { get }
+    var characterURL: URL { get }
+    var characterIDString: String { get }
+    var characterLoadingSuccess: CharacterDomainModel? { get }
+    var characterLoadingFailureMessage: String? { get }
+    func preloadIfNeeded()
+    func reloadOnFailure()
+  }
 
-  struct FeatureView: View {
-    private static let characterIDMinWidth = UIConstants.space * 6
-
+  struct FeatureView<ViewModel: FeatureViewModel>: View {
     @Bindable
-    var store: FeatureStore
+    var viewModel: ViewModel
 
-    init(store: FeatureStore) {
-      self.store = store
+    init(viewModel: ViewModel) {
+      self.viewModel = viewModel
     }
 
     var body: some View {
-      characterContentView(character: store.displayCharacter)
+      characterContentView(character: viewModel.displayCharacter)
         .onAppear {
-          store.send(.preloadIfNeeded)
+          viewModel.preloadIfNeeded()
         }
     }
 
     private func reloadView() -> some View {
       return Button(
         action: {
-          store.send(.reloadOnFailure)
+          viewModel.reloadOnFailure()
         },
         label: {
           Label(
@@ -59,8 +58,8 @@ enum CharacterBriefFeature: Feature {
 
     private var loadableContentModifier: some ViewModifier {
       SkeletonDecorationFeature.FeatureViewModifier(
-        isEnabled: store.isPlaceholder,
-        isShimmering: store.isShimmering,
+        isEnabled: viewModel.isPlaceholder,
+        isShimmering: viewModel.isShimmering,
       )
     }
 
@@ -70,12 +69,12 @@ enum CharacterBriefFeature: Feature {
       HStack(spacing: UIConstants.space) {
         VStack(alignment: .leading) {
           HStack {
-            Text(store.characterIDString)
+            Text(viewModel.characterIDString)
               .font(.body)
               .fontDesign(.monospaced)
               .padding(UIConstants.space / 2)
               .frame(
-                minWidth: Self.characterIDMinWidth,
+                minWidth: UIConstants.space * 6,
                 alignment: .center
               )
               .cornerRadius(UIConstants.cornerRadius)
@@ -89,7 +88,7 @@ enum CharacterBriefFeature: Feature {
               .font(.headline)
               .modifier(loadableContentModifier)
           }
-          if store.characterLoading.status.failureMessage != nil {
+          if viewModel.characterLoadingFailureMessage != nil {
             VStack(alignment: .leading) {
               reloadView()
             }
@@ -130,7 +129,7 @@ enum CharacterBriefFeature: Feature {
 
     private func characterImage() -> some View {
       Group {
-        if let imageURL = store.characterLoading.status.success?.image {
+        if let imageURL = viewModel.characterLoadingSuccess?.image {
           KFImage
             .url(imageURL)
             .placeholder { _ in
@@ -148,31 +147,72 @@ enum CharacterBriefFeature: Feature {
       .cornerRadius(UIConstants.cornerRadius)
     }
   }
+
+  final class MockViewModel: FeatureViewModel {
+    static func placeholder() -> Self {
+      Self(
+        isPlaceholder: true,
+        isShimmering: true,
+      )
+    }
+    static func success() -> Self {
+      Self(
+        isPlaceholder: false,
+        isShimmering: false,
+        characterLoadingSuccess: .dummy,
+      )
+    }
+    static func failure() -> Self {
+      Self(
+        isPlaceholder: false,
+        isShimmering: false,
+        characterLoadingFailureMessage: "something went wrong",
+      )
+    }
+
+    init(
+      displayCharacter: CharacterDomainModel = .dummy,
+      isPlaceholder: Bool,
+      isShimmering: Bool,
+      characterURL: URL = MockNetworkGateway.characterFirstAPIURL,
+      characterLoadingSuccess: CharacterDomainModel? = nil,
+      characterLoadingFailureMessage: String? = nil
+    ) {
+      self.displayCharacter = displayCharacter
+      self.isPlaceholder = isPlaceholder
+      self.isShimmering = isShimmering
+      self.characterURL = characterURL
+      self.characterLoadingSuccess = characterLoadingSuccess
+      self.characterLoadingFailureMessage = characterLoadingFailureMessage
+    }
+
+    nonisolated var id: ID { characterIDString }
+    let displayCharacter: CharacterDomainModel
+    let isPlaceholder: Bool
+    let isShimmering: Bool
+    let characterURL: URL
+    nonisolated var characterIDString: String { characterURL.lastPathComponent }
+    let characterLoadingSuccess: CharacterDomainModel?
+    let characterLoadingFailureMessage: String?
+    func preloadIfNeeded() { /* no-op */  }
+    func reloadOnFailure() { /* no-op */  }
+  }
 }
 
+private typealias Subject = CharacterBriefFeature
 #Preview {
-  @Previewable @State var placeholderStore =
-    BaseCharacterFeature
-    .previewPlaceholderStore(dependencies: .preview())
-  @Previewable @State var successStore =
-    BaseCharacterFeature
-    .previewSuccessStore(dependencies: .preview())
-  @Previewable @State var failureStore =
-    BaseCharacterFeature
-    .previewFailureStore(dependencies: .preview())
-
   List {
     VStack(alignment: .leading) {
       Text("placeholder")
-      CharacterBriefFeature.FeatureView(store: placeholderStore)
+      Subject.FeatureView(viewModel: Subject.MockViewModel.placeholder())
     }
     VStack(alignment: .leading) {
       Text("success")
-      CharacterBriefFeature.FeatureView(store: successStore)
+      Subject.FeatureView(viewModel: Subject.MockViewModel.success())
     }
     VStack(alignment: .leading) {
       Text("failure")
-      CharacterBriefFeature.FeatureView(store: failureStore)
+      Subject.FeatureView(viewModel: Subject.MockViewModel.failure())
     }
   }
   .listStyle(.plain)

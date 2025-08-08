@@ -1,10 +1,8 @@
-import ComposableArchitecture
 import Foundation
 import SharedLib
 import SwiftUI
 
-/// Namespace for the EpisodeBrief feature. Serves as an anchor for project navigation.
-enum EpisodeBriefFeature {
+extension EpisodeBriefFeature {
   struct FeatureView: View {
     var state: FeatureState
 
@@ -35,7 +33,6 @@ enum EpisodeBriefFeature {
     }
   }
 
-  @ObservableState
   struct FeatureState: Equatable {
     var episode: EpisodeDomainModel
     var isPlaceholder: Bool
@@ -46,14 +43,11 @@ enum EpisodeBriefFeature {
   }
 }
 
+private typealias Subject = EpisodeBriefFeature
 #Preview {
   VStack {
-    EpisodeBriefFeature.FeatureView(
-      state: .preview(isPlaceholder: true)
-    )
-    EpisodeBriefFeature.FeatureView(
-      state: .preview(isPlaceholder: false)
-    )
+    Subject.FeatureView(state: .preview(isPlaceholder: true))
+    Subject.FeatureView(state: .preview(isPlaceholder: false))
   }
   .frame(maxWidth: .infinity)
 }
