@@ -94,7 +94,7 @@ extension EpisodeDetailsFeature {
             .font(.caption)
             .tagDecoration()
           Text(
-            "Aired on \(viewModel.airedOnString))"
+            "Aired on \(viewModel.airedOnString)"
           )
           .font(.caption)
           .fontDesign(.monospaced)
